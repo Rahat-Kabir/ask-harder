@@ -119,11 +119,32 @@ export function ReportPage() {
 
           <details className="answer-key">
             <summary>Answer key (revealed after interview)</summary>
+            <h4>Required</h4>
             <ul>
               {question.answer_key.required_points.map((point) => (
                 <li key={point}>{point}</li>
               ))}
             </ul>
+            {question.answer_key.strong_signals.length > 0 && (
+              <>
+                <h4>Strong signals</h4>
+                <ul>
+                  {question.answer_key.strong_signals.map((point) => (
+                    <li key={point}>{point}</li>
+                  ))}
+                </ul>
+              </>
+            )}
+            {question.answer_key.red_flags.length > 0 && (
+              <>
+                <h4>Red flags</h4>
+                <ul>
+                  {question.answer_key.red_flags.map((point) => (
+                    <li key={point}>{point}</li>
+                  ))}
+                </ul>
+              </>
+            )}
           </details>
         </section>
       ))}

@@ -38,6 +38,9 @@ export function InterviewPage() {
   const [busy, setBusy] = useState(false)
   const [streamConnected, setStreamConnected] = useState(false)
   const bootedRef = useRef(false)
+  // true while tokens are building an interviewer message; interviewer_done
+  // only awaits an answer when the interviewer actually said something
+  const interviewerSpokeRef = useRef(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -53,6 +56,7 @@ export function InterviewPage() {
 
     source.addEventListener('token', (event) => {
       const { text } = JSON.parse(event.data) as { text: string }
+      interviewerSpokeRef.current = true
       setMessages((previous) => {
         const last = previous[previous.length - 1]
         if (last?.role === 'interviewer' && last.streaming) {
@@ -107,7 +111,12 @@ export function InterviewPage() {
         }
         return previous
       })
-      setAwaitingAnswer(true)
+      // a done event with no spoken text means "no follow-up" (e.g. the
+      // last answer was accepted) — there is nothing to answer
+      if (interviewerSpokeRef.current) {
+        setAwaitingAnswer(true)
+      }
+      interviewerSpokeRef.current = false
     })
 
     source.addEventListener('interview_complete', () => {
@@ -181,7 +190,10 @@ export function InterviewPage() {
     ])
 
     try {
+      // the POST response is the authoritative state — it corrects anything
+      // the SSE handlers guessed wrong
       const state = await api.submitAnswer(id, text)
+      setAwaitingAnswer(state.awaiting_answer)
       setCanSubmitFinish(canFinish(state))
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not submit answer')

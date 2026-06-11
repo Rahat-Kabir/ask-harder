@@ -79,6 +79,21 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   microsecond offsets as turn ordering; duplicate excepts collapsed to
   `except LlmError`; `_judge_model_name` simplified.
 
+- 2026-06-12 — First real dogfood run (7-question AI-developer JD, DeepSeek +
+  Sonnet, end-to-end to report). Pipeline held: plan tailored to the JD, all
+  evidence quotes verbatim, missing points all from the frozen keys. Findings:
+  (1) `[[DONE]]` sentinel leaks into chat UI when split across stream chunks;
+  (2) Finish button never appears — `interviewer_done` SSE handler sets
+  `awaitingAnswer` unconditionally and `submitAnswer` never corrects it;
+  (3) report hid `strong_signals`/`red_flags`; (4) judge model answers can
+  contain placeholder variables ("X tasks, Y%"). **All four fixed**:
+  marker-aware `strip_done_marker()` stream filter (buffers partial-marker
+  tails, 5 new unit tests); `interviewer_done` only awaits an answer when
+  the interviewer actually spoke + `submitAnswer` syncs from the
+  authoritative POST response; ReportPage renders all three key sections;
+  judge prompt forbids placeholder variables in model answers. Verify the
+  interview-flow fixes with a dev-mode dogfood run.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;

@@ -100,6 +100,8 @@ Rules:
   only for interviewer lines — quotes must come from candidate role lines).
 - Each quote must be ONE contiguous span of the candidate's words. Never splice
   two passages together with "..." — use a separate evidence item per passage.
-- model_answer: one concise exemplar answer covering the required_points.
+- model_answer: one concise exemplar answer covering the required_points. It
+  must be fully concrete — invent realistic specifics where needed, never
+  placeholder variables like "X tasks", "Y%", or "Z hours".
 - Do not praise, soften, or hedge. Be direct.
 """

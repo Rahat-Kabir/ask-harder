@@ -3,9 +3,9 @@ from collections.abc import AsyncIterator
 from openai import AsyncOpenAI
 
 from app.llm.interviewer_common import (
-    DONE_MARKER,
     build_interviewer_messages,
     parse_interviewer_output,
+    strip_done_marker,
 )
 from app.llm.prompts import interviewer_system_prompt
 from app.schemas import InterviewerReply, InterviewQuestion, Turn
@@ -57,11 +57,13 @@ class DeepSeekInterviewer:
             stream=True,
         )
 
-        async for chunk in stream:
-            delta = chunk.choices[0].delta.content
-            if delta:
-                # strip accidental done marker fragments from the stream so the
-                # UI never flashes [[DONE]] to the candidate
-                cleaned = delta.replace(DONE_MARKER, "")
-                if cleaned:
-                    yield cleaned
+        async def raw_deltas() -> AsyncIterator[str]:
+            async for chunk in stream:
+                delta = chunk.choices[0].delta.content
+                if delta:
+                    yield delta
+
+        # marker-aware filter so the UI never sees [[DONE]], even split
+        # across deltas
+        async for token in strip_done_marker(raw_deltas()):
+            yield token
