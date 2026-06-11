@@ -19,6 +19,10 @@ export function Layout({
         <Link to="/" className="brand">
           ask-harder
         </Link>
+        <nav className="header-nav">
+          <Link to="/skills">Skills</Link>
+          <Link to="/interviews/new">New interview</Link>
+        </nav>
         <div className="session">
           <span>{user.email}</span>
           <button type="button" onClick={logout}>

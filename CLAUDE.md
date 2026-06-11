@@ -73,7 +73,8 @@ ask-harder/
 │       ├── api.ts               # typed fetch wrapper for /api/*
 │       ├── AuthPage.tsx         # login / register tabs
 │       ├── Layout.tsx           # header shell (brand, logout)
-│       ├── Home.tsx             # landing CTA
+│       ├── Home.tsx             # landing CTA + weakest-skills teaser
+│       ├── SkillsPage.tsx       # skill dashboard (/skills)
 │       ├── IntakePage.tsx       # JD paste → create interview
 │       ├── InterviewPage.tsx    # SSE chat + answer/finish
 │       ├── ReportPage.tsx       # scored report + answer keys
@@ -115,6 +116,10 @@ ask-harder/
     │   │   ├── events.py        # in-process SSE fan-out bus
     │   │   ├── sse.py           # SSE line formatting
     │   │   └── router.py        # /interviews/* REST + /stream SSE
+    │   ├── skills/
+    │   │   ├── service.py       # finish-time aggregation + list
+    │   │   ├── schemas.py       # SkillOut / SkillsOut
+    │   │   └── router.py        # GET /api/skills
     │   └── db/
     │       ├── base.py          # Base + constraint naming convention
     │       ├── models.py        # User, UserSession, Interview, Question, ...
@@ -135,6 +140,7 @@ ask-harder/
         ├── test_interview_sse_format.py
         ├── test_intake.py
         ├── test_methodology.py
+        ├── test_skills.py
         ├── test_interviewer_common.py
         ├── test_judge_common.py
         ├── test_deepseek_common.py

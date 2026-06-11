@@ -40,6 +40,7 @@ from app.llm.errors import LlmError
 from app.llm.factory import build_llm_backend
 from app.llm.interviewer_common import iter_text_chunks, parse_interviewer_output
 from app.llm.mock import MockBackend
+from app.skills.service import load_skill_profile, record_skill_scores
 from app.schemas import (
     AnswerKey,
     EvidenceItem,
@@ -115,9 +116,10 @@ class InterviewService:
 
         try:
             profile = await self.llm.parse(interview.jd_text, interview.resume_text)
+            skill_profile = await load_skill_profile(db, interview.user_id)
             plan = await self.llm.generate(
                 profile,
-                skill_profile={},
+                skill_profile=skill_profile,
                 n_questions=question_count(interview.dev_mode),
             )
         except LlmError:
@@ -310,6 +312,12 @@ class InterviewService:
                     model_answer=evaluation.model_answer,
                     judge_model=self._judge_model_name(),
                 )
+            )
+            await record_skill_scores(
+                db,
+                user_id=user.id,
+                tags=list(question.tags),
+                scores=evaluation.scores,
             )
 
         interview.status = InterviewStatus.complete

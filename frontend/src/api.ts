@@ -91,6 +91,13 @@ export type Report = {
   questions: ReportQuestion[]
 }
 
+export type Skill = {
+  tag: string
+  average: number
+  evaluation_count: number
+  updated_at: string
+}
+
 export type JudgeResults = {
   judge_backend: string
   judge_model: string
@@ -192,6 +199,8 @@ export const api = {
     request<InterviewState>(`/api/interviews/${id}/finish`, { method: 'POST' }),
 
   getReport: (id: string) => request<Report>(`/api/interviews/${id}/report`),
+
+  getSkills: () => request<{ skills: Skill[] }>('/api/skills'),
 
   methodology: () =>
     request<{ results: JudgeResults[] }>('/api/methodology'),

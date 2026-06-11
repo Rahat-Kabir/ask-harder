@@ -157,3 +157,22 @@ class QuestionEvaluation(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+
+
+class SkillScore(Base):
+    __tablename__ = "skill_scores"
+    __table_args__ = (
+        UniqueConstraint("user_id", "tag", name="uq_skill_scores_user_tag"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE")
+    )
+    tag: Mapped[str] = mapped_column(Text)
+    # running sum + count — average computed on read for exact rolling means
+    score_sum: Mapped[float] = mapped_column()
+    evaluation_count: Mapped[int] = mapped_column(Integer)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )

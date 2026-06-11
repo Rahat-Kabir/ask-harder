@@ -12,7 +12,7 @@ Build status for ask-harder v1.
 | 4 | Interviewer (streaming, probe logic) | **done** | |
 | 5 | Judge (Sonnet structured output, evidence validation) | **done** | |
 | 6 | Eval harness (fixtures, 4 suites, comparison, /methodology) | **in progress** | Harness + `/methodology` page built; Sonnet re-run and comparison remain |
-| 7 | Skill tracking (aggregates, dashboard, planner reads weak tags) | not started | |
+| 7 | Skill tracking (aggregates, dashboard, planner reads weak tags) | **done** | Slices 1–3: aggregation, `/skills` UI, planner reads top 3 weak tags |
 | 8 | Polish + ship (deploy, demo video, README) | not started | |
 
 ## v1 definition
@@ -116,12 +116,24 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   streams only `content` deltas (reasoning stays hidden). `.env.example`
   updated with v4 examples.
 
+- 2026-06-12 — Skill tracking slice 1: `skill_scores` table (sum + count per
+  user/tag, full score per tag on multi-tag questions), aggregation in
+  `finish()` same transaction as evaluations, `GET /api/skills` (auth,
+  weakest-first). Mock-judged and dev-mode interviews count — documented
+  limitation.
+
+- 2026-06-12 — Skill tracking slices 2–3: `/skills` dashboard (weakest-first
+  bars, header nav, home teaser), `_prepare_interview()` loads top 3 weak
+  tags into `skill_profile` for the planner.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;
   revisit when bumping httpx.
 - Expired session rows are never purged (harmless until scale).
 - No rate limiting on login/register (revisit before public launch).
+- Skill averages mix mock and real judge scores on the same account until a
+  `judge_model` filter is added later.
 
 ## Next up
 

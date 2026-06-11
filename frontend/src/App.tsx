@@ -8,6 +8,7 @@ import { InterviewPage } from './InterviewPage'
 import { Layout } from './Layout'
 import { MethodologyPage } from './MethodologyPage'
 import { ReportPage } from './ReportPage'
+import { SkillsPage } from './SkillsPage'
 
 type AuthState = 'checking' | { user: User } | 'anonymous'
 
@@ -43,6 +44,7 @@ export default function App() {
             <Route path="interviews/new" element={<IntakePage />} />
             <Route path="interviews/:id" element={<InterviewPage />} />
             <Route path="interviews/:id/report" element={<ReportPage />} />
+            <Route path="skills" element={<SkillsPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         )}

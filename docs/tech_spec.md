@@ -23,10 +23,10 @@ What actually exists, updated as it changes.
   the URL from app settings and metadata from `Base` — `alembic.ini` holds no
   URL. Every schema change ships as a migration; no `create_all`.
 - Tests: pytest + FastAPI TestClient, in `backend/tests/`.
-- Frontend: Vite + React 19 + TypeScript in `frontend/`. `api.ts` is the
+- Frontend: Vite +   React 19 + TypeScript in `frontend/`. `api.ts` is the
   single typed fetch wrapper. Dev: Vite proxies `/api` → `127.0.0.1:8000`
   (same-origin, cookies work, no CORS). `react-router-dom` routes:
-  `/`, `/interviews/new`, `/interviews/:id`, `/interviews/:id/report`.
+  `/`, `/interviews/new`, `/interviews/:id`, `/interviews/:id/report`, `/skills`.
   Chat page uses `EventSource` on `/api/interviews/:id/stream`.
 - URL scheme: **all API routes under `/api`**; `/health` unprefixed (infra
   probes). Page routes and API routes must never share a path — prod serves
@@ -97,6 +97,10 @@ What actually exists, updated as it changes.
 - `evaluations`: `id` UUID pk, `interview_id` + `question_id` FKs CASCADE,
   `scores_json`, `evidence_json`, `missing_points_json` JSONB,
   `model_answer`, `judge_model`, `created_at`.
+- `skill_scores`: `id` UUID pk, `user_id` FK → users CASCADE, `tag` text,
+  `score_sum` float, `evaluation_count` int, `updated_at` timestamptz;
+  unique `(user_id, tag)`. Running sum + count — average on read. Updated
+  in `finish()` per judged answer (full overall score per tag).
 
 ## Interview flow (as-built)
 
@@ -139,6 +143,8 @@ What actually exists, updated as it changes.
   from `backend/evals/results/*.json`, validated against `JudgeResults`,
   real judges sorted before the mock self-test. Rendered by the
   `/methodology` page (also public — the SPA router wraps both auth states).
+- `GET /api/skills` → 200 `{skills: [{tag, average, evaluation_count, updated_at}]}`
+  sorted weakest-first; 401 without session. Populated when interviews finish.
 
 ## Run
 
