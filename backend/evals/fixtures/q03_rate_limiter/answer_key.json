@@ -1,0 +1,9 @@
+{
+  "required_points": [
+    "Picks an algorithm (token bucket / sliding window) and says why",
+    "Identifies where state lives (per-node vs shared store)",
+    "Mentions failure behavior (fail-open vs fail-closed)"
+  ],
+  "strong_signals": ["Discusses distributed coordination trade-offs"],
+  "red_flags": ["No mention of state location"]
+}

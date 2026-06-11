@@ -1,0 +1,1 @@
+I would count how many requests each user makes and if it's too many, return an error. Maybe keep the count in a variable and reset it every minute or so.

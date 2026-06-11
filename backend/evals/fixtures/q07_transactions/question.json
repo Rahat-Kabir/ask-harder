@@ -1,0 +1,6 @@
+{
+  "position": 6,
+  "qtype": "technical",
+  "text": "What problem do transaction isolation levels solve, and how do the standard levels differ?",
+  "tags": ["databases/transactions"]
+}

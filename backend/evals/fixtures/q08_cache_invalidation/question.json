@@ -1,0 +1,6 @@
+{
+  "position": 7,
+  "qtype": "technical",
+  "text": "You put a cache in front of a slow service. How do you keep it from serving stale data, and what new failure modes did you just introduce?",
+  "tags": ["systems/caching"]
+}

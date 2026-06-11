@@ -1,0 +1,14 @@
+{
+  "required_points": [
+    "Names a concrete invalidation strategy (TTL, explicit invalidation on write, write-through)",
+    "Frames staleness as a trade-off against load and latency",
+    "Identifies cache stampede / thundering herd as a new failure mode"
+  ],
+  "strong_signals": [
+    "Mentions stampede protection (locking, request coalescing, jittered TTLs)",
+    "Versioned cache keys to make invalidation atomic"
+  ],
+  "red_flags": [
+    "Cache with no invalidation story at all"
+  ]
+}

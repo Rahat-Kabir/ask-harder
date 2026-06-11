@@ -1,0 +1,1 @@
+A teammate wanted to use MongoDB for a new service and I thought Postgres was the better fit because our data was relational. We discussed it in a couple of meetings and each made our case. In the end the tech lead sided with Postgres, so that's what we used. The teammate was fine with it and the service has been running on Postgres since.

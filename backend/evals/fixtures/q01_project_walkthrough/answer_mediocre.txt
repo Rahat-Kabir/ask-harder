@@ -1,0 +1,1 @@
+I worked on an internal dashboard for our support team. I was one of the backend developers on it. We built the API in Django and the support team uses it daily now. My part was mostly the endpoints for ticket search and some of the database queries. It shipped on time and people seemed happy with it.

@@ -1,0 +1,1 @@
+We had an outage once where the site went down. It turned out another team had deployed something bad. We restarted the servers and it came back up, so it wasn't really our fault.

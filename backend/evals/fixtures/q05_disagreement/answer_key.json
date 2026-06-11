@@ -1,0 +1,15 @@
+{
+  "required_points": [
+    "Describes a concrete disagreement and what was at stake",
+    "Argued with evidence or experiments, not authority",
+    "States how it was resolved and the outcome"
+  ],
+  "strong_signals": [
+    "Changed their own position based on evidence",
+    "Decision was documented for the team"
+  ],
+  "red_flags": [
+    "Overruled the teammate without engagement",
+    "Frames all disagreement as something to avoid"
+  ]
+}

@@ -1,0 +1,1 @@
+I'd cache the responses in Redis so the slow service isn't hit every time. Stale data isn't usually a big issue, the cache will get the new values eventually when entries get replaced.

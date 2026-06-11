@@ -1,0 +1,1 @@
+When the event happens, the server makes an HTTP POST to the customer's URL with the event data. If their endpoint is down it fails, but that's the customer's problem to keep their server running.

@@ -1,0 +1,6 @@
+{
+  "position": 8,
+  "qtype": "system_design",
+  "text": "Design the delivery side of a webhook system: your platform must notify customer-provided HTTP endpoints about events, reliably.",
+  "tags": ["system_design/webhooks"]
+}

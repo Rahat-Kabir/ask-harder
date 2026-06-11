@@ -1,0 +1,22 @@
+# env / secrets
+.env
+
+# python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# node
+node_modules/
+dist/
+
+# editor / os
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+
+# playwright artifacts
+.playwright-mcp/

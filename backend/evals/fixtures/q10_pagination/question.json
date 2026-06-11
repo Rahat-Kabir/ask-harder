@@ -1,0 +1,6 @@
+{
+  "position": 9,
+  "qtype": "system_design",
+  "text": "An API endpoint lists millions of rows. How do you paginate it, and what breaks with the naive approach?",
+  "tags": ["api-design/pagination"]
+}

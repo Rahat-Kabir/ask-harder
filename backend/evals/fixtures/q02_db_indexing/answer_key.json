@@ -1,0 +1,9 @@
+{
+  "required_points": [
+    "Index trades read speed for write cost and storage",
+    "B-tree (or similar) lookup instead of full scan",
+    "Hurts on write-heavy tables or low-selectivity columns"
+  ],
+  "strong_signals": ["Mentions covering indexes or selectivity"],
+  "red_flags": ["Indexes make everything faster"]
+}

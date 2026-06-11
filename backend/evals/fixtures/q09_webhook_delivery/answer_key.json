@@ -1,0 +1,14 @@
+{
+  "required_points": [
+    "Events go through a persistent queue, decoupled from the action that produced them",
+    "Retries with exponential backoff; persistent failures hit a dead-letter path or disable the endpoint",
+    "Delivery is at-least-once, so consumers need deduplication (event IDs) and payloads should be verifiable (signatures)"
+  ],
+  "strong_signals": [
+    "Per-endpoint isolation so one slow customer cannot delay others",
+    "Discusses ordering guarantees (or explicitly drops them)"
+  ],
+  "red_flags": [
+    "Fire-and-forget HTTP call from the request path"
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "position": 3,
+  "qtype": "behavioral",
+  "text": "Tell me about a production incident you debugged. What happened, and what changed because of it?",
+  "tags": ["behavioral/incident-response"]
+}

@@ -1,0 +1,1 @@
+If the request failed the first time, retrying it should be fine because the server didn't process it. HTTP handles this for you mostly, the client just sends it again and it works.

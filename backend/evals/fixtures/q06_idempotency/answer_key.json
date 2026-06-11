@@ -1,0 +1,14 @@
+{
+  "required_points": [
+    "Recognizes the risk: the retry can duplicate the side effect",
+    "Client sends an idempotency key the server stores and checks",
+    "Duplicate requests return the stored result of the first attempt"
+  ],
+  "strong_signals": [
+    "Discusses atomicity of the key check (unique constraint, race between concurrent retries)",
+    "Mentions key scoping or expiry"
+  ],
+  "red_flags": [
+    "Claims retrying a POST is safe by default"
+  ]
+}

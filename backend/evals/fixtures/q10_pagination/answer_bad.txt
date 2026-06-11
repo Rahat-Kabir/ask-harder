@@ -1,0 +1,1 @@
+I'd add page and page_size parameters and use LIMIT and OFFSET in the SQL query. That's the standard way, and it works the same no matter how big the table is.

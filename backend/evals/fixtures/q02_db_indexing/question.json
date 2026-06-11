@@ -1,0 +1,6 @@
+{
+  "position": 1,
+  "qtype": "technical",
+  "text": "What does a database index actually do, and when would adding one hurt?",
+  "tags": ["databases/indexing"]
+}

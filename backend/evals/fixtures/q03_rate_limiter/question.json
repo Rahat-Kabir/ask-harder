@@ -1,0 +1,6 @@
+{
+  "position": 2,
+  "qtype": "system_design",
+  "text": "Design a rate limiter for a public API. Sketch the approach.",
+  "tags": ["system_design/rate-limiting"]
+}

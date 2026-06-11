@@ -1,0 +1,14 @@
+{
+  "required_points": [
+    "Describes a concrete incident and its user or business impact",
+    "Explains a systematic diagnosis, not guesswork",
+    "Names a lasting fix or prevention that followed"
+  ],
+  "strong_signals": [
+    "Improved monitoring, alerting, or process after the incident"
+  ],
+  "red_flags": [
+    "Blames a person or team",
+    "Resolution was restart-and-hope with no root cause"
+  ]
+}

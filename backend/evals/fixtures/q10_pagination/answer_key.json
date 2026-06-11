@@ -1,0 +1,14 @@
+{
+  "required_points": [
+    "Offset pagination degrades because the database must scan and discard skipped rows",
+    "Keyset (cursor) pagination on an indexed, stable sort key",
+    "Handles rows shifting between pages (inserts/deletes) — offsets skip or duplicate items"
+  ],
+  "strong_signals": [
+    "Opaque cursor token encoding the sort position",
+    "Tie-breaking with a unique column when the sort key has duplicates"
+  ],
+  "red_flags": [
+    "Claims OFFSET/LIMIT is fine at any scale"
+  ]
+}

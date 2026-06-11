@@ -1,0 +1,6 @@
+{
+  "position": 5,
+  "qtype": "technical",
+  "text": "A client times out and retries a POST request that may have already succeeded. How do you make that safe on the server?",
+  "tags": ["api-design/idempotency"]
+}

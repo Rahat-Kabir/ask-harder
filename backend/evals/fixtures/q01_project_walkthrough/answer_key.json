@@ -1,0 +1,8 @@
+{
+  "required_points": [
+    "Names a concrete project and their specific role",
+    "States the outcome or impact"
+  ],
+  "strong_signals": ["Quantifies impact"],
+  "red_flags": ["Cannot name own contribution"]
+}

@@ -1,0 +1,1 @@
+Isolation levels are settings for how safe your transactions are. You should just always use the highest one, serializable, so nothing can go wrong with your data.

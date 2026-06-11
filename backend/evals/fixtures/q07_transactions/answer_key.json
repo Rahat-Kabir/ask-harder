@@ -1,0 +1,13 @@
+{
+  "required_points": [
+    "Concurrent transactions cause anomalies (dirty reads, non-repeatable reads, phantoms)",
+    "Names the standard levels from read uncommitted to serializable",
+    "Stronger isolation costs performance or concurrency"
+  ],
+  "strong_signals": [
+    "Explains MVCC or snapshot isolation in real databases"
+  ],
+  "red_flags": [
+    "Recommends serializable everywhere without acknowledging cost"
+  ]
+}
