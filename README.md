@@ -103,6 +103,19 @@ description, answer the questions, finish, read your report.
 - `mock` (default) — deterministic fake LLM, no API keys, full flow works.
 - `deepseek` — real models; set `DEEPSEEK_API_KEY` and `ANTHROPIC_API_KEY`.
 
+When using `deepseek`, model ids and v4 thinking mode are env-configurable per role:
+
+| Variable | Purpose |
+|----------|---------|
+| `DEEPSEEK_INTAKE_MODEL` | Intake parser model |
+| `DEEPSEEK_PLAN_MODEL` | Question planner model |
+| `DEEPSEEK_INTERVIEWER_MODEL` | Streaming interviewer model |
+| `DEEPSEEK_THINKING` | `enabled` or `disabled` — global for all DeepSeek roles |
+| `DEEPSEEK_REASONING_EFFORT` | `high` or `max` — when thinking is enabled |
+| `ANTHROPIC_JUDGE_MODEL` | Judge model (any Anthropic model id) |
+
+See [`.env.example`](.env.example) for defaults and v4 examples.
+
 ```powershell
 # tests (from backend/)
 uv run pytest tests

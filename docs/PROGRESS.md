@@ -106,8 +106,15 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   public `/methodology` SPA route (router now wraps both auth states so the
   page works logged-out) explains the four suites and renders per-judge
   cards (ordering n/n, grounding %, adherence %, run date). Verified in a
-  clean Playwright browser with no session. Real-judge numbers appear
+  clean Playwright browser with no session.   Real-judge numbers appear
   automatically once the deferred Sonnet re-run writes `anthropic.json`.
+
+- 2026-06-12 — DeepSeek v4 env config: per-role model ids
+  (`DEEPSEEK_*_MODEL`), global thinking toggle (`DEEPSEEK_THINKING`),
+  and reasoning effort (`DEEPSEEK_REASONING_EFFORT`) wired through
+  `deepseek_common.py` to intake, plan, and interviewer. Interviewer
+  streams only `content` deltas (reasoning stays hidden). `.env.example`
+  updated with v4 examples.
 
 ## Known limitations
 

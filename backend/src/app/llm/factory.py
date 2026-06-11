@@ -20,23 +20,31 @@ def build_llm_backend() -> MockBackend | CompositeLlmBackend:
     if not settings.anthropic_api_key:
         raise RuntimeError("ANTHROPIC_API_KEY is required when LLM_BACKEND=deepseek")
 
+    thinking = settings.deepseek_thinking
+    reasoning_effort = settings.deepseek_reasoning_effort
     intake_client = DeepSeekJsonClient(
         api_key=settings.deepseek_api_key,
         base_url=settings.deepseek_base_url,
         model=settings.deepseek_intake_model,
         max_tokens=settings.deepseek_intake_max_tokens,
+        thinking=thinking,
+        reasoning_effort=reasoning_effort,
     )
     plan_client = DeepSeekJsonClient(
         api_key=settings.deepseek_api_key,
         base_url=settings.deepseek_base_url,
         model=settings.deepseek_plan_model,
         max_tokens=settings.deepseek_plan_max_tokens,
+        thinking=thinking,
+        reasoning_effort=reasoning_effort,
     )
     interviewer = DeepSeekInterviewer(
         api_key=settings.deepseek_api_key,
         base_url=settings.deepseek_base_url,
         model=settings.deepseek_interviewer_model,
         max_tokens=settings.deepseek_interviewer_max_tokens,
+        thinking=thinking,
+        reasoning_effort=reasoning_effort,
     )
     judge = AnthropicJudge(
         api_key=settings.anthropic_api_key,

@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     deepseek_intake_model: str = "deepseek-chat"
     deepseek_plan_model: str = "deepseek-chat"
     deepseek_interviewer_model: str = "deepseek-chat"
+    # v4 thinking mode — global for intake, plan, and interviewer (Pure A)
+    deepseek_thinking: Literal["enabled", "disabled"] = "enabled"
+    deepseek_reasoning_effort: Literal["high", "max"] = "high"
     deepseek_intake_max_tokens: int = 1024
     deepseek_plan_max_tokens: int = 4096
     deepseek_interviewer_max_tokens: int = 512

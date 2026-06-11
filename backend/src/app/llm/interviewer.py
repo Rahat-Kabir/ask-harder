@@ -2,6 +2,11 @@ from collections.abc import AsyncIterator
 
 from openai import AsyncOpenAI
 
+from app.llm.deepseek_common import (
+    DeepSeekReasoningEffort,
+    DeepSeekThinking,
+    deepseek_completion_kwargs,
+)
 from app.llm.interviewer_common import (
     build_interviewer_messages,
     parse_interviewer_output,
@@ -19,10 +24,16 @@ class DeepSeekInterviewer:
         base_url: str,
         model: str,
         max_tokens: int,
+        thinking: DeepSeekThinking = "enabled",
+        reasoning_effort: DeepSeekReasoningEffort = "high",
     ) -> None:
         self._client = AsyncOpenAI(api_key=api_key, base_url=base_url)
         self._model = model
         self._max_tokens = max_tokens
+        self._thinking_kwargs = deepseek_completion_kwargs(
+            thinking=thinking,
+            reasoning_effort=reasoning_effort,
+        )
 
     async def respond(
         self,
@@ -55,6 +66,7 @@ class DeepSeekInterviewer:
             ],
             max_tokens=self._max_tokens,
             stream=True,
+            **self._thinking_kwargs,
         )
 
         async def raw_deltas() -> AsyncIterator[str]:

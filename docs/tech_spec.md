@@ -11,7 +11,10 @@ What actually exists, updated as it changes.
   app runs natively with `uvicorn --reload`).
 - Config: pydantic-settings (`app/config.py`) reads the **repo-root** `.env`;
   in prod the file is absent and real env vars take over. `DATABASE_URL` is
-  required — startup fails fast without it.
+  required — startup fails fast without it. DeepSeek model ids are per-role
+  (`DEEPSEEK_INTAKE_MODEL`, `DEEPSEEK_PLAN_MODEL`, `DEEPSEEK_INTERVIEWER_MODEL`);
+  v4 thinking is one global switch (`DEEPSEEK_THINKING`, `DEEPSEEK_REASONING_EFFORT`).
+  Anthropic judge model via `ANTHROPIC_JUDGE_MODEL`. See `.env.example`.
 - DB: SQLAlchemy 2.0 typed ORM (`Mapped[]`), async engine on asyncpg.
   `app/db/base.py` defines `Base` with a constraint **naming convention**;
   `app/db/session.py` exposes `get_session()` (one session per request,
@@ -38,7 +41,9 @@ What actually exists, updated as it changes.
   `MockBackend`; deepseek = `DeepSeekIntakeParser` + `DeepSeekPlanGenerator`
   (OpenAI-compatible API, JSON mode, Pydantic validation) wired through
   `CompositeLlmBackend` with `DeepSeekInterviewer` + `AnthropicJudge`
-  (Claude Sonnet 4.6, `messages.parse()`).
+  (Claude Sonnet 4.6, `messages.parse()`). DeepSeek v4 thinking mode
+  (`extra_body.thinking`, `reasoning_effort`) is built in `deepseek_common.py`
+  and applied to intake, plan, and interviewer from env.
 - Context starvation is type-enforced: Interviewer receives
   `InterviewQuestion` (no answer_key field), Judge receives
   `PlannedQuestion` (with key). `PlannedQuestion.public()` strips the key.

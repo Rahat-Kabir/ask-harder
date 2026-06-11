@@ -4,6 +4,11 @@ from typing import TypeVar
 from openai import AsyncOpenAI
 from pydantic import BaseModel, Field, ValidationError
 
+from app.llm.deepseek_common import (
+    DeepSeekReasoningEffort,
+    DeepSeekThinking,
+    deepseek_completion_kwargs,
+)
 from app.llm.errors import (
     IntakeParseError,
     LlmEmptyResponse,
@@ -54,10 +59,16 @@ class DeepSeekJsonClient:
         base_url: str,
         model: str,
         max_tokens: int,
+        thinking: DeepSeekThinking = "enabled",
+        reasoning_effort: DeepSeekReasoningEffort = "high",
     ) -> None:
         self._client = AsyncOpenAI(api_key=api_key, base_url=base_url)
         self._model = model
         self._max_tokens = max_tokens
+        self._thinking_kwargs = deepseek_completion_kwargs(
+            thinking=thinking,
+            reasoning_effort=reasoning_effort,
+        )
 
     async def complete_json(
         self,
@@ -76,6 +87,7 @@ class DeepSeekJsonClient:
                 ],
                 response_format={"type": "json_object"},
                 max_tokens=self._max_tokens,
+                **self._thinking_kwargs,
             )
             content = response.choices[0].message.content
             if not content or not content.strip():

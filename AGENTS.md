@@ -93,6 +93,7 @@ ask-harder/
     │   ├── llm/
     │   │   ├── interfaces.py    # IntakeParser/PlanGenerator/Interviewer/Judge protocols
     │   │   ├── mock.py          # MockBackend (all four, deterministic, no API keys)
+    │   │   ├── deepseek_common.py # v4 thinking/reasoning kwargs for DeepSeek calls
     │   │   ├── intake.py        # intake + plan generation (DeepSeek, JSON mode)
     │   │   ├── interviewer.py   # streaming interviewer (DeepSeek)
     │   │   ├── interviewer_common.py    # probe parse, text chunking
@@ -136,6 +137,7 @@ ask-harder/
         ├── test_methodology.py
         ├── test_interviewer_common.py
         ├── test_judge_common.py
+        ├── test_deepseek_common.py
         └── test_judge.py
 ```
 
