@@ -11,7 +11,7 @@ Build status for ask-harder v1.
 | 3 | Intake + plan (real DeepSeek, validated JSON) | **done** | |
 | 4 | Interviewer (streaming, probe logic) | **done** | |
 | 5 | Judge (Sonnet structured output, evidence validation) | **done** | |
-| 6 | Eval harness (fixtures, 4 suites, comparison, /methodology) | **in progress** | Harness built; Sonnet re-run and `/methodology` page remain |
+| 6 | Eval harness (fixtures, 4 suites, comparison, /methodology) | **in progress** | Harness + `/methodology` page built; Sonnet re-run and comparison remain |
 | 7 | Skill tracking (aggregates, dashboard, planner reads weak tags) | not started | |
 | 8 | Polish + ship (deploy, demo video, README) | not started | |
 
@@ -91,8 +91,23 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   tails, 5 new unit tests); `interviewer_done` only awaits an answer when
   the interviewer actually spoke + `submitAnswer` syncs from the
   authoritative POST response; ReportPage renders all three key sections;
-  judge prompt forbids placeholder variables in model answers. Verify the
-  interview-flow fixes with a dev-mode dogfood run.
+  judge prompt forbids placeholder variables in model answers.
+- 2026-06-12 — Interview-flow fixes verified in a real browser ($0):
+  isolated mock stack (uvicorn :8001 + vite :5175; `VITE_API_TARGET` env
+  added to the vite proxy for exactly this), full 3-question dev-mode
+  interview driven by Playwright. Finish button appeared unprompted after
+  the last answer, no phantom interviewer bubble, finish → report
+  auto-navigation worked, report shows all three answer-key sections.
+  Still needing a real DeepSeek run to verify: the `[[DONE]]` stream fix
+  and the no-placeholder model-answer prompt rule.
+
+- 2026-06-12 — `/methodology` built ($0): `GET /api/methodology` (no auth)
+  serves the committed `evals/results/*.json` validated through pydantic;
+  public `/methodology` SPA route (router now wraps both auth states so the
+  page works logged-out) explains the four suites and renders per-judge
+  cards (ordering n/n, grounding %, adherence %, run date). Verified in a
+  clean Playwright browser with no session. Real-judge numbers appear
+  automatically once the deferred Sonnet re-run writes `anthropic.json`.
 
 ## Known limitations
 
