@@ -130,6 +130,10 @@ What actually exists, updated as it changes.
   stream one `token` per LLM delta; planned questions chunk text. `InterviewEventBus` (in-process)
   bridges REST mutations to open streams; complete interviews replay
   `interview_complete` and close.
+- `GET /api/methodology` → public (no auth): committed judge-eval artifacts
+  from `backend/evals/results/*.json`, validated against `JudgeResults`,
+  real judges sorted before the mock self-test. Rendered by the
+  `/methodology` page (also public — the SPA router wraps both auth states).
 
 ## Run
 

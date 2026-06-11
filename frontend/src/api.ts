@@ -91,6 +91,16 @@ export type Report = {
   questions: ReportQuestion[]
 }
 
+export type JudgeResults = {
+  judge_backend: string
+  judge_model: string
+  generated_at: string
+  evaluations: number
+  grounding: { quotes_total: number; quotes_grounded: number; rate: number | null }
+  key_adherence: { points_total: number; points_matched: number; rate: number | null }
+  fixtures: Record<string, { ordering_ok?: boolean }>
+}
+
 export class ApiError extends Error {
   status: number
 
@@ -182,4 +192,7 @@ export const api = {
     request<InterviewState>(`/api/interviews/${id}/finish`, { method: 'POST' }),
 
   getReport: (id: string) => request<Report>(`/api/interviews/${id}/report`),
+
+  methodology: () =>
+    request<{ results: JudgeResults[] }>('/api/methodology'),
 }

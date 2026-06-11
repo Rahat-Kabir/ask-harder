@@ -77,6 +77,7 @@ ask-harder/
 │       ├── IntakePage.tsx       # JD paste → create interview
 │       ├── InterviewPage.tsx    # SSE chat + answer/finish
 │       ├── ReportPage.tsx       # scored report + answer keys
+│       ├── MethodologyPage.tsx  # public eval results (no auth)
 │       └── index.css
 │
 └── backend/                     # uv package `ask-harder-backend`
@@ -86,6 +87,7 @@ ask-harder/
     │   └── versions/
     ├── src/app/                 # import name `app`
     │   ├── main.py              # FastAPI app + /health, routers wired here
+    │   ├── methodology.py       # GET /api/methodology — serves evals/results/
     │   ├── config.py            # pydantic-settings, reads root .env
     │   ├── schemas.py           # LLM I/O types (Profile, Plan, Evaluation, ...)
     │   ├── llm/
@@ -131,6 +133,7 @@ ask-harder/
         ├── test_interview_stream.py
         ├── test_interview_sse_format.py
         ├── test_intake.py
+        ├── test_methodology.py
         ├── test_interviewer_common.py
         ├── test_judge_common.py
         └── test_judge.py

@@ -9,7 +9,9 @@ export default defineConfig({
     // cookies flow without any CORS setup. In prod the backend serves the
     // built SPA from the same origin and no proxy exists.
     proxy: {
-      '/api': 'http://127.0.0.1:8000',
+      // VITE_API_TARGET lets a second dev stack (e.g. browser verification
+      // against a mock-mode backend) point elsewhere without edits
+      '/api': process.env.VITE_API_TARGET ?? 'http://127.0.0.1:8000',
     },
   },
 })
