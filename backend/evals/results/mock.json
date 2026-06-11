@@ -1,7 +1,7 @@
 {
   "judge_backend": "mock",
   "judge_model": "mock",
-  "generated_at": "2026-06-11T10:14:58.123729+00:00",
+  "generated_at": "2026-06-11T10:38:45.357021+00:00",
   "evaluations": 90,
   "grounding": {
     "quotes_total": 90,

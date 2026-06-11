@@ -7,12 +7,12 @@ delivers the interviewer-side events to any open stream for that interview.
 import asyncio
 from collections import defaultdict
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 from uuid import UUID
 
 
-class StreamEventName(str, Enum):
+class StreamEventName(StrEnum):
     question = "question"
     token = "token"
     interviewer_done = "interviewer_done"

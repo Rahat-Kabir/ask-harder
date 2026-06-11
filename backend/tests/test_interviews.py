@@ -66,7 +66,9 @@ async def test_create_persists_questions(client):
 
     async with new_session() as db:
         interview = (
-            await db.execute(select(Interview).where(Interview.id == uuid.UUID(interview_id)))
+            await db.execute(
+                select(Interview).where(Interview.id == uuid.UUID(interview_id))
+            )
         ).scalar_one()
         question_count = (
             await db.execute(
@@ -164,7 +166,7 @@ async def test_other_user_cannot_access_interview(client):
 
 async def test_delete_me_cascades_interviews(client):
     await _register(client)
-    interview_id = await _create_interview(client)
+    await _create_interview(client)
 
     delete = await client.delete("/api/me")
     assert delete.status_code == 204
@@ -173,7 +175,9 @@ async def test_delete_me_cascades_interviews(client):
         interview_count = (
             await db.execute(select(func.count()).select_from(Interview))
         ).scalar_one()
-        user_count = (await db.execute(select(func.count()).select_from(User))).scalar_one()
+        user_count = (
+            await db.execute(select(func.count()).select_from(User))
+        ).scalar_one()
     assert interview_count == 0
     assert user_count == 0
 

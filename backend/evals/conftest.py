@@ -14,6 +14,7 @@ missing_points, which would make these assertions true by construction.
 import json
 import os
 from dataclasses import dataclass
+from datetime import UTC
 from pathlib import Path
 
 import pytest
@@ -54,13 +55,9 @@ def load_fixtures() -> list[EvalFixture]:
         key_data = json.loads(
             (fixture_dir / "answer_key.json").read_text(encoding="utf-8")
         )
-        question = PlannedQuestion(
-            **question_data, answer_key=AnswerKey(**key_data)
-        )
+        question = PlannedQuestion(**question_data, answer_key=AnswerKey(**key_data))
         answers = {
-            quality: (fixture_dir / f"answer_{quality}.txt").read_text(
-                encoding="utf-8"
-            )
+            quality: (fixture_dir / f"answer_{quality}.txt").read_text(encoding="utf-8")
             for quality in ANSWER_QUALITIES
         }
         fixtures.append(
@@ -127,7 +124,7 @@ def overall_score(evaluation: Evaluation) -> float:
 
 
 def _build_report() -> dict:
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     from app.llm.judge_common import candidate_transcript, quote_in_transcript
 
@@ -160,16 +157,13 @@ def _build_report() -> dict:
 
     for entry in per_fixture.values():
         run0 = {
-            quality: data["overall_by_run"].get(0)
-            for quality, data in entry.items()
+            quality: data["overall_by_run"].get(0) for quality, data in entry.items()
         }
         if all(run0.get(quality) is not None for quality in ANSWER_QUALITIES):
-            entry["ordering_ok"] = (
-                run0["bad"] < run0["mediocre"] < run0["strong"]
-            )
+            entry["ordering_ok"] = run0["bad"] < run0["mediocre"] < run0["strong"]
         # stability spread per dimension (max - min across runs), only
         # meaningful when the stability suite ran (multiple runs cached)
-        for quality, data in list(entry.items()):
+        for data in list(entry.values()):
             if not isinstance(data, dict) or len(data["scores_by_run"]) < 2:
                 continue
             data["spread"] = {
@@ -189,7 +183,7 @@ def _build_report() -> dict:
     return {
         "judge_backend": judge_backend,
         "judge_model": judge_model,
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         "evaluations": len(_evaluation_cache),
         "grounding": {
             "quotes_total": quotes_total,

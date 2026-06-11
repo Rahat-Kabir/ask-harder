@@ -7,10 +7,7 @@ def test_format_sse_serializes_event_and_data():
         event=StreamEventName.token,
         data={"text": "Hello"},
     )
-    assert format_sse(message) == (
-        'event: token\n'
-        'data: {"text": "Hello"}\n\n'
-    )
+    assert format_sse(message) == ('event: token\ndata: {"text": "Hello"}\n\n')
 
 
 def test_format_keepalive_is_sse_comment():

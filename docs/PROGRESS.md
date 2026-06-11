@@ -68,6 +68,16 @@ adherence at 71% because the model appended commentary to key strings.
 Prompt and validator fixes applied — one contiguous span per quote,
 character-for-character `missing_points`, segment-wise grounding for
 ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
+- 2026-06-11 — Tooling + cleanup slice: **ruff** (lint `E,F,W,I,UP,B,SIM` +
+  format; `prompts.py` exempt from E501 — rewrapping prompt text would
+  change the prompts), whole backend reformatted, enums → `StrEnum`,
+  `raise ... from` in routers. **CI** (GitHub Actions): ruff + pytest
+  (Postgres 17 service) + mock evals + frontend lint/build on every push.
+  Code smells fixed: background prep tasks held in a strong-reference set
+  (GC safety); `turns.sequence` column (0-based per interview, unique,
+  backfilled in migration `b7c8d9e0f1a2`) replaces fabricated created_at
+  microsecond offsets as turn ordering; duplicate excepts collapsed to
+  `except LlmError`; `_judge_model_name` simplified.
 
 ## Known limitations
 

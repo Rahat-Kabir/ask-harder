@@ -64,9 +64,7 @@ async def test_score_stability(fixture: EvalFixture, quality: str):
         for run_index in range(STABILITY_RUNS)
     ]
     for dimension in SCORE_DIMENSIONS:
-        values = [
-            getattr(evaluation.scores, dimension) for evaluation in evaluations
-        ]
+        values = [getattr(evaluation.scores, dimension) for evaluation in evaluations]
         assert max(values) - min(values) <= MAX_DIMENSION_SPREAD, (
             f"unstable {dimension} on {fixture.name}/{quality}: {values}"
         )

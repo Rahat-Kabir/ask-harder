@@ -40,9 +40,7 @@ class AnthropicJudge:
         question: PlannedQuestion,
         turns: list[Turn],
     ) -> Evaluation:
-        user_prompt = build_judge_user_prompt(
-            question.text, question.answer_key, turns
-        )
+        user_prompt = build_judge_user_prompt(question.text, question.answer_key, turns)
         last_evaluation: Evaluation | None = None
 
         for attempt in range(MAX_JUDGE_ATTEMPTS):

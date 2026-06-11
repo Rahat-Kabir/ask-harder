@@ -53,6 +53,7 @@ structure that doesn't exist yet.
 
 ```
 ask-harder/
+├── .github/workflows/ci.yml    # CI: ruff + pytest + mock evals + frontend build
 ├── AGENTS.md / CLAUDE.md        # this file + byte-identical mirror
 ├── README.md
 ├── LICENSE

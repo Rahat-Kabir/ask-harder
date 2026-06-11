@@ -15,9 +15,9 @@ from sqlalchemy.engine import make_url
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 REPO_ROOT = BACKEND_DIR.parent
 
-_dev_url = os.environ.get("DATABASE_URL") or dotenv_values(REPO_ROOT / ".env")[
-    "DATABASE_URL"
-]
+_dev_url = (
+    os.environ.get("DATABASE_URL") or dotenv_values(REPO_ROOT / ".env")["DATABASE_URL"]
+)
 TEST_DB_NAME = "askharder_test"
 TEST_URL = make_url(_dev_url).set(database=TEST_DB_NAME)
 os.environ["DATABASE_URL"] = TEST_URL.render_as_string(hide_password=False)
@@ -26,11 +26,11 @@ os.environ["LLM_BACKEND"] = "mock"
 # app imports must come after the env rewrite above
 import asyncpg  # noqa: E402
 import pytest  # noqa: E402
-from alembic import command  # noqa: E402
 from alembic.config import Config  # noqa: E402
 from httpx import ASGITransport, AsyncClient  # noqa: E402
 from sqlalchemy import text  # noqa: E402
 
+from alembic import command  # noqa: E402
 from app.db.base import Base  # noqa: E402
 from app.db.session import engine  # noqa: E402
 from app.interviews.events import interview_events  # noqa: E402

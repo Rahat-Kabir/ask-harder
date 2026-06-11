@@ -1,11 +1,12 @@
 import asyncio
 import logging
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.db.models import (
     Interview,
     InterviewStatus,
@@ -15,6 +16,8 @@ from app.db.models import (
     TurnRole,
     User,
 )
+from app.db.session import new_session
+from app.interviews.events import InterviewEventBus, StreamEventName, interview_events
 from app.interviews.schemas import (
     CreateInterviewOut,
     EvaluationOut,
@@ -24,22 +27,19 @@ from app.interviews.schemas import (
     TurnOut,
 )
 from app.interviews.state_machine import (
+    MAX_PROBES_PER_QUESTION,
     InvalidTransition,
     all_questions_answered,
     assert_status,
     awaiting_answer,
     probes_used_on_question,
     question_count,
-    MAX_PROBES_PER_QUESTION,
 )
-from app.config import settings
-from app.interviews.events import InterviewEventBus, StreamEventName, interview_events
 from app.llm.composite import CompositeLlmBackend
-from app.llm.errors import IntakeParseError, LlmError
+from app.llm.errors import LlmError
 from app.llm.factory import build_llm_backend
 from app.llm.interviewer_common import iter_text_chunks, parse_interviewer_output
 from app.llm.mock import MockBackend
-from app.db.session import new_session
 from app.schemas import (
     AnswerKey,
     EvidenceItem,
@@ -53,6 +53,9 @@ from app.schemas import (
 
 logger = logging.getLogger(__name__)
 LlmBackend = MockBackend | CompositeLlmBackend
+
+# strong references to fire-and-forget preparation tasks (see create())
+_background_tasks: set[asyncio.Task] = set()
 
 
 class InterviewService:
@@ -87,7 +90,11 @@ class InterviewService:
             await self._prepare_interview(db, interview.id)
             return CreateInterviewOut(id=interview.id, status="ready")
 
-        asyncio.create_task(self._prepare_interview_background(interview.id))
+        task = asyncio.create_task(self._prepare_interview_background(interview.id))
+        # the event loop holds tasks weakly — without a reference the task
+        # can be garbage-collected mid-run
+        _background_tasks.add(task)
+        task.add_done_callback(_background_tasks.discard)
         return CreateInterviewOut(id=interview.id, status="preparing")
 
     async def _prepare_interview_background(self, interview_id: uuid.UUID) -> None:
@@ -113,11 +120,9 @@ class InterviewService:
                 skill_profile={},
                 n_questions=question_count(interview.dev_mode),
             )
-        except IntakeParseError:
-            interview.status = InterviewStatus.abandoned
-            await db.commit()
-            return
         except LlmError:
+            # covers IntakeParseError too — any provider failure during
+            # preparation abandons the interview
             interview.status = InterviewStatus.abandoned
             await db.commit()
             return
@@ -308,7 +313,7 @@ class InterviewService:
             )
 
         interview.status = InterviewStatus.complete
-        interview.finished_at = datetime.now(timezone.utc)
+        interview.finished_at = datetime.now(UTC)
         await db.commit()
         self.events.publish(
             interview.id,
@@ -335,7 +340,9 @@ class InterviewService:
         questions = await self._load_questions(db, interview.id)
         all_turns = await self._load_all_turns(db, interview.id)
         evaluations = await self._load_evaluations(db, interview.id)
-        eval_by_question = {evaluation.question_id: evaluation for evaluation in evaluations}
+        eval_by_question = {
+            evaluation.question_id: evaluation for evaluation in evaluations
+        }
 
         report_questions: list[ReportQuestionOut] = []
         for question in questions:
@@ -350,7 +357,10 @@ class InterviewService:
                     text=question.text,
                     tags=list(question.tags),
                     answer_key=AnswerKey.model_validate(question.answer_key_json),
-                    turns=[self._turn_out(turn, question.position) for turn in question_turns],
+                    turns=[
+                        self._turn_out(turn, question.position)
+                        for turn in question_turns
+                    ],
                     evaluation=EvaluationOut(
                         scores=Scores.model_validate(stored_eval.scores_json),
                         evidence=[
@@ -406,7 +416,7 @@ class InterviewService:
         result = await db.execute(
             select(InterviewTurn)
             .where(InterviewTurn.question_id == question_id)
-            .order_by(InterviewTurn.created_at)
+            .order_by(InterviewTurn.sequence)
         )
         return list(result.scalars().all())
 
@@ -416,7 +426,7 @@ class InterviewService:
         result = await db.execute(
             select(InterviewTurn)
             .where(InterviewTurn.interview_id == interview_id)
-            .order_by(InterviewTurn.created_at)
+            .order_by(InterviewTurn.sequence)
         )
         return list(result.scalars().all())
 
@@ -447,9 +457,7 @@ class InterviewService:
                 text=current_db_question.text,
             )
             current_turns = [
-                turn
-                for turn in all_turns
-                if turn.question_id == current_db_question.id
+                turn for turn in all_turns if turn.question_id == current_db_question.id
             ]
 
         turn_outs = [
@@ -483,8 +491,6 @@ class InterviewService:
         content: str,
         is_probe: bool = False,
     ) -> InterviewTurn:
-        # explicit timestamps keep turn order stable when several rows are
-        # inserted in one transaction (server_default now() ties otherwise)
         turn_count = (
             await db.execute(
                 select(func.count())
@@ -492,14 +498,13 @@ class InterviewService:
                 .where(InterviewTurn.interview_id == interview_id)
             )
         ).scalar_one()
-        created_at = datetime.now(timezone.utc) + timedelta(microseconds=turn_count)
         return InterviewTurn(
             interview_id=interview_id,
             question_id=question_id,
+            sequence=turn_count,
             role=role,
             content=content,
             is_probe=is_probe,
-            created_at=created_at,
         )
 
     @staticmethod
@@ -521,11 +526,7 @@ class InterviewService:
         ]
 
     def _judge_model_name(self) -> str:
-        if isinstance(self.llm, MockBackend):
-            return self.llm.judge_model_name
-        if isinstance(self.llm, CompositeLlmBackend):
-            return self.llm.judge_model_name
-        return "mock"
+        return self.llm.judge_model_name
 
     async def _stream_interviewer_reply(
         self,

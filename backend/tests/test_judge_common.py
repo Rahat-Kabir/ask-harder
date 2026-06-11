@@ -18,13 +18,17 @@ def test_quote_not_in_transcript():
 
 def test_ellipsis_spliced_quote_grounds_when_all_segments_verbatim():
     transcript = "I built a rate limiter with Redis. Later I added fail-open behavior."
-    assert quote_in_transcript("a rate limiter with Redis... fail-open behavior", transcript)
+    assert quote_in_transcript(
+        "a rate limiter with Redis... fail-open behavior", transcript
+    )
     assert quote_in_transcript("a rate limiter… fail-open behavior", transcript)
 
 
 def test_ellipsis_spliced_quote_fails_when_any_segment_invented():
     transcript = "I built a rate limiter with Redis."
-    assert not quote_in_transcript("a rate limiter with Redis... using Kafka", transcript)
+    assert not quote_in_transcript(
+        "a rate limiter with Redis... using Kafka", transcript
+    )
 
 
 def test_quote_of_only_ellipsis_is_not_grounded():

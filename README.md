@@ -1,5 +1,7 @@
 # ask-harder
 
+[![CI](https://github.com/Rahat-Kabir/ask-harder/actions/workflows/ci.yml/badge.svg)](https://github.com/Rahat-Kabir/ask-harder/actions/workflows/ci.yml)
+
 AI mock interviewer for developers — paste a job description, take a tailored
 interview, get harsh, evidence-grounded feedback. _"The interviewer that
 actually says no."_

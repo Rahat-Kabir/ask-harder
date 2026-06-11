@@ -128,9 +128,7 @@ class DeepSeekIntakeParser:
             role=parsed.role.strip(),
             seniority=parsed.seniority.strip(),
             stack=[item.strip() for item in parsed.stack if item.strip()],
-            competencies=[
-                item.strip() for item in parsed.competencies if item.strip()
-            ],
+            competencies=[item.strip() for item in parsed.competencies if item.strip()],
             resume_claims=[
                 item.strip() for item in parsed.resume_claims if item.strip()
             ],

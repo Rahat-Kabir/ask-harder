@@ -5,13 +5,13 @@ these types (or fail validation), and the rest of the app only ever sees
 validated data. The mock and real backends are interchangeable behind them.
 """
 
-from enum import Enum
+from enum import StrEnum
 from typing import Literal
 
 from pydantic import BaseModel, Field
 
 
-class QuestionType(str, Enum):
+class QuestionType(StrEnum):
     warmup = "warmup"
     behavioral = "behavioral"
     technical = "technical"

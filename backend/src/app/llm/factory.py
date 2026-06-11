@@ -16,13 +16,9 @@ def build_llm_backend() -> MockBackend | CompositeLlmBackend:
         return mock
 
     if not settings.deepseek_api_key:
-        raise RuntimeError(
-            "DEEPSEEK_API_KEY is required when LLM_BACKEND=deepseek"
-        )
+        raise RuntimeError("DEEPSEEK_API_KEY is required when LLM_BACKEND=deepseek")
     if not settings.anthropic_api_key:
-        raise RuntimeError(
-            "ANTHROPIC_API_KEY is required when LLM_BACKEND=deepseek"
-        )
+        raise RuntimeError("ANTHROPIC_API_KEY is required when LLM_BACKEND=deepseek")
 
     intake_client = DeepSeekJsonClient(
         api_key=settings.deepseek_api_key,

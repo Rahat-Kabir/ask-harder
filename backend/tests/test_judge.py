@@ -1,7 +1,7 @@
-﻿import pytest
+import pytest
 
-from app.llm.judge import AnthropicJudge
 from app.llm.errors import LlmEmptyResponse
+from app.llm.judge import AnthropicJudge
 from app.schemas import (
     AnswerKey,
     Evaluation,
@@ -47,9 +47,7 @@ GOOD_EVALUATION = Evaluation(
 
 BAD_GROUNDING_EVALUATION = Evaluation(
     scores=Scores(correctness=2, depth=2, structure=2, communication=2),
-    evidence=[
-        EvidenceItem(claim="Hallucinated", quote="I used Kafka for rate limits")
-    ],
+    evidence=[EvidenceItem(claim="Hallucinated", quote="I used Kafka for rate limits")],
     missing_points=["Picks an algorithm"],
     model_answer="Explain algorithm and storage.",
 )
@@ -126,9 +124,7 @@ async def test_anthropic_judge_retries_on_bad_grounding():
 
 
 async def test_anthropic_judge_strips_invalid_evidence_after_retry():
-    client = _FakeAnthropicClient(
-        [BAD_GROUNDING_EVALUATION, BAD_GROUNDING_EVALUATION]
-    )
+    client = _FakeAnthropicClient([BAD_GROUNDING_EVALUATION, BAD_GROUNDING_EVALUATION])
     judge = AnthropicJudge(
         api_key="test-key",
         model="claude-sonnet-4-6",

@@ -123,7 +123,8 @@ class MockBackend:
             return InterviewerReply(text=question.text)
         if probes_left > 0 and len(candidate_answers) == 1:
             return InterviewerReply(
-                text="Can you give a concrete example of that — what did you actually do?"
+                text="Can you give a concrete example of that — "
+                "what did you actually do?"
             )
         return InterviewerReply(done=True)
 

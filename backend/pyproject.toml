@@ -32,7 +32,21 @@ module-name = "app"
 dev = [
     "httpx>=0.28.1",
     "pytest>=9.0.3",
+    "ruff>=0.14.0",
 ]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 88
+
+[tool.ruff.lint]
+# pyflakes/pycodestyle + import sorting, modernization, bugbear, simplify
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+# prompt text is the product — rewrapping lines would change the prompts
+# (and invalidate their stable cache prefix) just to satisfy line length
+"src/app/llm/prompts.py" = ["E501"]
 
 [tool.pytest.ini_options]
 markers = [

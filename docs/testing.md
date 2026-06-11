@@ -8,6 +8,17 @@ Backend tests live in `backend/tests/`, run with pytest:
 uv run pytest
 ```
 
+## Lint / format (ruff)
+
+```powershell
+# from backend/
+uv run ruff check src tests evals    # lint (add --fix for autofixes)
+uv run ruff format src tests evals   # format
+```
+
+CI (`.github/workflows/ci.yml`) enforces both on every push, plus the full
+test suite, the mock evals, and the frontend lint + type-checked build.
+
 ## How DB tests work
 
 - Tests run against a real Postgres database, `askharder_test` — same

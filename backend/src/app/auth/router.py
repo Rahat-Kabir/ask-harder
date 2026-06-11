@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Cookie, HTTPException, Response, status
@@ -23,7 +23,7 @@ router = APIRouter(tags=["auth"])
 
 async def _start_session(db: AsyncSession, user: User, response: Response) -> None:
     cookie_token, token_hash = new_session_token()
-    expires_at = datetime.now(timezone.utc) + timedelta(days=settings.session_ttl_days)
+    expires_at = datetime.now(UTC) + timedelta(days=settings.session_ttl_days)
     db.add(UserSession(token_hash=token_hash, user_id=user.id, expires_at=expires_at))
     response.set_cookie(
         settings.session_cookie_name,
@@ -50,7 +50,9 @@ async def register(body: RegisterIn, db: DbSession, response: Response) -> UserO
     try:
         await db.flush()
     except IntegrityError:
-        raise HTTPException(status.HTTP_409_CONFLICT, "Email already registered")
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, "Email already registered"
+        ) from None
     # registering logs you in — no second roundtrip
     await _start_session(db, user, response)
     await db.commit()

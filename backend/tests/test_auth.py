@@ -1,4 +1,4 @@
-﻿import pytest
+import pytest
 from sqlalchemy import select
 
 from app.db.models import User, UserSession
@@ -55,7 +55,8 @@ async def test_login_with_wrong_password_is_401(client):
 
 async def test_login_unknown_email_is_401(client):
     response = await client.post(
-        "/api/auth/login", json={"email": "ghost@example.com", "password": "whatever-123"}
+        "/api/auth/login",
+        json={"email": "ghost@example.com", "password": "whatever-123"},
     )
     assert response.status_code == 401
 

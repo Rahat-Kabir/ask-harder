@@ -21,7 +21,7 @@ from app.db.base import Base
 from app.schemas import QuestionType
 
 
-class InterviewStatus(str, enum.Enum):
+class InterviewStatus(enum.StrEnum):
     preparing = "preparing"
     ready = "ready"
     in_progress = "in_progress"
@@ -30,7 +30,7 @@ class InterviewStatus(str, enum.Enum):
     abandoned = "abandoned"
 
 
-class TurnRole(str, enum.Enum):
+class TurnRole(enum.StrEnum):
     interviewer = "interviewer"
     candidate = "candidate"
 
@@ -80,7 +80,9 @@ class Interview(Base):
     profile_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     dev_mode: Mapped[bool] = mapped_column(Boolean, default=False)
     # set when the interview starts; indexes into the ordered questions list
-    current_question_position: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    current_question_position: Mapped[int | None] = mapped_column(
+        Integer, nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
@@ -92,7 +94,9 @@ class Interview(Base):
 class Question(Base):
     __tablename__ = "questions"
     __table_args__ = (
-        UniqueConstraint("interview_id", "position", name="uq_questions_interview_position"),
+        UniqueConstraint(
+            "interview_id", "position", name="uq_questions_interview_position"
+        ),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
@@ -111,6 +115,11 @@ class Question(Base):
 
 class InterviewTurn(Base):
     __tablename__ = "turns"
+    __table_args__ = (
+        UniqueConstraint(
+            "interview_id", "sequence", name="uq_turns_interview_sequence"
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     interview_id: Mapped[uuid.UUID] = mapped_column(
@@ -119,6 +128,9 @@ class InterviewTurn(Base):
     question_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("questions.id", ondelete="CASCADE")
     )
+    # 0-based insertion order within the interview — the one true turn
+    # ordering; created_at ties when several turns land in one transaction
+    sequence: Mapped[int] = mapped_column(Integer)
     role: Mapped[TurnRole] = mapped_column(Enum(TurnRole, name="turn_role"))
     content: Mapped[str] = mapped_column(Text)
     is_probe: Mapped[bool] = mapped_column(Boolean, default=False)

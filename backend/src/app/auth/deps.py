@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import Cookie, Depends, HTTPException, status
@@ -12,6 +12,7 @@ from app.db.session import get_session
 
 DbSession = Annotated[AsyncSession, Depends(get_session)]
 
+
 async def get_current_user(
     db: DbSession,
     # cookie name is fixed at import time from settings — it only changes
@@ -23,7 +24,7 @@ async def get_current_user(
     if session_token is None:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Not authenticated")
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     result = await db.execute(
         select(User)
         .join(UserSession, UserSession.user_id == User.id)

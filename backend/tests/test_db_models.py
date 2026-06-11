@@ -1,7 +1,7 @@
 """Schema-shape tests — no database needed, they inspect Base.metadata."""
 
-from app.db.base import Base
 from app.db import models  # noqa: F401  — registers models on Base.metadata
+from app.db.base import Base
 
 
 def test_users_table_registered() -> None:

@@ -67,7 +67,7 @@ async def get_interview(
     try:
         return await _service.get_state(db, interview_id, user)
     except InterviewNotFound:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Interview not found")
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Interview not found") from None
 
 
 @router.post("/interviews/{interview_id}/start", response_model=InterviewStateOut)
@@ -79,9 +79,9 @@ async def start_interview(
     try:
         return await _service.start(db, interview_id, user)
     except InterviewNotFound:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Interview not found")
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Interview not found") from None
     except InvalidTransition as error:
-        raise HTTPException(status.HTTP_409_CONFLICT, error.detail)
+        raise HTTPException(status.HTTP_409_CONFLICT, error.detail) from error
 
 
 @router.post("/interviews/{interview_id}/answer", response_model=InterviewStateOut)
@@ -94,9 +94,9 @@ async def submit_answer(
     try:
         return await _service.submit_answer(db, interview_id, user, body.text)
     except InterviewNotFound:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Interview not found")
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Interview not found") from None
     except InvalidTransition as error:
-        raise HTTPException(status.HTTP_409_CONFLICT, error.detail)
+        raise HTTPException(status.HTTP_409_CONFLICT, error.detail) from error
 
 
 @router.post("/interviews/{interview_id}/finish", response_model=InterviewStateOut)
@@ -108,9 +108,9 @@ async def finish_interview(
     try:
         return await _service.finish(db, interview_id, user)
     except InterviewNotFound:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Interview not found")
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Interview not found") from None
     except InvalidTransition as error:
-        raise HTTPException(status.HTTP_409_CONFLICT, error.detail)
+        raise HTTPException(status.HTTP_409_CONFLICT, error.detail) from error
 
 
 @router.get("/interviews/{interview_id}/stream")
@@ -123,9 +123,9 @@ async def stream_interview(
     try:
         interview = await _service.assert_streamable(db, interview_id, user)
     except InterviewNotFound:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Interview not found")
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Interview not found") from None
     except InvalidTransition as error:
-        raise HTTPException(status.HTTP_409_CONFLICT, error.detail)
+        raise HTTPException(status.HTTP_409_CONFLICT, error.detail) from error
 
     async def event_generator() -> AsyncIterator[str]:
         if interview.status == InterviewStatus.complete:
@@ -178,6 +178,6 @@ async def get_report(
     try:
         return await _service.get_report(db, interview_id, user)
     except InterviewNotFound:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Interview not found")
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Interview not found") from None
     except InvalidTransition as error:
-        raise HTTPException(status.HTTP_409_CONFLICT, error.detail)
+        raise HTTPException(status.HTTP_409_CONFLICT, error.detail) from error

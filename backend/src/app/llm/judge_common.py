@@ -21,9 +21,7 @@ def quote_in_transcript(quote: str, transcript: str) -> bool:
     # Judges splice non-adjacent passages with "..." despite being told not
     # to (measured in evals). The quote is still honest if every spliced
     # segment is verbatim, so ground each segment independently.
-    segments = [
-        segment for segment in re.split(r"\.\.\.|…", quote) if segment.strip()
-    ]
+    segments = [segment for segment in re.split(r"\.\.\.|…", quote) if segment.strip()]
     if not segments:
         return False
     return all(
@@ -55,7 +53,9 @@ def filter_missing_points(
     return [point for point in missing_points if point in allowed]
 
 
-def build_judge_user_prompt(question_text: str, answer_key: AnswerKey, turns: list[Turn]) -> str:
+def build_judge_user_prompt(
+    question_text: str, answer_key: AnswerKey, turns: list[Turn]
+) -> str:
     transcript_lines = [
         f"{turn.role}: {turn.content}" for turn in turns if turn.content.strip()
     ]

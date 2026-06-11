@@ -1,15 +1,15 @@
-﻿import json
+import json
 
 import pytest
 
 from app.llm.composite import CompositeLlmBackend
+from app.llm.errors import IntakeParseError, LlmValidationError
+from app.llm.factory import build_llm_backend
 from app.llm.intake import (
     DeepSeekIntakeParser,
     DeepSeekJsonClient,
     DeepSeekPlanGenerator,
 )
-from app.llm.errors import IntakeParseError, LlmValidationError
-from app.llm.factory import build_llm_backend
 from app.llm.interfaces import IntakeParser, Interviewer, Judge, PlanGenerator
 from app.llm.mock import MockBackend
 from app.schemas import Profile, QuestionType
@@ -82,9 +82,7 @@ async def test_deepseek_intake_returns_profile():
 
 
 async def test_deepseek_intake_raises_on_unusable_jd():
-    parser = DeepSeekIntakeParser(
-        FakeDeepSeekClient([{"error": "unusable_jd"}])
-    )
+    parser = DeepSeekIntakeParser(FakeDeepSeekClient([{"error": "unusable_jd"}]))
     with pytest.raises(IntakeParseError):
         await parser.parse("asdfgh")
 
