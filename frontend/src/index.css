@@ -396,3 +396,15 @@ blockquote {
 .report-cta {
   align-self: flex-start;
 }
+
+.methodology-page .report-block ul {
+  padding-left: 1.25rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.methodology-meta {
+  margin-top: 0.75rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
