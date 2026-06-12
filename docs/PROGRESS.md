@@ -282,6 +282,14 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   removal); browser-verified delete → empty history, recomputed skills,
   quota still 1 used.
 
+- 2026-06-13 — Home daily briefing (frontend-only, replaces the static
+  weakest-skills teaser): a "Today" card under the hero with quota left,
+  last report score (links to it), weakest skill with trend arrow, and one
+  suggested action — a dropping skill beats the merely-weakest one
+  ("X dropped ▼0.5 — drill it") with an inline drill button (shared
+  `useDrill`). Hidden until the user has interviews; hero unchanged for
+  fresh accounts. Browser-verified on dogfood data.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;

@@ -74,7 +74,7 @@ ask-harder/
 │       ├── AuthPage.tsx         # login / register tabs
 │       ├── Layout.tsx           # header shell (brand, logout)
 │       ├── LoadingState.tsx       # shared spinner + label
-│       ├── Home.tsx             # landing CTA + weakest-skills teaser
+│       ├── Home.tsx             # landing CTA + daily briefing (quota, trend, action)
 │       ├── SkillsPage.tsx       # skill dashboard (/skills)
 │       ├── SkillDetailPage.tsx  # per-tag judged answers (/skills/*)
 │       ├── ProfilePage.tsx      # account stats + delete account (/profile)

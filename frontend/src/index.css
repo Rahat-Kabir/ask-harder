@@ -948,29 +948,45 @@ a.history-link:hover {
   color: var(--error, #e5484d);
 }
 
-.home-skills-teaser {
-  margin-top: 3rem;
-  padding-top: 2rem;
-  border-top: 1px solid var(--border);
+.home-briefing {
+  width: 100%;
+  max-width: 560px;
+  margin: 2.5rem auto 0;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
   text-align: left;
-  max-width: 28rem;
-  margin-left: auto;
-  margin-right: auto;
 }
 
-.home-skills-teaser h2 {
+.home-briefing h2 {
   margin: 0 0 0.75rem;
-  font-size: 1rem;
+  font-size: 1.05rem;
+  font-family: var(--font-body);
+  font-weight: 600;
 }
 
-.home-skills-teaser ul {
-  margin: 0 0 0.75rem;
-  padding-left: 1.2rem;
-  color: var(--muted);
+.home-briefing .score-grid {
+  margin-bottom: 0.75rem;
 }
 
-.home-skills-teaser a {
+.home-briefing .score-grid a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.home-briefing .score-grid a:hover {
   color: var(--accent);
+}
+
+.home-action p {
+  margin: 0 0 0.6rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.home-briefing .home-footer-link {
+  margin-top: 1rem;
 }
 
 .home-footer-link {
