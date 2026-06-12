@@ -291,6 +291,50 @@ async def test_retake_respects_quota(client, monkeypatch):
     assert blocked.status_code == 429
 
 
+async def test_delete_interview_hides_it_everywhere(client):
+    await _register(client)
+    interview_id = await _create_interview(client)
+
+    delete = await client.delete(f"/api/interviews/{interview_id}")
+    assert delete.status_code == 204
+
+    assert (await client.get(f"/api/interviews/{interview_id}")).status_code == 404
+    listing = await client.get("/api/interviews")
+    assert listing.json()["interviews"] == []
+
+    # idempotence: deleting again is a 404, not a crash
+    assert (await client.delete(f"/api/interviews/{interview_id}")).status_code == 404
+
+
+async def test_delete_requires_ownership(client):
+    await _register(client)
+    interview_id = await _create_interview(client)
+
+    await client.post("/api/auth/logout")
+    await _register(client, OTHER_CREDENTIALS)
+
+    assert (await client.delete(f"/api/interviews/{interview_id}")).status_code == 404
+
+
+async def test_deleted_interview_still_counts_toward_quota(client, monkeypatch):
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "daily_interview_limit", 1)
+    await _register(client)
+    interview_id = await _create_interview(client)
+
+    delete = await client.delete(f"/api/interviews/{interview_id}")
+    assert delete.status_code == 204
+
+    # the slot is NOT refunded — otherwise create→delete→create would
+    # loop around the daily limit
+    blocked = await client.post(
+        "/api/interviews",
+        json={"jd_text": JD, "session_type": "screen"},
+    )
+    assert blocked.status_code == 429
+
+
 async def test_quota_blocks_after_daily_limit(client, monkeypatch):
     from app.config import settings
 

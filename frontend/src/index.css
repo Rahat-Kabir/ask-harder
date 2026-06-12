@@ -1144,6 +1144,24 @@ a.history-link:hover {
   font-size: 0.9rem;
 }
 
+.delete-interview {
+  margin-top: 0.5rem;
+}
+
+.delete-interview-link {
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.delete-interview-link:hover {
+  color: #e05a68;
+}
+
 .danger-button {
   display: inline-block;
   padding: 0.65rem 1.2rem;

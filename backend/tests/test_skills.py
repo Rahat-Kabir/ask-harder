@@ -63,13 +63,14 @@ async def _answer_through_question(
     assert advance.status_code == 200
 
 
-async def _finish_mock_interview(client, answer: str = LONG_ANSWER) -> None:
+async def _finish_mock_interview(client, answer: str = LONG_ANSWER) -> str:
     interview_id = await _create_interview(client)
     await client.post(f"/api/interviews/{interview_id}/start")
     for _ in range(3):
         await _answer_through_question(client, interview_id, answer)
     finish = await client.post(f"/api/interviews/{interview_id}/finish")
     assert finish.status_code == 200
+    return interview_id
 
 
 def test_overall_score_is_mean_of_four_dimensions():
@@ -261,6 +262,45 @@ async def test_trend_is_latest_minus_previous_interview(client):
     assert skills.status_code == 200
     for item in skills.json()["skills"]:
         assert item["trend"] == pytest.approx(BETTER_OVERALL - MOCK_OVERALL)
+
+
+async def test_delete_interview_recomputes_skill_scores(client):
+    await _register(client)
+    await _finish_mock_interview(client, answer=LONG_ANSWER)  # 2.0 per tag
+    better_id = await _finish_mock_interview(client, answer=BETTER_ANSWER)  # 3.0
+
+    before = await client.get("/api/skills")
+    indexing = next(
+        s for s in before.json()["skills"] if s["tag"] == "databases/indexing"
+    )
+    assert indexing["evaluation_count"] == 2
+    assert indexing["average"] == pytest.approx(2.5)
+
+    delete = await client.delete(f"/api/interviews/{better_id}")
+    assert delete.status_code == 204
+
+    after = await client.get("/api/skills")
+    indexing = next(
+        s for s in after.json()["skills"] if s["tag"] == "databases/indexing"
+    )
+    assert indexing["evaluation_count"] == 1
+    assert indexing["average"] == pytest.approx(MOCK_OVERALL)
+
+    # receipts agree with the recomputed number
+    detail = await client.get("/api/skills/databases/indexing")
+    assert len(detail.json()["answers"]) == 1
+
+
+async def test_deleting_last_judged_interview_removes_tags(client):
+    await _register(client)
+    interview_id = await _finish_mock_interview(client)
+
+    delete = await client.delete(f"/api/interviews/{interview_id}")
+    assert delete.status_code == 204
+
+    skills = await client.get("/api/skills")
+    assert skills.json()["skills"] == []
+    assert (await client.get("/api/skills/databases/indexing")).status_code == 404
 
 
 async def test_skill_detail_requires_auth(client):

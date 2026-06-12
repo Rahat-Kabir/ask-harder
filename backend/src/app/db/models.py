@@ -104,6 +104,12 @@ class Interview(Base):
     finished_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    # soft delete: hidden everywhere user-facing, but the row keeps its
+    # quota slot — a hard delete would allow create→delete→create loops
+    # around the daily limit
+    deleted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
 
 class Question(Base):

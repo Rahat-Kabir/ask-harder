@@ -92,6 +92,7 @@ What actually exists, updated as it changes.
   `jd_text`, `resume_text`, `profile_json` JSONB,
   `session_type` enum (`screen|round|full_loop`, default `round`),
   `practice_tag` text nullable (set for skill drills instead of jd_text),
+  `deleted_at` timestamptz nullable (soft delete),
   `current_question_position` int nullable, `created_at`, `finished_at`.
 - `questions`: `id` UUID pk, `interview_id` FK CASCADE, `position` int,
   unique `(interview_id, position)`, `qtype` enum, `text`, `answer_key_json`
@@ -150,6 +151,11 @@ What actually exists, updated as it changes.
   per UTC calendar day) — counted from the interviews table itself, so
   abandoned interviews are refunded by exclusion; checked before any LLM
   call. Known race: concurrent creates at the boundary can exceed by one.
+- `DELETE /api/interviews/{id}` → 204; **soft** delete (`deleted_at`) —
+  hidden from history/state/report/skills, but still counted by the quota
+  (a hard delete would allow create→delete→create loops around the daily
+  limit). Affected skill_scores are rebuilt from surviving evaluations
+  (`recompute_skill_scores`) so averages keep matching the receipts.
 - `POST /api/interviews/{id}/retake` → fresh interview from the source's
   stored `jd_text`/`practice_tag` + `resume_text` + `session_type`, new
   plan; same 201/202 shape as create; 404 not owned, 429 quota.

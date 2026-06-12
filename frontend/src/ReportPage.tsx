@@ -36,6 +36,62 @@ function weakestArea(
   return { tag: weakest.tags[0], score: averageScore(weakest.evaluation.scores) }
 }
 
+function DeleteInterview({ id }: { id: string }) {
+  const navigate = useNavigate()
+  const [confirming, setConfirming] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function deleteInterview() {
+    setDeleting(true)
+    setError(null)
+    try {
+      await api.deleteInterview(id)
+      navigate('/interviews')
+    } catch (err) {
+      setError(
+        err instanceof ApiError ? err.message : 'Could not delete the interview',
+      )
+      setDeleting(false)
+    }
+  }
+
+  return (
+    <div className="delete-interview">
+      {error && <p className="error">{error}</p>}
+      {confirming ? (
+        <div className="report-actions">
+          <button
+            type="button"
+            className="danger-button"
+            onClick={deleteInterview}
+            disabled={deleting}
+          >
+            {deleting ? 'Deleting…' : 'Yes, delete this interview'}
+          </button>
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={() => setConfirming(false)}
+            disabled={deleting}
+          >
+            Cancel
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          className="delete-interview-link"
+          onClick={() => setConfirming(true)}
+        >
+          Delete this interview — removes it from history and recalculates
+          your skill averages
+        </button>
+      )}
+    </div>
+  )
+}
+
 export function ReportPage() {
   const { id = '' } = useParams()
   const navigate = useNavigate()
@@ -286,6 +342,8 @@ export function ReportPage() {
           View skill tracking
         </Link>
       </div>
+
+      <DeleteInterview id={report.id} />
     </main>
   )
 }

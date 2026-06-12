@@ -57,6 +57,7 @@ from app.schemas import (
 from app.skills.service import (
     load_skill_profile,
     overall_score,
+    recompute_skill_scores,
     record_skill_scores,
     skill_average,
 )
@@ -82,7 +83,8 @@ async def count_interviews_today(db: AsyncSession, user_id: uuid.UUID) -> int:
     """Quota usage, counted from the source of truth — no counter to drift.
 
     Abandoned interviews don't count: the user got nothing, the slot is
-    refunded by exclusion.
+    refunded by exclusion. Soft-DELETED interviews DO count — otherwise
+    create→delete→create would loop around the daily limit.
     """
     day_start, _ = _utc_day_bounds()
     return (
@@ -223,6 +225,33 @@ class InterviewService:
             session_type=source.session_type,
             practice_tag=source.practice_tag,
         )
+
+    async def delete_interview(
+        self,
+        db: AsyncSession,
+        interview_id: uuid.UUID,
+        user: User,
+    ) -> None:
+        """Soft delete + rebuild the affected skill averages so the
+        dashboard keeps agreeing with the visible receipts."""
+        interview = await self._load_owned_interview(db, interview_id, user)
+
+        judged_tag_rows = (
+            await db.execute(
+                select(Question.tags)
+                .join(
+                    QuestionEvaluation,
+                    QuestionEvaluation.question_id == Question.id,
+                )
+                .where(Question.interview_id == interview.id)
+            )
+        ).all()
+        affected_tags = [tag for (tags,) in judged_tag_rows for tag in tags]
+
+        interview.deleted_at = datetime.now(UTC)
+        await db.flush()  # recompute below must see this interview as deleted
+        await recompute_skill_scores(db, user.id, affected_tags)
+        await db.commit()
 
     async def get_quota(self, db: AsyncSession, user: User) -> QuotaOut:
         used_today = await count_interviews_today(db, user.id)
@@ -493,7 +522,10 @@ class InterviewService:
             (
                 await db.execute(
                     select(Interview)
-                    .where(Interview.user_id == user.id)
+                    .where(
+                        Interview.user_id == user.id,
+                        Interview.deleted_at.is_(None),
+                    )
                     .order_by(Interview.created_at.desc())
                     .limit(HISTORY_LIMIT)
                 )
@@ -561,6 +593,7 @@ class InterviewService:
             select(Interview).where(
                 Interview.id == interview_id,
                 Interview.user_id == user.id,
+                Interview.deleted_at.is_(None),
             )
         )
         interview = result.scalar_one_or_none()

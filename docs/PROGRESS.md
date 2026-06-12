@@ -270,6 +270,18 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   field from the saved value. 3 new auth tests; browser-verified save →
   prefill round trip.
 
+- 2026-06-13 — Per-interview delete: `DELETE /api/interviews/{id}` is a
+  **soft** delete (`deleted_at`, migration `a7b8c9d0e1f2`) — hidden from
+  every user-facing query (single gate `_load_owned_interview` + list +
+  skills joins) but still counted by the quota, closing the
+  create→delete→create loophole. `recompute_skill_scores` rebuilds the
+  affected tags from surviving evaluations so dashboard numbers keep
+  matching the receipts. Report gains a quiet delete link with two-step
+  confirm → navigates to history. 5 new tests (hidden everywhere,
+  idempotent 404, ownership, quota retention, skill recompute + tag
+  removal); browser-verified delete → empty history, recomputed skills,
+  quota still 1 used.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;

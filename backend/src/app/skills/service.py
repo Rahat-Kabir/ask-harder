@@ -77,7 +77,7 @@ async def _tag_trends(db: AsyncSession, user_id: uuid.UUID) -> dict[str, float]:
             select(Question.tags, QuestionEvaluation.scores_json, Interview.created_at)
             .join(QuestionEvaluation, QuestionEvaluation.question_id == Question.id)
             .join(Interview, Interview.id == Question.interview_id)
-            .where(Interview.user_id == user_id)
+            .where(Interview.user_id == user_id, Interview.deleted_at.is_(None))
         )
     ).all()
 
@@ -156,7 +156,11 @@ async def skill_detail(
             select(Question, QuestionEvaluation, Interview)
             .join(QuestionEvaluation, QuestionEvaluation.question_id == Question.id)
             .join(Interview, Interview.id == Question.interview_id)
-            .where(Interview.user_id == user.id, Question.tags.any(tag))
+            .where(
+                Interview.user_id == user.id,
+                Interview.deleted_at.is_(None),
+                Question.tags.any(tag),
+            )
             .order_by(Interview.created_at.desc(), Question.position.asc())
         )
     ).all()
@@ -201,6 +205,55 @@ async def skill_detail(
             for question, evaluation, interview in judged_rows
         ],
     )
+
+
+async def recompute_skill_scores(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    tags: list[str],
+) -> None:
+    """Rebuild the given tags' running sums from surviving evaluations —
+    called after an interview is soft-deleted so the averages keep
+    agreeing with the visible receipts."""
+    for tag in set(tags):
+        rows = (
+            await db.execute(
+                select(QuestionEvaluation.scores_json)
+                .join(Question, Question.id == QuestionEvaluation.question_id)
+                .join(Interview, Interview.id == Question.interview_id)
+                .where(
+                    Interview.user_id == user_id,
+                    Interview.deleted_at.is_(None),
+                    Question.tags.any(tag),
+                )
+            )
+        ).all()
+        overalls = [overall_score(Scores(**scores_json)) for (scores_json,) in rows]
+
+        existing = (
+            await db.execute(
+                select(SkillScore).where(
+                    SkillScore.user_id == user_id, SkillScore.tag == tag
+                )
+            )
+        ).scalar_one_or_none()
+        if not overalls:
+            if existing is not None:
+                await db.delete(existing)
+        elif existing is not None:
+            existing.score_sum = sum(overalls)
+            existing.evaluation_count = len(overalls)
+            existing.updated_at = datetime.now(UTC)
+        else:
+            db.add(
+                SkillScore(
+                    user_id=user_id,
+                    tag=tag,
+                    score_sum=sum(overalls),
+                    evaluation_count=len(overalls),
+                    updated_at=datetime.now(UTC),
+                )
+            )
 
 
 async def skill_average(

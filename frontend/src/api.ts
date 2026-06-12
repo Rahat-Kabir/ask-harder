@@ -276,6 +276,10 @@ export const api = {
 
   getReport: (id: string) => request<Report>(`/api/interviews/${id}/report`),
 
+  // soft delete: hidden everywhere, skill averages recomputed server-side
+  deleteInterview: (id: string) =>
+    request<void>(`/api/interviews/${id}`, { method: 'DELETE' }),
+
   getSkills: () => request<{ skills: Skill[] }>('/api/skills'),
 
   // tag contains a slash ("databases/indexing") — passed through raw,

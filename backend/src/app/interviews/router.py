@@ -126,6 +126,18 @@ async def get_interview(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Interview not found") from None
 
 
+@router.delete("/interviews/{interview_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_interview(
+    interview_id: UUID,
+    db: DbSession,
+    user: CurrentUser,
+) -> None:
+    try:
+        await _service.delete_interview(db, interview_id, user)
+    except InterviewNotFound:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Interview not found") from None
+
+
 @router.post("/interviews/{interview_id}/start", response_model=InterviewStateOut)
 async def start_interview(
     interview_id: UUID,
