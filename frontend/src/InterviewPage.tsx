@@ -36,6 +36,22 @@ function turnsToMessages(turns: Turn[]): ChatMessage[] {
   }))
 }
 
+function formatElapsed(totalSeconds: number): string {
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  return `${minutes}:${String(seconds).padStart(2, '0')}`
+}
+
+// when the current question was presented — the first turn on it; lets a
+// reload mid-question keep honest time instead of restarting at 0:00
+function questionStartMs(state: InterviewState): number {
+  const position = state.current_question_position
+  const firstTurn = state.turns.find(
+    (turn) => turn.question_position === position,
+  )
+  return firstTurn ? new Date(firstTurn.created_at).getTime() : Date.now()
+}
+
 function canFinish(state: InterviewState): boolean {
   return (
     state.status === 'in_progress' &&
@@ -113,6 +129,33 @@ export function InterviewPage() {
   const [progress, setProgress] = useState<InterviewProgress | null>(null)
   const [readyState, setReadyState] = useState<InterviewState | null>(null)
   const [streamConnected, setStreamConnected] = useState(false)
+  // soft time pressure: visible elapsed clock per question, no enforcement
+  const [elapsedSeconds, setElapsedSeconds] = useState<number | null>(null)
+  const questionStartRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (questionStartRef.current !== null) {
+        setElapsedSeconds(
+          Math.max(
+            0,
+            Math.floor((Date.now() - questionStartRef.current) / 1000),
+          ),
+        )
+      }
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  function startQuestionClock(startMs: number) {
+    questionStartRef.current = startMs
+    setElapsedSeconds(Math.max(0, Math.floor((Date.now() - startMs) / 1000)))
+  }
+
+  function stopQuestionClock() {
+    questionStartRef.current = null
+    setElapsedSeconds(null)
+  }
   const bootedRef = useRef(false)
   // true while tokens are building an interviewer message; interviewer_done
   // only awaits an answer when the interviewer actually said something
@@ -225,6 +268,9 @@ export function InterviewPage() {
           setAwaitingAnswer(state.awaiting_answer)
           setCanSubmitFinish(canFinish(state))
           setProgress(progressFromState(state))
+          if (!canFinish(state)) {
+            startQuestionClock(questionStartMs(state))
+          }
           return
         }
         if (state.status === 'preparing') {
@@ -257,6 +303,7 @@ export function InterviewPage() {
       setReadyState(null)
       setCanSubmitFinish(canFinish(started))
       setProgress(progressFromState(started))
+      startQuestionClock(Date.now())
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not start interview')
     } finally {
@@ -289,7 +336,13 @@ export function InterviewPage() {
       const state = await api.submitAnswer(id, text)
       setAwaitingAnswer(state.awaiting_answer)
       setCanSubmitFinish(canFinish(state))
-      setProgress(progressFromState(state))
+      const next = progressFromState(state)
+      if (canFinish(state)) {
+        stopQuestionClock()
+      } else if (next && next.current !== progress?.current) {
+        startQuestionClock(Date.now())
+      }
+      setProgress(next)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not submit answer')
     } finally {
@@ -317,7 +370,13 @@ export function InterviewPage() {
       const state = await api.skipQuestion(id)
       setAwaitingAnswer(state.awaiting_answer)
       setCanSubmitFinish(canFinish(state))
-      setProgress(progressFromState(state))
+      const next = progressFromState(state)
+      if (canFinish(state)) {
+        stopQuestionClock()
+      } else if (next && next.current !== progress?.current) {
+        startQuestionClock(Date.now())
+      }
+      setProgress(next)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not skip')
     } finally {
@@ -345,6 +404,12 @@ export function InterviewPage() {
           {progress && (
             <span className="question-progress">
               Question {progress.current} of {progress.total}
+              {elapsedSeconds !== null && (
+                <span className="question-clock">
+                  {' '}
+                  · {formatElapsed(elapsedSeconds)}
+                </span>
+              )}
             </span>
           )}
         </div>

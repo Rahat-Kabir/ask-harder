@@ -300,6 +300,16 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   report card. 4 new tests; browser-verified skip → advance → report badge
   → CTA picks the skipped tag.
 
+- 2026-06-13 — Per-question timer (frontend-only, $0 — no schema change):
+  soft time pressure. Live elapsed clock next to "Question x of y", started
+  from the question's first turn timestamp (so a mid-question reload keeps
+  honest time), reset on advance, stopped when all answered, probes count
+  toward their question. Report cards show "answered in Xm Ys" computed
+  from stored turn timestamps. No enforcement — the clock observes, the
+  judge doesn't see it (yet). Browser-verified: backdated restore (0:41 on
+  load), continuity across a probe, reset on advance, report durations
+  matching reality.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;

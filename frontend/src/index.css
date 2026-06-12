@@ -1170,6 +1170,15 @@ a.history-link:hover {
   font-style: italic;
 }
 
+.question-clock {
+  font-variant-numeric: tabular-nums;
+}
+
+.question-time {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
 .skipped-badge {
   padding: 0.1rem 0.5rem;
   border: 1px solid #b3303f;

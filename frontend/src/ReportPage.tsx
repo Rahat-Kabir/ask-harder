@@ -17,6 +17,22 @@ function averageScore(scores: Report['questions'][0]['evaluation']['scores']) {
   )
 }
 
+// presentation → last candidate turn, from stored timestamps
+function answeredIn(turns: Report['questions'][0]['turns']): string | null {
+  if (turns.length === 0) return null
+  const presented = new Date(turns[0].created_at).getTime()
+  const candidateTimes = turns
+    .filter((turn) => turn.role === 'candidate')
+    .map((turn) => new Date(turn.created_at).getTime())
+  if (candidateTimes.length === 0) return null
+  const seconds = Math.max(
+    0,
+    Math.round((Math.max(...candidateTimes) - presented) / 1000),
+  )
+  if (seconds < 60) return `${seconds}s`
+  return `${Math.floor(seconds / 60)}m ${seconds % 60}s`
+}
+
 // the lowest-scoring question's first tag — what to work on next
 function weakestArea(
   questions: Report['questions'],
@@ -211,6 +227,11 @@ export function ReportPage() {
             <span className="question-type">{question.qtype.replace('_', ' ')}</span>
             {question.evaluation.judge_model === 'skipped' && (
               <span className="skipped-badge">Skipped</span>
+            )}
+            {answeredIn(question.turns) && (
+              <span className="question-time">
+                {answeredIn(question.turns)}
+              </span>
             )}
             <span className="question-score">
               {averageScore(question.evaluation.scores)} / 5
