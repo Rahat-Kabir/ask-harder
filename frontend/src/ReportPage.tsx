@@ -96,6 +96,36 @@ export function ReportPage() {
         <p className="report-overall">
           Overall average: <strong>{overallAverage} / 5</strong>
         </p>
+        <details className="answer-key scoring-legend">
+          <summary>How scoring works</summary>
+          <p>
+            Every answer is scored 1–5 on four dimensions, strictly against a
+            rubric frozen before the interview began:
+          </p>
+          <ul>
+            <li>
+              <strong>Correctness</strong> — is what you said technically
+              right? Wrong claims score low even when said confidently.
+            </li>
+            <li>
+              <strong>Depth</strong> — did you go past the surface:
+              trade-offs, failure modes, the <em>why</em> behind the choice?
+            </li>
+            <li>
+              <strong>Structure</strong> — did the answer have a shape
+              (context → reasoning → conclusion), or did it ramble?
+            </li>
+            <li>
+              <strong>Communication</strong> — was it clear and precise, with
+              correct terms used correctly?
+            </li>
+          </ul>
+          <p>
+            Every evidence quote is verified verbatim against your transcript,
+            and every "missing" point must come from the frozen answer key —
+            the judge can't invent criteria after the fact.
+          </p>
+        </details>
       </div>
 
       {report.questions.map((question) => (

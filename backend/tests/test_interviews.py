@@ -215,6 +215,29 @@ async def test_practice_interview_full_lifecycle(client):
     assert summary["role"] is None
 
 
+async def test_state_includes_parsed_profile_for_jd_interview(client):
+    await _register(client)
+    interview_id = await _create_interview(client)
+
+    state = await client.get(f"/api/interviews/{interview_id}")
+    assert state.status_code == 200
+    profile = state.json()["profile"]
+    assert profile is not None
+    assert profile["role"]
+    assert profile["seniority"]
+    assert isinstance(profile["stack"], list)
+
+
+async def test_state_profile_is_null_for_practice(client):
+    await _register(client)
+    response = await client.post(
+        "/api/interviews",
+        json={"practice_tag": "databases/indexing", "session_type": "screen"},
+    )
+    state = await client.get(f"/api/interviews/{response.json()['id']}")
+    assert state.json()["profile"] is None
+
+
 async def test_quota_blocks_after_daily_limit(client, monkeypatch):
     from app.config import settings
 

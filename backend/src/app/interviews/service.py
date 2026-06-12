@@ -625,6 +625,11 @@ class InterviewService:
             status=interview.status.value,
             session_type=interview.session_type,
             practice_tag=interview.practice_tag,
+            profile=(
+                Profile.model_validate(interview.profile_json)
+                if interview.profile_json is not None
+                else None
+            ),
             question_count=len(questions),
             current_question_position=interview.current_question_position,
             awaiting_answer=is_awaiting,

@@ -246,6 +246,16 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   abandoned refund). Browser-verified: intake/profile counters, live
   6th failed login → 429 Retry-After 300.
 
+- 2026-06-12 — Trust slice ($0): (1) pre-start confirmation — interview
+  state now includes the parsed `profile`; the interview page no longer
+  auto-starts on `ready` but shows "We read this JD as: <role · seniority>"
+  with stack chips + competencies (drills show the tag) and an explicit
+  Start button — a bad parse is caught before the user invests 30 minutes.
+  (2) "How scoring works" legend on the report: the four dimensions
+  explained + the grounding guarantees (verbatim quotes, frozen keys).
+  2 new API tests (profile in state, null for practice); browser-verified
+  both card variants, the start transition, and the legend.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;

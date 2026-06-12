@@ -157,7 +157,10 @@ What actually exists, updated as it changes.
   `overall_score` (mean of per-question score averages) null until judged.
   Rendered by the `/interviews` history page.
 - `GET /api/interviews/{id}` → interview state (status, current question,
-  turns, `awaiting_answer`); 404 if not owned.
+  turns, `awaiting_answer`, parsed `profile` — null for drills/preparing);
+  404 if not owned. The SPA shows a pre-start confirmation card from this
+  (parsed role/stack or drilled tag) — interviews no longer auto-start on
+  page load; the user clicks Start explicitly.
 - `POST /api/interviews/{id}/start` → `ready→in_progress`, presents Q1;
   409 on wrong status.
 - `POST /api/interviews/{id}/answer` → body `{text}`; stores answer, may

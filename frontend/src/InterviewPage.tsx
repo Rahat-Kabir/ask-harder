@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { formatTag, SESSION_LABELS } from './formatTag'
 import { LoadingState } from './LoadingState'
 import { api, ApiError, type InterviewState, type Turn } from './api'
 
@@ -41,6 +42,63 @@ function canFinish(state: InterviewState): boolean {
   )
 }
 
+// pre-start confirmation: show what intake understood before the user
+// commits — a wrong parse should be caught here, not on the report
+function ReadyCard({
+  state,
+  onStart,
+  starting,
+}: {
+  state: InterviewState
+  onStart: () => void
+  starting: boolean
+}) {
+  return (
+    <section className="report-question ready-card">
+      {state.practice_tag ? (
+        <>
+          <h2>Practice drill</h2>
+          <p className="ready-summary">
+            <strong>{formatTag(state.practice_tag)}</strong> ·{' '}
+            {state.question_count} focused questions
+          </p>
+        </>
+      ) : (
+        <>
+          <h2>We read this job description as</h2>
+          <p className="ready-summary">
+            <strong>
+              {state.profile?.role} · {state.profile?.seniority}
+            </strong>{' '}
+            · {SESSION_LABELS[state.session_type]} · {state.question_count}{' '}
+            questions
+          </p>
+          {state.profile && state.profile.stack.length > 0 && (
+            <ul className="ready-chips" aria-label="Stack">
+              {state.profile.stack.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          )}
+          {state.profile && state.profile.competencies.length > 0 && (
+            <p className="ready-competencies">
+              Will probe: {state.profile.competencies.join(', ')}
+            </p>
+          )}
+        </>
+      )}
+      <button
+        type="button"
+        className="primary-button"
+        onClick={onStart}
+        disabled={starting}
+      >
+        {starting ? 'Starting…' : 'Start interview'}
+      </button>
+    </section>
+  )
+}
+
 export function InterviewPage() {
   const { id = '' } = useParams()
   const navigate = useNavigate()
@@ -51,6 +109,7 @@ export function InterviewPage() {
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [progress, setProgress] = useState<InterviewProgress | null>(null)
+  const [readyState, setReadyState] = useState<InterviewState | null>(null)
   const [streamConnected, setStreamConnected] = useState(false)
   const bootedRef = useRef(false)
   // true while tokens are building an interviewer message; interviewer_done
@@ -175,9 +234,9 @@ export function InterviewPage() {
           return
         }
         if (state.status === 'ready') {
-          const started = await api.startInterview(id)
-          setCanSubmitFinish(canFinish(started))
-          setProgress(progressFromState(started))
+          // don't auto-start: show what intake parsed and let the user
+          // commit explicitly
+          setReadyState(state)
         }
       } catch (err) {
         setError(err instanceof ApiError ? err.message : 'Could not start interview')
@@ -186,6 +245,22 @@ export function InterviewPage() {
 
     void boot()
   }, [id, navigate, streamConnected])
+
+  async function startInterview() {
+    if (!id) return
+    setBusy(true)
+    setError(null)
+    try {
+      const started = await api.startInterview(id)
+      setReadyState(null)
+      setCanSubmitFinish(canFinish(started))
+      setProgress(progressFromState(started))
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Could not start interview')
+    } finally {
+      setBusy(false)
+    }
+  }
 
   async function submitAnswer(event: FormEvent) {
     event.preventDefault()
@@ -248,6 +323,11 @@ export function InterviewPage() {
         </p>
       </div>
 
+      {readyState && (
+        <ReadyCard state={readyState} onStart={startInterview} starting={busy} />
+      )}
+
+      {!readyState && (
       <div className="chat-log" role="log" aria-live="polite">
         {messages.length === 0 && !error && (
           <LoadingState label="Starting interview…" />
@@ -273,6 +353,7 @@ export function InterviewPage() {
         ))}
         <div ref={messagesEndRef} />
       </div>
+      )}
 
       {error && <p className="error chat-error">{error}</p>}
 

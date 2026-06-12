@@ -1053,6 +1053,54 @@ a.history-link:hover {
   font-size: 0.9rem;
 }
 
+.ready-card h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.05rem;
+  font-family: var(--font-body);
+  font-weight: 600;
+}
+
+.ready-summary {
+  margin: 0 0 0.75rem;
+  color: var(--muted);
+}
+
+.ready-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  list-style: none;
+}
+
+.ready-chips li {
+  padding: 0.2rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.ready-competencies {
+  margin: 0 0 1rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.scoring-legend p {
+  margin: 0.5rem 0;
+}
+
+.scoring-legend ul {
+  margin: 0.5rem 0;
+  padding-left: 1.2rem;
+}
+
+.scoring-legend li {
+  margin-bottom: 0.4rem;
+}
+
 .report-cta {
   border-color: var(--accent);
 }

@@ -75,6 +75,9 @@ class InterviewStateOut(BaseModel):
     status: str
     session_type: SessionType
     practice_tag: str | None
+    # what intake parsed from the JD — shown for confirmation before the
+    # interview starts; null for practice drills and while preparing
+    profile: Profile | None
     question_count: int
     current_question_position: int | None
     awaiting_answer: bool

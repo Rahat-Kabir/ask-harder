@@ -12,6 +12,14 @@ export type QuestionType =
 
 export type SessionType = 'screen' | 'round' | 'full_loop'
 
+export type Profile = {
+  role: string
+  seniority: string
+  stack: string[]
+  competencies: string[]
+  resume_claims: string[]
+}
+
 export type InterviewQuestion = {
   position: number
   qtype: QuestionType
@@ -32,6 +40,8 @@ export type InterviewState = {
   status: string
   session_type: SessionType
   practice_tag: string | null
+  // null for practice drills and while preparing
+  profile: Profile | null
   question_count: number
   current_question_position: number | null
   awaiting_answer: boolean
@@ -85,13 +95,7 @@ export type Report = {
   id: string
   status: 'complete'
   // null for practice drills
-  profile: {
-    role: string
-    seniority: string
-    stack: string[]
-    competencies: string[]
-    resume_claims: string[]
-  } | null
+  profile: Profile | null
   practice_tag: string | null
   session_type: SessionType
   finished_at: string
