@@ -203,6 +203,24 @@ async def skill_detail(
     )
 
 
+async def skill_average(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    tag: str,
+) -> float | None:
+    """Current average on one tag — None when the user has no score yet."""
+    row = (
+        await db.execute(
+            select(SkillScore).where(
+                SkillScore.user_id == user_id, SkillScore.tag == tag
+            )
+        )
+    ).scalar_one_or_none()
+    if row is None:
+        return None
+    return row.score_sum / row.evaluation_count
+
+
 async def load_skill_profile(
     db: AsyncSession,
     user_id: uuid.UUID,

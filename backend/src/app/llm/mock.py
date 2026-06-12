@@ -110,6 +110,23 @@ class MockBackend:
         ]
         return Plan(questions=questions)
 
+    async def generate_practice(
+        self,
+        tag: str,
+        average: float | None,
+        n_questions: int,
+    ) -> Plan:
+        # bank questions re-tagged to the drilled skill — deterministic,
+        # and every judged answer feeds the tag being practiced
+        bank = _QUESTION_BANK
+        questions = [
+            question.model_copy(update={"position": idx, "tags": [tag]})
+            for idx, question in enumerate(
+                (bank * (n_questions // len(bank) + 1))[:n_questions]
+            )
+        ]
+        return Plan(questions=questions)
+
     async def respond(
         self,
         question: InterviewQuestion,

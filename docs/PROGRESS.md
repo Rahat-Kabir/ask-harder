@@ -213,6 +213,19 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   delta across two). Browser-verified on dogfood data (ownership ▲ 2.8,
   chart 2.0 → 4.8).
 
+- 2026-06-12 — Targeted practice ("drill my weakest skill"): `POST
+  /api/interviews` takes exactly one of `jd_text` / `practice_tag` (422
+  otherwise). Drills skip intake (profile null), plan via new
+  `generate_practice(tag, average, n)` on the PlanGenerator protocol
+  (mock re-tags its bank; DeepSeek gets a practice prompt that calibrates
+  to the user's average; drilled tag enforced on every question
+  server-side). `practice_tag` column + migration `e5f6a7b8c9d0`. "Drill
+  this skill" button on skill detail (Screen-sized via shared `useDrill`
+  hook); history/report show "Practice · <tag>". 2 new tests (validation,
+  full drill lifecycle incl. skill aggregation). Browser-verified the
+  flywheel: seed screen → drill from skill page → finish → drilled tag
+  went 1 → 4 judged answers.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;
@@ -227,7 +240,3 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
 - `run_comparison.py` (Batches API) and `/methodology` page (renders
   `evals/results/*.json`).
 - Re-run all eval suites on Sonnet to verify the prompt/validator fixes.
-- Targeted practice: "drill my weakest skill" — start an interview focused
-  on a chosen tag instead of a JD. Planner already reads weak tags; this
-  makes it user-driven. New interview mode (planner prompt variant), burns
-  API per use.

@@ -86,6 +86,9 @@ class Interview(Base):
     jd_text: Mapped[str] = mapped_column(Text, default="")
     resume_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     profile_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    # set instead of jd_text for practice drills — the interview targets
+    # one skill tag and skips intake parsing entirely
+    practice_tag: Mapped[str | None] = mapped_column(Text, nullable=True)
     session_type: Mapped[SessionType] = mapped_column(
         Enum(SessionType, name="session_type"), default=SessionType.round
     )

@@ -14,7 +14,11 @@ from app.llm.errors import (
     LlmEmptyResponse,
     LlmValidationError,
 )
-from app.llm.prompts import INTAKE_SYSTEM_PROMPT, plan_system_prompt
+from app.llm.prompts import (
+    INTAKE_SYSTEM_PROMPT,
+    plan_system_prompt,
+    practice_plan_system_prompt,
+)
 from app.schemas import (
     AnswerKey,
     Plan,
@@ -190,4 +194,53 @@ class DeepSeekPlanGenerator:
             )
             for index, question in enumerate(parsed.questions)
         ]
+        return Plan(questions=questions)
+
+    async def generate_practice(
+        self,
+        tag: str,
+        average: float | None,
+        n_questions: int,
+    ) -> Plan:
+        average_line = (
+            f"{average:.1f} / 5" if average is not None else "no judged answers yet"
+        )
+        user_prompt = (
+            f"Skill tag to drill: {tag}\n"
+            f"User's current average on this skill: {average_line}\n"
+            f"Question count: {n_questions}"
+        )
+
+        try:
+            parsed = await self._client.complete_json(
+                system_prompt=practice_plan_system_prompt(n_questions),
+                user_prompt=user_prompt,
+                schema=_PlanResponse,
+            )
+        except (LlmEmptyResponse, LlmValidationError) as error:
+            raise LlmValidationError(
+                f"Practice plan generation failed validation: {error}"
+            ) from error
+
+        if len(parsed.questions) != n_questions:
+            raise LlmValidationError(
+                f"Expected {n_questions} questions, got {len(parsed.questions)}"
+            )
+
+        questions = []
+        for index, question in enumerate(parsed.questions):
+            tags = [t.strip() for t in question.tags if t.strip()]
+            # the drilled tag must be on every question — that's the whole
+            # point; enforce instead of trusting the model
+            if tag not in tags:
+                tags.insert(0, tag)
+            questions.append(
+                PlannedQuestion(
+                    position=index,
+                    qtype=question.qtype,
+                    text=question.text.strip(),
+                    tags=tags,
+                    answer_key=question.answer_key,
+                )
+            )
         return Plan(questions=questions)

@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from app.db.models import SessionType
 from app.schemas import (
@@ -16,9 +16,17 @@ from app.schemas import (
 
 
 class CreateInterviewIn(BaseModel):
-    jd_text: str = Field(min_length=1)
+    # exactly one of jd_text / practice_tag: a JD interview or a skill drill
+    jd_text: str | None = Field(default=None, min_length=1)
+    practice_tag: str | None = Field(default=None, min_length=1)
     resume_text: str | None = None
     session_type: SessionType = SessionType.round
+
+    @model_validator(mode="after")
+    def _exactly_one_source(self) -> "CreateInterviewIn":
+        if (self.jd_text is None) == (self.practice_tag is None):
+            raise ValueError("Provide exactly one of jd_text or practice_tag")
+        return self
 
 
 class CreateInterviewOut(BaseModel):
@@ -30,6 +38,8 @@ class InterviewSummaryOut(BaseModel):
     id: uuid.UUID
     status: str
     session_type: SessionType
+    # set for skill drills; role/seniority stay null for those
+    practice_tag: str | None
     # from the parsed profile — null until intake completes
     role: str | None
     seniority: str | None
@@ -57,6 +67,7 @@ class InterviewStateOut(BaseModel):
     id: uuid.UUID
     status: str
     session_type: SessionType
+    practice_tag: str | None
     question_count: int
     current_question_position: int | None
     awaiting_answer: bool
@@ -89,7 +100,9 @@ class ReportQuestionOut(BaseModel):
 class ReportOut(BaseModel):
     id: uuid.UUID
     status: Literal["complete"]
-    profile: Profile
+    # null for practice drills — there is no JD to parse
+    profile: Profile | None
+    practice_tag: str | None
     session_type: SessionType
     finished_at: datetime
     questions: list[ReportQuestionOut]

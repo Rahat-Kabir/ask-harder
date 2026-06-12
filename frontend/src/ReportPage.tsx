@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api, ApiError, type Report } from './api'
-import { SESSION_LABELS } from './formatTag'
+import { formatTag, SESSION_LABELS } from './formatTag'
 import { LoadingState } from './LoadingState'
 
 function averageScore(scores: Report['questions'][0]['evaluation']['scores']) {
@@ -66,8 +66,10 @@ export function ReportPage() {
       <div className="report-header">
         <h1>Interview report</h1>
         <p className="lede">
-          {report.profile.role} · {report.profile.seniority} ·{' '}
-          {SESSION_LABELS[report.session_type]}
+          {report.practice_tag
+            ? `Practice · ${formatTag(report.practice_tag)}`
+            : `${report.profile?.role} · ${report.profile?.seniority}`}{' '}
+          · {SESSION_LABELS[report.session_type]}
         </p>
         <p className="report-overall">
           Overall average: <strong>{overallAverage} / 5</strong>

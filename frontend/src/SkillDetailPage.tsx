@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { api, ApiError, type SkillAnswer, type SkillDetail } from './api'
 import { formatTag } from './formatTag'
 import { LoadingState } from './LoadingState'
+import { useDrill } from './useDrill'
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString(undefined, {
@@ -162,6 +163,7 @@ export function SkillDetailPage() {
   const tag = useParams()['*'] ?? ''
   const [detail, setDetail] = useState<SkillDetail | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const { startDrill, drilling, drillError } = useDrill()
 
   useEffect(() => {
     if (!tag) return
@@ -205,6 +207,17 @@ export function SkillDetailPage() {
           {detail.evaluation_count === 1 ? 'judged answer' : 'judged answers'}
         </p>
         {points.length >= 2 && <TrendChart points={points} />}
+        <div className="report-actions">
+          <button
+            type="button"
+            className="primary-button"
+            onClick={() => startDrill(detail.tag)}
+            disabled={drilling}
+          >
+            {drilling ? 'Building your drill…' : 'Drill this skill'}
+          </button>
+        </div>
+        {drillError && <p className="error">{drillError}</p>}
       </div>
 
       {detail.answers.map((answer) => (

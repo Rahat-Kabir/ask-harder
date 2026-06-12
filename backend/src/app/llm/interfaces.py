@@ -33,6 +33,13 @@ class PlanGenerator(Protocol):
         n_questions: int,
     ) -> Plan: ...
 
+    async def generate_practice(
+        self,
+        tag: str,
+        average: float | None,
+        n_questions: int,
+    ) -> Plan: ...
+
 
 @runtime_checkable
 class Interviewer(Protocol):

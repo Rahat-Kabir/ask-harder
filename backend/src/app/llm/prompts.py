@@ -69,6 +69,28 @@ Rules:
 """
 
 
+def practice_plan_system_prompt(n_questions: int) -> str:
+    return f"""You generate interview questions and frozen answer keys for a focused practice drill on ONE skill.
+
+Respond in JSON only. The JSON must match this shape:
+{PLAN_JSON_EXAMPLE}
+
+Rules:
+- Output exactly {n_questions} questions in the "questions" array.
+- Every question drills the single skill tag the user provides — no warmup,
+  no behavioral; use qtype technical or system_design as fits the skill.
+- Each question's tags must include the drilled tag exactly as given.
+- Questions must differ in angle (fundamentals, trade-offs, debugging,
+  applied design) — not rephrasings of each other.
+- text: the question as the interviewer would ask it (no answer key leakage).
+- answer_key.required_points: 3-5 rubric bullets the judge will score against.
+- answer_key.strong_signals and red_flags: optional grading hints.
+- If the user's current average on the skill is low, start from fundamentals;
+  if high, push into harder trade-offs and edge cases.
+- Do not include a position field — order in the array is the order asked.
+"""
+
+
 def interviewer_system_prompt(probes_left: int) -> str:
     return f"""You are a neutral, professional technical interviewer conducting a live interview.
 

@@ -31,6 +31,7 @@ export type InterviewState = {
   id: string
   status: string
   session_type: SessionType
+  practice_tag: string | null
   question_count: number
   current_question_position: number | null
   awaiting_answer: boolean
@@ -38,8 +39,10 @@ export type InterviewState = {
   turns: Turn[]
 }
 
+// exactly one of jd_text / practice_tag
 export type CreateInterviewInput = {
-  jd_text: string
+  jd_text?: string
+  practice_tag?: string
   resume_text?: string
   session_type?: SessionType
 }
@@ -81,13 +84,15 @@ export type ReportQuestion = {
 export type Report = {
   id: string
   status: 'complete'
+  // null for practice drills
   profile: {
     role: string
     seniority: string
     stack: string[]
     competencies: string[]
     resume_claims: string[]
-  }
+  } | null
+  practice_tag: string | null
   session_type: SessionType
   finished_at: string
   questions: ReportQuestion[]
@@ -97,6 +102,7 @@ export type InterviewSummary = {
   id: string
   status: string
   session_type: SessionType
+  practice_tag: string | null
   role: string | null
   seniority: string | null
   question_count: number

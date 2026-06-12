@@ -160,6 +160,61 @@ async def test_invalid_session_type_is_422(client):
     assert response.status_code == 422
 
 
+async def test_create_requires_exactly_one_of_jd_or_practice_tag(client):
+    await _register(client)
+
+    both = await client.post(
+        "/api/interviews",
+        json={"jd_text": JD, "practice_tag": "databases/indexing"},
+    )
+    assert both.status_code == 422
+
+    neither = await client.post("/api/interviews", json={})
+    assert neither.status_code == 422
+
+
+async def test_practice_interview_full_lifecycle(client):
+    await _register(client)
+    response = await client.post(
+        "/api/interviews",
+        json={"practice_tag": "databases/indexing", "session_type": "screen"},
+    )
+    assert response.status_code == 201
+    interview_id = response.json()["id"]
+
+    state = await client.get(f"/api/interviews/{interview_id}")
+    assert state.json()["practice_tag"] == "databases/indexing"
+    assert state.json()["question_count"] == 3
+
+    await client.post(f"/api/interviews/{interview_id}/start")
+    for _ in range(3):
+        await _answer_through_question(client, interview_id)
+    finish = await client.post(f"/api/interviews/{interview_id}/finish")
+    assert finish.status_code == 200
+
+    report = await client.get(f"/api/interviews/{interview_id}/report")
+    assert report.status_code == 200
+    body = report.json()
+    assert body["practice_tag"] == "databases/indexing"
+    assert body["profile"] is None
+    # every drilled question carries the practiced tag — its judged
+    # answers all feed that skill
+    assert all(
+        question["tags"] == ["databases/indexing"] for question in body["questions"]
+    )
+
+    skills = await client.get("/api/skills")
+    indexing = next(
+        item for item in skills.json()["skills"] if item["tag"] == "databases/indexing"
+    )
+    assert indexing["evaluation_count"] == 3
+
+    history = await client.get("/api/interviews")
+    summary = history.json()["interviews"][0]
+    assert summary["practice_tag"] == "databases/indexing"
+    assert summary["role"] is None
+
+
 async def test_answer_before_start_is_409(client):
     await _register(client)
     interview_id = await _create_interview(client)

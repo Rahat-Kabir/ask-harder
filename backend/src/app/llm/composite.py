@@ -42,6 +42,14 @@ class CompositeLlmBackend:
     ) -> Plan:
         return await self._planner.generate(profile, skill_profile, n_questions)
 
+    async def generate_practice(
+        self,
+        tag: str,
+        average: float | None,
+        n_questions: int,
+    ) -> Plan:
+        return await self._planner.generate_practice(tag, average, n_questions)
+
     async def respond(
         self,
         question: InterviewQuestion,

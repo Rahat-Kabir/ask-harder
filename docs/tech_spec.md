@@ -91,6 +91,7 @@ What actually exists, updated as it changes.
   enum (`preparing|ready|in_progress|judging|complete|abandoned`),
   `jd_text`, `resume_text`, `profile_json` JSONB,
   `session_type` enum (`screen|round|full_loop`, default `round`),
+  `practice_tag` text nullable (set for skill drills instead of jd_text),
   `current_question_position` int nullable, `created_at`, `finished_at`.
 - `questions`: `id` UUID pk, `interview_id` FK CASCADE, `position` int,
   unique `(interview_id, position)`, `qtype` enum, `text`, `answer_key_json`
@@ -130,10 +131,15 @@ What actually exists, updated as it changes.
 - `DELETE /api/me` → 204, deletes user (sessions cascade), clears cookie.
 - `POST /api/interviews` → 201 `{id, status: "ready"}` (mock) or 202
   `{id, status: "preparing"}` (deepseek, background intake+plan); body
-  `{jd_text, resume_text?, session_type?}`. Intake failure → `abandoned`.
+  body has exactly one of `jd_text` / `practice_tag` (422 otherwise), plus
+  `resume_text?`, `session_type?`. A `practice_tag` interview is a skill
+  drill: intake parsing is skipped (profile stays null), the planner gets
+  the tag + the user's current average (`generate_practice` on the
+  PlanGenerator protocol), and every generated question carries the drilled
+  tag (enforced server-side). Intake/plan failure → `abandoned`.
 - `GET /api/interviews` → 200 `{interviews: [...]}` — the caller's
   interviews newest-first (cap 50, no pagination yet). Each summary:
-  `{id, status, session_type, role, seniority, question_count, overall_score,
+  `{id, status, session_type, practice_tag, role, seniority, question_count, overall_score,
   created_at, finished_at}`; `role`/`seniority` null until intake parses,
   `overall_score` (mean of per-question score averages) null until judged.
   Rendered by the `/interviews` history page.

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api, ApiError, type InterviewSummary } from './api'
-import { SESSION_LABELS } from './formatTag'
+import { formatTag, SESSION_LABELS } from './formatTag'
 import { LoadingState } from './LoadingState'
 
 const STATUS_LABELS: Record<string, string> = {
@@ -34,9 +34,11 @@ function formatDate(iso: string): string {
 
 function HistoryRow({ interview }: { interview: InterviewSummary }) {
   const path = interviewPath(interview)
-  const title = interview.role
-    ? `${interview.role} · ${interview.seniority}`
-    : 'Preparing…'
+  const title = interview.practice_tag
+    ? `Practice · ${formatTag(interview.practice_tag)}`
+    : interview.role
+      ? `${interview.role} · ${interview.seniority}`
+      : 'Preparing…'
 
   const body = (
     <>

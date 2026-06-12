@@ -53,7 +53,12 @@ from app.schemas import (
     Scores,
     Turn,
 )
-from app.skills.service import load_skill_profile, overall_score, record_skill_scores
+from app.skills.service import (
+    load_skill_profile,
+    overall_score,
+    record_skill_scores,
+    skill_average,
+)
 
 logger = logging.getLogger(__name__)
 LlmBackend = MockBackend | CompositeLlmBackend
@@ -78,16 +83,18 @@ class InterviewService:
         self,
         db: AsyncSession,
         user: User,
-        jd_text: str,
+        jd_text: str | None,
         resume_text: str | None,
         session_type: SessionType,
+        practice_tag: str | None = None,
     ) -> CreateInterviewOut:
         interview = Interview(
             user_id=user.id,
             status=InterviewStatus.preparing,
-            jd_text=jd_text,
+            jd_text=jd_text or "",
             resume_text=resume_text,
             session_type=session_type,
+            practice_tag=practice_tag,
         )
         db.add(interview)
         await db.commit()
@@ -121,13 +128,26 @@ class InterviewService:
             return
 
         try:
-            profile = await self.llm.parse(interview.jd_text, interview.resume_text)
-            skill_profile = await load_skill_profile(db, interview.user_id)
-            plan = await self.llm.generate(
-                profile,
-                skill_profile=skill_profile,
-                n_questions=question_count(interview.session_type),
-            )
+            if interview.practice_tag is not None:
+                # skill drill: no JD, no intake parse — plan straight
+                # from the tag and the user's current average on it
+                profile = None
+                average = await skill_average(
+                    db, interview.user_id, interview.practice_tag
+                )
+                plan = await self.llm.generate_practice(
+                    interview.practice_tag,
+                    average,
+                    n_questions=question_count(interview.session_type),
+                )
+            else:
+                profile = await self.llm.parse(interview.jd_text, interview.resume_text)
+                skill_profile = await load_skill_profile(db, interview.user_id)
+                plan = await self.llm.generate(
+                    profile,
+                    skill_profile=skill_profile,
+                    n_questions=question_count(interview.session_type),
+                )
         except LlmError:
             # covers IntakeParseError too — any provider failure during
             # preparation abandons the interview
@@ -135,7 +155,8 @@ class InterviewService:
             await db.commit()
             return
 
-        interview.profile_json = profile.model_dump()
+        if profile is not None:
+            interview.profile_json = profile.model_dump()
         for planned in plan.questions:
             db.add(
                 Question(
@@ -347,10 +368,17 @@ class InterviewService:
         if interview.status != InterviewStatus.complete:
             raise InvalidTransition("Report is not ready yet")
 
-        if interview.profile_json is None or interview.finished_at is None:
+        # practice drills have no profile; JD interviews must have one
+        if interview.finished_at is None or (
+            interview.profile_json is None and interview.practice_tag is None
+        ):
             raise InvalidTransition("Interview data is incomplete")
 
-        profile = Profile.model_validate(interview.profile_json)
+        profile = (
+            Profile.model_validate(interview.profile_json)
+            if interview.profile_json is not None
+            else None
+        )
         questions = await self._load_questions(db, interview.id)
         all_turns = await self._load_all_turns(db, interview.id)
         evaluations = await self._load_evaluations(db, interview.id)
@@ -392,6 +420,7 @@ class InterviewService:
             id=interview.id,
             status="complete",
             profile=profile,
+            practice_tag=interview.practice_tag,
             session_type=interview.session_type,
             finished_at=interview.finished_at,
             questions=report_questions,
@@ -445,6 +474,7 @@ class InterviewService:
                     id=interview.id,
                     status=interview.status.value,
                     session_type=interview.session_type,
+                    practice_tag=interview.practice_tag,
                     role=profile.role if profile else None,
                     seniority=profile.seniority if profile else None,
                     question_count=question_counts.get(interview.id, 0),
@@ -550,6 +580,7 @@ class InterviewService:
             id=interview.id,
             status=interview.status.value,
             session_type=interview.session_type,
+            practice_tag=interview.practice_tag,
             question_count=len(questions),
             current_question_position=interview.current_question_position,
             awaiting_answer=is_awaiting,
