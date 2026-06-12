@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     session_cookie_name: str = "askharder_session"
     session_ttl_days: int = 14
 
+    # interviews per user per UTC calendar day; abandoned ones don't count
+    daily_interview_limit: int = 5
+
     # mock: deterministic flow, no API keys (tests + offline dev)
     # deepseek: real intake + plan + interviewer + Anthropic judge
     llm_backend: Literal["mock", "deepseek"] = "mock"

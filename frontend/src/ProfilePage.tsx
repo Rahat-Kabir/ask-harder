@@ -4,6 +4,7 @@ import {
   api,
   ApiError,
   type InterviewSummary,
+  type Quota,
   type Skill,
 } from './api'
 import { formatTag } from './formatTag'
@@ -21,9 +22,10 @@ function formatDate(iso: string): string {
 type Stats = {
   interviews: InterviewSummary[]
   skills: Skill[]
+  quota: Quota
 }
 
-function StatsGrid({ interviews, skills }: Stats) {
+function StatsGrid({ interviews, skills, quota }: Stats) {
   const completed = interviews.filter((i) => i.status === 'complete')
   const scored = interviews.filter((i) => i.overall_score !== null)
   const overallAverage =
@@ -66,6 +68,12 @@ function StatsGrid({ interviews, skills }: Stats) {
       <div>
         <span>Strongest skill</span>
         <strong>{strongest ? formatTag(strongest.tag) : '—'}</strong>
+      </div>
+      <div>
+        <span>Interviews left today</span>
+        <strong>
+          {quota.remaining} of {quota.limit}
+        </strong>
       </div>
     </div>
   )
@@ -136,11 +144,12 @@ export function ProfilePage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    Promise.all([api.listInterviews(), api.getSkills()])
-      .then(([interviewsData, skillsData]) =>
+    Promise.all([api.listInterviews(), api.getSkills(), api.getQuota()])
+      .then(([interviewsData, skillsData, quota]) =>
         setStats({
           interviews: interviewsData.interviews,
           skills: skillsData.skills,
+          quota,
         }),
       )
       .catch((err) =>
@@ -164,7 +173,11 @@ export function ProfilePage() {
         {error && <p className="error">{error}</p>}
         {!error &&
           (stats ? (
-            <StatsGrid interviews={stats.interviews} skills={stats.skills} />
+            <StatsGrid
+              interviews={stats.interviews}
+              skills={stats.skills}
+              quota={stats.quota}
+            />
           ) : (
             <LoadingState label="Loading stats…" />
           ))}

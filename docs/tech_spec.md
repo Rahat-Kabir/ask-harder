@@ -123,8 +123,14 @@ What actually exists, updated as it changes.
 
 - `GET /health` → `{status, env}` — liveness probe / smoke test.
 - `POST /api/auth/register` → 201 UserOut + session cookie (auto-login);
-  409 duplicate email; 422 invalid email / password < 8 chars.
-- `POST /api/auth/login` → 200 UserOut + session cookie; 401 invalid.
+  409 duplicate email; 422 invalid email / password < 8 chars; 429 over
+  5 registrations/hour per IP.
+- `POST /api/auth/login` → 200 UserOut + session cookie; 401 invalid;
+  429 (+ `Retry-After`) over 5 *failed* attempts per email per 5 min
+  (reset on success) or 20 attempts per IP per 5 min. Limits live in
+  `app/auth/rate_limit.py` — in-memory fixed windows, per process
+  (single-instance app); IP extraction must read X-Forwarded-For once
+  deployed behind a proxy.
 - `POST /api/auth/logout` → 204, deletes session row, clears cookie
   (idempotent).
 - `GET /api/me` → 200 UserOut; 401 without valid session.
@@ -137,6 +143,13 @@ What actually exists, updated as it changes.
   the tag + the user's current average (`generate_practice` on the
   PlanGenerator protocol), and every generated question carries the drilled
   tag (enforced server-side). Intake/plan failure → `abandoned`.
+  429 when the daily quota is spent (`DAILY_INTERVIEW_LIMIT`, default 5
+  per UTC calendar day) — counted from the interviews table itself, so
+  abandoned interviews are refunded by exclusion; checked before any LLM
+  call. Known race: concurrent creates at the boundary can exceed by one.
+- `GET /api/quota` → 200 `{limit, used_today, remaining, resets_at}`;
+  401 without session. Rendered on intake (counter + disabled submit at
+  zero) and profile.
 - `GET /api/interviews` → 200 `{interviews: [...]}` — the caller's
   interviews newest-first (cap 50, no pagination yet). Each summary:
   `{id, status, session_type, practice_tag, role, seniority, question_count, overall_score,

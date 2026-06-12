@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -25,6 +25,7 @@ from app.interviews.schemas import (
     InterviewListOut,
     InterviewStateOut,
     InterviewSummaryOut,
+    QuotaOut,
     ReportOut,
     ReportQuestionOut,
     TurnOut,
@@ -70,6 +71,33 @@ _background_tasks: set[asyncio.Task] = set()
 HISTORY_LIMIT = 50
 
 
+def _utc_day_bounds() -> tuple[datetime, datetime]:
+    """Start of the current UTC calendar day, and the next midnight (reset)."""
+    now = datetime.now(UTC)
+    day_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    return day_start, day_start + timedelta(days=1)
+
+
+async def count_interviews_today(db: AsyncSession, user_id: uuid.UUID) -> int:
+    """Quota usage, counted from the source of truth — no counter to drift.
+
+    Abandoned interviews don't count: the user got nothing, the slot is
+    refunded by exclusion.
+    """
+    day_start, _ = _utc_day_bounds()
+    return (
+        await db.execute(
+            select(func.count())
+            .select_from(Interview)
+            .where(
+                Interview.user_id == user_id,
+                Interview.created_at >= day_start,
+                Interview.status != InterviewStatus.abandoned,
+            )
+        )
+    ).scalar_one()
+
+
 class InterviewService:
     def __init__(
         self,
@@ -88,6 +116,12 @@ class InterviewService:
         session_type: SessionType,
         practice_tag: str | None = None,
     ) -> CreateInterviewOut:
+        # quota gate before any row or LLM spend; abandoned don't count
+        used_today = await count_interviews_today(db, user.id)
+        if used_today >= settings.daily_interview_limit:
+            _, resets_at = _utc_day_bounds()
+            raise QuotaExceeded(resets_at)
+
         interview = Interview(
             user_id=user.id,
             status=InterviewStatus.preparing,
@@ -171,6 +205,16 @@ class InterviewService:
 
         interview.status = InterviewStatus.ready
         await db.commit()
+
+    async def get_quota(self, db: AsyncSession, user: User) -> QuotaOut:
+        used_today = await count_interviews_today(db, user.id)
+        _, resets_at = _utc_day_bounds()
+        return QuotaOut(
+            limit=settings.daily_interview_limit,
+            used_today=used_today,
+            remaining=max(settings.daily_interview_limit - used_today, 0),
+            resets_at=resets_at,
+        )
 
     async def get_state(
         self,
@@ -737,3 +781,9 @@ class InterviewService:
 
 class InterviewNotFound(Exception):
     pass
+
+
+class QuotaExceeded(Exception):
+    def __init__(self, resets_at: datetime) -> None:
+        self.resets_at = resets_at
+        super().__init__("Daily interview limit reached")

@@ -111,6 +111,13 @@ export type InterviewSummary = {
   finished_at: string | null
 }
 
+export type Quota = {
+  limit: number
+  used_today: number
+  remaining: number
+  resets_at: string
+}
+
 export type Skill = {
   tag: string
   average: number
@@ -227,6 +234,8 @@ export const api = {
 
     throw new ApiError(504, 'Interview preparation timed out.')
   },
+
+  getQuota: () => request<Quota>('/api/quota'),
 
   listInterviews: () =>
     request<{ interviews: InterviewSummary[] }>('/api/interviews'),

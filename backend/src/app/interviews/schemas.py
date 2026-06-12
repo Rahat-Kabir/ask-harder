@@ -34,6 +34,13 @@ class CreateInterviewOut(BaseModel):
     status: Literal["ready", "preparing"]
 
 
+class QuotaOut(BaseModel):
+    limit: int
+    used_today: int
+    remaining: int
+    resets_at: datetime
+
+
 class InterviewSummaryOut(BaseModel):
     id: uuid.UUID
     status: str

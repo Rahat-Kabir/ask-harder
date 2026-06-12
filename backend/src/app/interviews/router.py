@@ -14,9 +14,14 @@ from app.interviews.schemas import (
     CreateInterviewOut,
     InterviewListOut,
     InterviewStateOut,
+    QuotaOut,
     ReportOut,
 )
-from app.interviews.service import InterviewNotFound, InterviewService
+from app.interviews.service import (
+    InterviewNotFound,
+    InterviewService,
+    QuotaExceeded,
+)
 from app.interviews.sse import format_keepalive, format_sse
 from app.interviews.state_machine import InvalidTransition
 
@@ -41,14 +46,20 @@ async def create_interview(
     db: DbSession,
     user: CurrentUser,
 ) -> CreateInterviewOut | JSONResponse:
-    created = await _service.create(
-        db,
-        user,
-        jd_text=body.jd_text,
-        resume_text=body.resume_text,
-        session_type=body.session_type,
-        practice_tag=body.practice_tag,
-    )
+    try:
+        created = await _service.create(
+            db,
+            user,
+            jd_text=body.jd_text,
+            resume_text=body.resume_text,
+            session_type=body.session_type,
+            practice_tag=body.practice_tag,
+        )
+    except QuotaExceeded:
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            "Daily interview limit reached — resets at midnight UTC",
+        ) from None
     status_code = (
         status.HTTP_202_ACCEPTED
         if created.status == "preparing"
@@ -58,6 +69,11 @@ async def create_interview(
         status_code=status_code,
         content=created.model_dump(mode="json"),
     )
+
+
+@router.get("/quota", response_model=QuotaOut)
+async def get_quota(db: DbSession, user: CurrentUser) -> QuotaOut:
+    return await _service.get_quota(db, user)
 
 
 @router.get("/interviews", response_model=InterviewListOut)

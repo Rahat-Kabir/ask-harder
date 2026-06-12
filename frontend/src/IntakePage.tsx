@@ -1,6 +1,6 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { api, ApiError, type SessionType } from './api'
+import { api, ApiError, type Quota, type SessionType } from './api'
 
 const SESSION_OPTIONS: {
   value: SessionType
@@ -40,6 +40,14 @@ export function IntakePage() {
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [statusLine, setStatusLine] = useState<string | null>(null)
+  const [quota, setQuota] = useState<Quota | null>(null)
+
+  useEffect(() => {
+    // quota display is best-effort; creating still enforces server-side
+    api.getQuota().then(setQuota).catch(() => setQuota(null))
+  }, [])
+
+  const quotaSpent = quota !== null && quota.remaining === 0
 
   async function submit(event: FormEvent) {
     event.preventDefault()
@@ -130,7 +138,19 @@ export function IntakePage() {
           </p>
         )}
 
-        <button type="submit" className="primary-button" disabled={busy}>
+        {quota && (
+          <p className="quota-line">
+            {quotaSpent
+              ? 'Daily limit reached — resets at midnight UTC.'
+              : `${quota.remaining} of ${quota.limit} interviews left today`}
+          </p>
+        )}
+
+        <button
+          type="submit"
+          className="primary-button"
+          disabled={busy || quotaSpent}
+        >
           {busy ? 'Building your interview…' : 'Create interview'}
         </button>
       </form>

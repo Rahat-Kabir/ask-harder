@@ -31,6 +31,7 @@ from httpx import ASGITransport, AsyncClient  # noqa: E402
 from sqlalchemy import text  # noqa: E402
 
 from alembic import command  # noqa: E402
+from app.auth.rate_limit import clear_all as clear_rate_limits  # noqa: E402
 from app.db.base import Base  # noqa: E402
 from app.db.session import engine  # noqa: E402
 from app.interviews.events import interview_events  # noqa: E402
@@ -78,6 +79,15 @@ def clear_interview_event_bus(monkeypatch):
     interview_events.clear()
     yield
     interview_events.clear()
+
+
+@pytest.fixture(autouse=True)
+def reset_rate_limits():
+    # limiters are process-level singletons; without this, registrations
+    # across the suite would trip the per-IP limit
+    clear_rate_limits()
+    yield
+    clear_rate_limits()
 
 
 @pytest.fixture()

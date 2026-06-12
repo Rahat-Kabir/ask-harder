@@ -1047,6 +1047,12 @@ a.history-link:hover {
   color: var(--muted);
 }
 
+.quota-line {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 .report-cta {
   border-color: var(--accent);
 }

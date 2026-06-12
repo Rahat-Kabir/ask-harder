@@ -233,12 +233,29 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   Browser-verified on the real Sonnet report (picked the 1.8
   query-optimization question).
 
+- 2026-06-12 — Quota + rate limiting (pre-launch hardening): daily
+  interview quota (`DAILY_INTERVIEW_LIMIT=5`, UTC calendar day, abandoned
+  refunded by exclusion) counted live from the interviews table — no
+  counter to drift; 429 from `POST /interviews`, `GET /api/quota` feeds
+  the intake counter (+ disabled submit at zero) and a profile cell.
+  Auth rate limiting in `app/auth/rate_limit.py` (~40-line in-memory
+  fixed-window limiter, injectable clock): 5 failed logins/email/5min
+  (reset on success), 20 attempts/IP/5min, 5 registrations/IP/hour →
+  429 + Retry-After; conftest clears limiters between tests. 11 new
+  tests (4 limiter unit w/ fake clock, 3 auth endpoint, 4 quota incl.
+  abandoned refund). Browser-verified: intake/profile counters, live
+  6th failed login → 429 Retry-After 300.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;
   revisit when bumping httpx.
 - Expired session rows are never purged (harmless until scale).
-- No rate limiting on login/register (revisit before public launch).
+- Rate-limit counters are in-memory per process — reset on restart, and
+  per-IP keys only see the real client once X-Forwarded-For handling is
+  added at deploy time.
+- Quota check has a small race: concurrent creates at the boundary can
+  exceed the daily limit by one.
 - Skill averages mix mock and real judge scores on the same account until a
   `judge_model` filter is added later.
 

@@ -114,6 +114,7 @@ ask-harder/
     │   │   ├── security.py      # argon2 hashing, session token gen/hash
     │   │   ├── schemas.py       # RegisterIn / LoginIn / UserOut
     │   │   ├── deps.py          # get_current_user (cookie → user)
+    │   │   ├── rate_limit.py    # in-memory login/register throttles
     │   │   └── router.py        # /auth/*, /me endpoints
     │   ├── interviews/
     │   │   ├── state_machine.py # flow rules, probe cap, transition guards
@@ -147,6 +148,7 @@ ask-harder/
         ├── test_intake.py
         ├── test_methodology.py
         ├── test_skills.py
+        ├── test_rate_limit.py
         ├── test_interviewer_common.py
         ├── test_judge_common.py
         ├── test_deepseek_common.py

@@ -215,6 +215,74 @@ async def test_practice_interview_full_lifecycle(client):
     assert summary["role"] is None
 
 
+async def test_quota_blocks_after_daily_limit(client, monkeypatch):
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "daily_interview_limit", 2)
+    await _register(client)
+    await _create_interview(client)
+    await _create_interview(client)
+
+    blocked = await client.post(
+        "/api/interviews",
+        json={"jd_text": JD, "session_type": "screen"},
+    )
+    assert blocked.status_code == 429
+    assert "limit" in blocked.json()["detail"].lower()
+
+
+async def test_quota_endpoint_reports_usage(client, monkeypatch):
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "daily_interview_limit", 5)
+    await _register(client)
+    await _create_interview(client)
+
+    quota = await client.get("/api/quota")
+    assert quota.status_code == 200
+    body = quota.json()
+    assert body["limit"] == 5
+    assert body["used_today"] == 1
+    assert body["remaining"] == 4
+    assert body["resets_at"]
+
+
+async def test_quota_refunds_abandoned_interviews(client, monkeypatch):
+    from app.config import settings
+    from app.db.models import InterviewStatus
+
+    monkeypatch.setattr(settings, "daily_interview_limit", 1)
+    await _register(client)
+    interview_id = await _create_interview(client)
+
+    blocked = await client.post(
+        "/api/interviews",
+        json={"jd_text": JD, "session_type": "screen"},
+    )
+    assert blocked.status_code == 429
+
+    # abandon the interview directly — only the backend can set this status
+    async with new_session() as db:
+        interview = (
+            await db.execute(
+                select(Interview).where(Interview.id == uuid.UUID(interview_id))
+            )
+        ).scalar_one()
+        interview.status = InterviewStatus.abandoned
+        await db.commit()
+
+    # the slot is free again
+    retry = await client.post(
+        "/api/interviews",
+        json={"jd_text": JD, "session_type": "screen"},
+    )
+    assert retry.status_code == 201
+
+
+async def test_quota_requires_auth(client):
+    assert (await client.get("/api/quota")).status_code == 401
+
+
 async def test_answer_before_start_is_409(client):
     await _register(client)
     interview_id = await _create_interview(client)
