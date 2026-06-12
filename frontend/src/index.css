@@ -1053,6 +1053,15 @@ a.history-link:hover {
   font-size: 0.9rem;
 }
 
+.resume-label {
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+.resume-label textarea {
+  width: 100%;
+}
+
 .ready-card h2 {
   margin: 0 0 0.5rem;
   font-size: 1.05rem;

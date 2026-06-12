@@ -2,6 +2,7 @@ export type User = {
   id: string
   email: string
   created_at: string
+  resume_text: string | null
 }
 
 export type QuestionType =
@@ -209,6 +210,13 @@ export const api = {
 
   // permanent: cascades interviews, evaluations, skills, sessions
   deleteMe: () => request<void>('/api/me', { method: 'DELETE' }),
+
+  // blank clears the saved resume
+  saveResume: (resumeText: string) =>
+    request<User>('/api/me/resume', {
+      method: 'PUT',
+      body: JSON.stringify({ resume_text: resumeText }),
+    }),
 
   createInterview: (input: CreateInterviewInput) =>
     request<{ id: string; status: 'ready' | 'preparing' }>('/api/interviews', {

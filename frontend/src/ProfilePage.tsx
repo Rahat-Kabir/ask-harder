@@ -79,6 +79,62 @@ function StatsGrid({ interviews, skills, quota }: Stats) {
   )
 }
 
+function ResumeEditor({ initial }: { initial: string }) {
+  const [text, setText] = useState(initial)
+  const [saving, setSaving] = useState(false)
+  const [savedAt, setSavedAt] = useState<number | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  async function save() {
+    setSaving(true)
+    setError(null)
+    try {
+      const user = await api.saveResume(text)
+      setText(user.resume_text ?? '')
+      setSavedAt(Date.now())
+    } catch (err) {
+      setError(
+        err instanceof ApiError ? err.message : 'Could not save the resume',
+      )
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <section className="report-question">
+      <h2>Resume</h2>
+      <p className="profile-danger-warning">
+        Saved once, auto-filled into every new interview — questions can probe
+        your actual claims.
+      </p>
+      <label className="resume-label">
+        <textarea
+          value={text}
+          onChange={(event) => {
+            setText(event.target.value)
+            setSavedAt(null)
+          }}
+          rows={6}
+          placeholder="Paste resume highlights — claims an interviewer could probe."
+        />
+      </label>
+      {error && <p className="error">{error}</p>}
+      <div className="report-actions">
+        <button
+          type="button"
+          className="primary-button"
+          onClick={save}
+          disabled={saving}
+        >
+          {saving ? 'Saving…' : 'Save resume'}
+        </button>
+        {savedAt !== null && <p className="quota-line">Saved.</p>}
+      </div>
+    </section>
+  )
+}
+
 function DeleteAccount({ onDeleted }: { onDeleted: () => void }) {
   const [confirming, setConfirming] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -190,6 +246,8 @@ export function ProfilePage() {
           </Link>
         </div>
       </section>
+
+      <ResumeEditor initial={user.resume_text ?? ''} />
 
       <DeleteAccount onDeleted={onLogout} />
     </main>

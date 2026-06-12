@@ -264,6 +264,12 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   (copies JD+session, copies practice tag, ownership, quota);
   browser-verified report → retake → confirmation card with same profile.
 
+- 2026-06-13 — Saved resume: `users.resume_text` (migration
+  `f6a7b8c9d0e1`), `PUT /api/me/resume` (blank clears), UserOut carries it.
+  Profile gains a resume editor; intake auto-fills an untouched resume
+  field from the saved value. 3 new auth tests; browser-verified save →
+  prefill round trip.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;

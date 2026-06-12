@@ -45,6 +45,14 @@ export function IntakePage() {
   useEffect(() => {
     // quota display is best-effort; creating still enforces server-side
     api.getQuota().then(setQuota).catch(() => setQuota(null))
+    // prefill the saved resume — only into an untouched field
+    api
+      .me()
+      .then((user) => {
+        const saved = user.resume_text
+        if (saved) setResumeText((current) => current || saved)
+      })
+      .catch(() => undefined)
   }, [])
 
   const quotaSpent = quota !== null && quota.remaining === 0

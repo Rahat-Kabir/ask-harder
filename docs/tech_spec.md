@@ -135,6 +135,9 @@ What actually exists, updated as it changes.
   (idempotent).
 - `GET /api/me` → 200 UserOut; 401 without valid session.
 - `DELETE /api/me` → 204, deletes user (sessions cascade), clears cookie.
+- `PUT /api/me/resume` → 200 UserOut; saves `users.resume_text` (blank/null
+  clears). UserOut now carries `resume_text`; the intake form prefills an
+  untouched resume field from it.
 - `POST /api/interviews` → 201 `{id, status: "ready"}` (mock) or 202
   `{id, status: "preparing"}` (deepseek, background intake+plan); body
   body has exactly one of `jd_text` / `practice_tag` (422 otherwise), plus

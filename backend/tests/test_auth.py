@@ -73,6 +73,34 @@ async def test_login_works_after_logout(client):
     assert (await client.get("/api/me")).status_code == 200
 
 
+async def test_save_resume_roundtrips_through_me(client):
+    await client.post("/api/auth/register", json=CREDENTIALS)
+
+    saved = await client.put(
+        "/api/me/resume",
+        json={"resume_text": "Built a billing reconciliation service."},
+    )
+    assert saved.status_code == 200
+    assert saved.json()["resume_text"] == "Built a billing reconciliation service."
+
+    me = await client.get("/api/me")
+    assert me.json()["resume_text"] == "Built a billing reconciliation service."
+
+
+async def test_blank_resume_clears_saved_value(client):
+    await client.post("/api/auth/register", json=CREDENTIALS)
+    await client.put("/api/me/resume", json={"resume_text": "Something."})
+
+    cleared = await client.put("/api/me/resume", json={"resume_text": "   "})
+    assert cleared.status_code == 200
+    assert cleared.json()["resume_text"] is None
+
+
+async def test_save_resume_requires_auth(client):
+    response = await client.put("/api/me/resume", json={"resume_text": "x"})
+    assert response.status_code == 401
+
+
 async def test_me_without_cookie_is_401(client):
     assert (await client.get("/api/me")).status_code == 401
 

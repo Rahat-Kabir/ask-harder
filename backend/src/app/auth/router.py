@@ -14,7 +14,7 @@ from app.auth.rate_limit import (
     client_ip,
     enforce,
 )
-from app.auth.schemas import LoginIn, RegisterIn, UserOut
+from app.auth.schemas import LoginIn, RegisterIn, ResumeIn, UserOut
 from app.auth.security import (
     hash_password,
     hash_session_token,
@@ -117,6 +117,14 @@ async def logout(
 
 @router.get("/me")
 async def me(user: CurrentUser) -> UserOut:
+    return UserOut.model_validate(user, from_attributes=True)
+
+
+@router.put("/me/resume")
+async def save_resume(body: ResumeIn, user: CurrentUser, db: DbSession) -> UserOut:
+    text = (body.resume_text or "").strip()
+    user.resume_text = text or None
+    await db.commit()
     return UserOut.model_validate(user, from_attributes=True)
 
 
