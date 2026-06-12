@@ -748,10 +748,21 @@ blockquote {
 }
 
 .skill-row {
-  padding: 1rem 1.1rem;
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--surface);
+}
+
+.skill-row:hover {
+  border-color: var(--accent);
+}
+
+/* the whole row is one link to the tag's drill-down */
+.skill-row-link {
+  display: block;
+  padding: 1rem 1.1rem;
+  color: inherit;
+  text-decoration: none;
 }
 
 .skill-row-header {

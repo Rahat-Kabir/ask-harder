@@ -5,9 +5,17 @@ from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import SkillScore, User
-from app.schemas import Scores
-from app.skills.schemas import SkillOut, SkillsOut
+from app.db.models import (
+    Interview,
+    InterviewTurn,
+    Question,
+    QuestionEvaluation,
+    SkillScore,
+    TurnRole,
+    User,
+)
+from app.schemas import EvidenceItem, Scores
+from app.skills.schemas import SkillAnswerOut, SkillDetailOut, SkillOut, SkillsOut
 
 
 def overall_score(scores: Scores) -> float:
@@ -84,6 +92,77 @@ async def list_skills(db: AsyncSession, user: User) -> SkillsOut:
             )
             for row in rows
         ]
+    )
+
+
+async def skill_detail(
+    db: AsyncSession,
+    user: User,
+    tag: str,
+) -> SkillDetailOut | None:
+    """Every judged answer behind one tag's average — the receipts.
+
+    Returns None when the user has no score for the tag.
+    """
+    skill_row = (
+        await db.execute(
+            select(SkillScore).where(
+                SkillScore.user_id == user.id, SkillScore.tag == tag
+            )
+        )
+    ).scalar_one_or_none()
+    if skill_row is None:
+        return None
+
+    judged_rows = (
+        await db.execute(
+            select(Question, QuestionEvaluation, Interview)
+            .join(QuestionEvaluation, QuestionEvaluation.question_id == Question.id)
+            .join(Interview, Interview.id == Question.interview_id)
+            .where(Interview.user_id == user.id, Question.tags.any(tag))
+            .order_by(Interview.created_at.desc(), Question.position.asc())
+        )
+    ).all()
+
+    question_ids = [question.id for question, _, _ in judged_rows]
+    answers_by_question: dict[uuid.UUID, list[str]] = {}
+    if question_ids:
+        candidate_turns = (
+            (
+                await db.execute(
+                    select(InterviewTurn)
+                    .where(
+                        InterviewTurn.question_id.in_(question_ids),
+                        InterviewTurn.role == TurnRole.candidate,
+                    )
+                    .order_by(InterviewTurn.sequence.asc())
+                )
+            )
+            .scalars()
+            .all()
+        )
+        for turn in candidate_turns:
+            answers_by_question.setdefault(turn.question_id, []).append(turn.content)
+
+    return SkillDetailOut(
+        tag=skill_row.tag,
+        average=skill_row.score_sum / skill_row.evaluation_count,
+        evaluation_count=skill_row.evaluation_count,
+        answers=[
+            SkillAnswerOut(
+                interview_id=interview.id,
+                interview_created_at=interview.created_at,
+                position=question.position,
+                qtype=question.qtype,
+                question_text=question.text,
+                candidate_answers=answers_by_question.get(question.id, []),
+                scores=Scores(**evaluation.scores_json),
+                evidence=[EvidenceItem(**item) for item in evaluation.evidence_json],
+                missing_points=list(evaluation.missing_points_json),
+                judge_model=evaluation.judge_model,
+            )
+            for question, evaluation, interview in judged_rows
+        ],
     )
 
 

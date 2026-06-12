@@ -26,7 +26,8 @@ What actually exists, updated as it changes.
 - Frontend: Vite +   React 19 + TypeScript in `frontend/`. `api.ts` is the
   single typed fetch wrapper. Dev: Vite proxies `/api` → `127.0.0.1:8000`
   (same-origin, cookies work, no CORS). `react-router-dom` routes:
-  `/`, `/interviews/new`, `/interviews/:id`, `/interviews/:id/report`, `/skills`.
+  `/`, `/interviews/new`, `/interviews/:id`, `/interviews/:id/report`,
+  `/skills`, `/skills/*` (splat, not `:tag` — tags contain slashes).
   Chat page uses `EventSource` on `/api/interviews/:id/stream`.
 - URL scheme: **all API routes under `/api`**; `/health` unprefixed (infra
   probes). Page routes and API routes must never share a path — prod serves
@@ -151,6 +152,12 @@ What actually exists, updated as it changes.
   `/methodology` page (also public — the SPA router wraps both auth states).
 - `GET /api/skills` → 200 `{skills: [{tag, average, evaluation_count, updated_at}]}`
   sorted weakest-first; 401 without session. Populated when interviews finish.
+- `GET /api/skills/{tag}` → 200 `{tag, average, evaluation_count, answers: [...]}` —
+  every judged answer on the tag (question, candidate turns, scores, evidence,
+  missing points, judge model, interview id/date), newest interview first.
+  `{tag:path}` route because tags contain slashes; 404 when the user has no
+  score for the tag. Answers predating skill tracking can appear without
+  being counted in `evaluation_count` (dev-data artifact only).
 
 ## Run
 

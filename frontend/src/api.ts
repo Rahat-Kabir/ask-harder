@@ -110,6 +110,26 @@ export type Skill = {
   updated_at: string
 }
 
+export type SkillAnswer = {
+  interview_id: string
+  interview_created_at: string
+  position: number
+  qtype: QuestionType
+  question_text: string
+  candidate_answers: string[]
+  scores: Scores
+  evidence: EvidenceItem[]
+  missing_points: string[]
+  judge_model: string
+}
+
+export type SkillDetail = {
+  tag: string
+  average: number
+  evaluation_count: number
+  answers: SkillAnswer[]
+}
+
 export type JudgeResults = {
   judge_backend: string
   judge_model: string
@@ -216,6 +236,10 @@ export const api = {
   getReport: (id: string) => request<Report>(`/api/interviews/${id}/report`),
 
   getSkills: () => request<{ skills: Skill[] }>('/api/skills'),
+
+  // tag contains a slash ("databases/indexing") — passed through raw,
+  // matched server-side by the {tag:path} route
+  getSkillDetail: (tag: string) => request<SkillDetail>(`/api/skills/${tag}`),
 
   methodology: () =>
     request<{ results: JudgeResults[] }>('/api/methodology'),

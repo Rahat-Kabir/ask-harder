@@ -76,6 +76,8 @@ ask-harder/
 │       ├── LoadingState.tsx       # shared spinner + label
 │       ├── Home.tsx             # landing CTA + weakest-skills teaser
 │       ├── SkillsPage.tsx       # skill dashboard (/skills)
+│       ├── SkillDetailPage.tsx  # per-tag judged answers (/skills/*)
+│       ├── formatTag.ts         # tag → display label helper
 │       ├── HistoryPage.tsx      # interview history list (/interviews)
 │       ├── IntakePage.tsx       # JD paste → create interview
 │       ├── InterviewPage.tsx    # SSE chat + answer/finish
@@ -119,9 +121,9 @@ ask-harder/
     │   │   ├── sse.py           # SSE line formatting
     │   │   └── router.py        # /interviews/* REST + /stream SSE
     │   ├── skills/
-    │   │   ├── service.py       # finish-time aggregation + list
-    │   │   ├── schemas.py       # SkillOut / SkillsOut
-    │   │   └── router.py        # GET /api/skills
+    │   │   ├── service.py       # finish-time aggregation, list, per-tag detail
+    │   │   ├── schemas.py       # SkillOut / SkillsOut / SkillDetailOut
+    │   │   └── router.py        # GET /api/skills, /api/skills/{tag}
     │   └── db/
     │       ├── base.py          # Base + constraint naming convention
     │       ├── models.py        # User, UserSession, Interview, Question, ...

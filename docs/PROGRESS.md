@@ -158,6 +158,20 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   `tests/test_skills.py` and `src/app/skills/service.py` that were in CI
   scope. No pagination yet — documented limitation.
 
+- 2026-06-12 — Skill drill-down ("the receipts"): `GET /api/skills/{tag:path}`
+  (404 if the user has no score for the tag) returns every judged answer on
+  the tag — question, candidate turns in order, scores, evidence, missing
+  points, judge model, interview id/date — newest interview first. Frontend:
+  skill bars on `/skills` are now links to `/skills/*` (splat route — tags
+  contain slashes), new `SkillDetailPage` reuses report-card styling, links
+  through to the full interview report; `formatTag` extracted to its own
+  module (react-refresh lint). 5 new API tests (auth, 404, receipts content
+  incl. probe replies, newest-first ordering, cross-user isolation); verified
+  in the browser on the real dogfood data (deep link with slashed URL, error
+  state, report link). Noted: evaluations that predate skill tracking show as
+  receipts but aren't in `evaluation_count` — dev-data artifact only, the two
+  are written in the same transaction going forward.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;

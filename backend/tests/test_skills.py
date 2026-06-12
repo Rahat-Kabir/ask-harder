@@ -231,6 +231,72 @@ async def test_second_interview_passes_weakest_skill_profile(client, monkeypatch
     assert passed["system_design/rate-limiting"] == pytest.approx(MOCK_OVERALL)
 
 
+async def test_skill_detail_requires_auth(client):
+    assert (await client.get("/api/skills/databases/indexing")).status_code == 401
+
+
+async def test_skill_detail_unknown_tag_is_404(client):
+    await _register(client)
+    assert (await client.get("/api/skills/nope/never")).status_code == 404
+
+
+async def test_skill_detail_returns_judged_answers(client):
+    await _register(client)
+    await _finish_mock_interview(client)
+
+    response = await client.get("/api/skills/databases/indexing")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["tag"] == "databases/indexing"
+    assert body["average"] == pytest.approx(MOCK_OVERALL)
+    assert body["evaluation_count"] == 1
+
+    assert len(body["answers"]) == 1
+    answer = body["answers"][0]
+    assert "index" in answer["question_text"]
+    assert answer["qtype"] == "technical"
+    # both candidate turns on the question: the probe reply, then the real answer
+    assert answer["candidate_answers"] == ["I did some work on it.", LONG_ANSWER]
+    # mock judge at level 2: correctness/structure 2, depth 1, communication 3
+    assert answer["scores"] == {
+        "correctness": 2,
+        "depth": 1,
+        "structure": 2,
+        "communication": 3,
+    }
+    assert answer["judge_model"] == "mock"
+    assert isinstance(answer["evidence"], list)
+    assert isinstance(answer["missing_points"], list)
+
+
+async def test_skill_detail_newest_interview_first(client):
+    await _register(client)
+    await _finish_mock_interview(client)
+    await _finish_mock_interview(client)
+
+    response = await client.get("/api/skills/databases/indexing")
+    assert response.status_code == 200
+    answers = response.json()["answers"]
+    assert len(answers) == 2
+    assert answers[0]["interview_id"] != answers[1]["interview_id"]
+    assert answers[0]["interview_created_at"] >= answers[1]["interview_created_at"]
+
+
+async def test_skill_detail_does_not_leak_other_users(client):
+    await _register(client)
+    await _finish_mock_interview(client)
+    await client.post("/api/auth/logout")
+
+    other = await client.post(
+        "/api/auth/register",
+        json={"email": "other@example.com", "password": "correct-horse-9"},
+    )
+    assert other.status_code == 201
+    # the other user has no score for the tag, so the first user's
+    # answers must not be reachable at all
+    assert (await client.get("/api/skills/databases/indexing")).status_code == 404
+
+
 async def test_delete_me_cascades_skill_scores(client):
     await _register(client)
     await _finish_mock_interview(client)

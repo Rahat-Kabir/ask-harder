@@ -10,6 +10,7 @@ import { Layout } from './Layout'
 import { MethodologyPage } from './MethodologyPage'
 import { ReportPage } from './ReportPage'
 import { LoadingState } from './LoadingState'
+import { SkillDetailPage } from './SkillDetailPage'
 import { SkillsPage } from './SkillsPage'
 
 type AuthState = 'checking' | { user: User } | 'anonymous'
@@ -54,6 +55,8 @@ export default function App() {
             <Route path="interviews/:id" element={<InterviewPage />} />
             <Route path="interviews/:id/report" element={<ReportPage />} />
             <Route path="skills" element={<SkillsPage />} />
+            {/* splat, not :tag — tags contain slashes (databases/indexing) */}
+            <Route path="skills/*" element={<SkillDetailPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         )}

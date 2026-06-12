@@ -97,8 +97,9 @@ npm run dev                            # http://localhost:5173
 
 Then open http://localhost:5173 — register, start an interview, paste a job
 description, answer the questions, finish, read your report. Visit `/skills`
-to see skill averages after finishing at least one interview, and
-`/interviews` for the history of every interview you've taken.
+to see skill averages after finishing at least one interview — click any
+skill to see every judged answer behind its score — and `/interviews` for
+the history of every interview you've taken.
 
 **Explore the database** (interactive `psql` shell; requires Postgres running):
 
