@@ -172,3 +172,7 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
 - `run_comparison.py` (Batches API) and `/methodology` page (renders
   `evals/results/*.json`).
 - Re-run all eval suites on Sonnet to verify the prompt/validator fixes.
+- Targeted practice: "drill my weakest skill" — start an interview focused
+  on a chosen tag instead of a JD. Planner already reads weak tags; this
+  makes it user-driven. New interview mode (planner prompt variant), burns
+  API per use.
