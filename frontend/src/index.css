@@ -686,11 +686,21 @@ textarea:focus {
   border-radius: 6px;
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
 }
 
 .score-grid span {
   color: var(--muted);
   font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+/* long values (skill tags) wrap on their own side, right-aligned,
+   instead of colliding with the label */
+.score-grid strong {
+  text-align: right;
+  min-width: 0;
 }
 
 .report-block h3 {
@@ -967,6 +977,8 @@ a.history-link:hover {
 }
 
 .home-briefing .score-grid {
+  /* the card is narrow — full-width rows beat cramped half-width cells */
+  grid-template-columns: 1fr;
   margin-bottom: 0.75rem;
 }
 

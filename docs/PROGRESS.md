@@ -310,6 +310,15 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   load), continuity across a probe, reset on advance, report durations
   matching reality.
 
+- 2026-06-13 — UI polish pass (Playwright walk of every page, desktop +
+  mobile): fixed score-grid cells — label/value collision on long values
+  (gap + baseline alignment + right-aligned wrapping values); home
+  briefing grid switched to full-width rows (its 560px card made
+  half-width cells wrap to 3 lines). 0px horizontal overflow re-confirmed.
+  Finding noted, not built: interviews that never reach `complete`
+  (ready/in_progress) have no delete path in the UI — delete lives only
+  on the report page.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;
