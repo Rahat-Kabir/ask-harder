@@ -167,6 +167,20 @@ async def submit_answer(
         raise HTTPException(status.HTTP_409_CONFLICT, error.detail) from error
 
 
+@router.post("/interviews/{interview_id}/skip", response_model=InterviewStateOut)
+async def skip_question(
+    interview_id: UUID,
+    db: DbSession,
+    user: CurrentUser,
+) -> InterviewStateOut:
+    try:
+        return await _service.skip_question(db, interview_id, user)
+    except InterviewNotFound:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Interview not found") from None
+    except InvalidTransition as error:
+        raise HTTPException(status.HTTP_409_CONFLICT, error.detail) from error
+
+
 @router.post("/interviews/{interview_id}/finish", response_model=InterviewStateOut)
 async def finish_interview(
     interview_id: UUID,

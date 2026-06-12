@@ -32,6 +32,7 @@ export type Turn = {
   role: 'interviewer' | 'candidate'
   content: string
   is_probe: boolean
+  is_skip: boolean
   question_position: number
   created_at: string
 }
@@ -270,6 +271,10 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ text }),
     }),
+
+  // honest bail-out: advances immediately, judged at floor scores
+  skipQuestion: (id: string) =>
+    request<InterviewState>(`/api/interviews/${id}/skip`, { method: 'POST' }),
 
   finishInterview: (id: string) =>
     request<InterviewState>(`/api/interviews/${id}/finish`, { method: 'POST' }),

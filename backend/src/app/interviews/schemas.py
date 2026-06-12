@@ -66,6 +66,7 @@ class TurnOut(BaseModel):
     role: Literal["interviewer", "candidate"]
     content: str
     is_probe: bool
+    is_skip: bool
     question_position: int
     created_at: datetime
 

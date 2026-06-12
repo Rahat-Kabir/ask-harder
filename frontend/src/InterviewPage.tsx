@@ -22,6 +22,7 @@ type ChatMessage = {
   role: 'interviewer' | 'candidate'
   content: string
   isProbe: boolean
+  isSkip?: boolean
   streaming?: boolean
 }
 
@@ -31,6 +32,7 @@ function turnsToMessages(turns: Turn[]): ChatMessage[] {
     role: turn.role,
     content: turn.content,
     isProbe: turn.is_probe,
+    isSkip: turn.is_skip,
   }))
 }
 
@@ -295,6 +297,34 @@ export function InterviewPage() {
     }
   }
 
+  async function skipQuestion() {
+    if (!id) return
+    setAwaitingAnswer(false)
+    setBusy(true)
+    setError(null)
+    setMessages((previous) => [
+      ...previous,
+      {
+        id: crypto.randomUUID(),
+        role: 'candidate',
+        content: '(skipped)',
+        isProbe: false,
+        isSkip: true,
+      },
+    ])
+
+    try {
+      const state = await api.skipQuestion(id)
+      setAwaitingAnswer(state.awaiting_answer)
+      setCanSubmitFinish(canFinish(state))
+      setProgress(progressFromState(state))
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Could not skip')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   async function finishInterview() {
     if (!id) return
     setBusy(true)
@@ -337,11 +367,14 @@ export function InterviewPage() {
             key={message.id}
             className={`chat-bubble ${message.role}${
               message.isProbe ? ' probe' : ''
-            }${message.streaming ? ' streaming' : ''}`}
+            }${message.isSkip ? ' skip' : ''}${
+              message.streaming ? ' streaming' : ''
+            }`}
           >
             <header>
               {message.role === 'interviewer' ? 'Interviewer' : 'You'}
               {message.isProbe ? ' · follow-up' : ''}
+              {message.isSkip ? ' · skipped' : ''}
             </header>
             <p>
               {message.content}
@@ -376,9 +409,20 @@ export function InterviewPage() {
               required
             />
           </label>
-          <button type="submit" className="primary-button" disabled={busy}>
-            {busy ? 'Sending…' : 'Send answer'}
-          </button>
+          <div className="answer-actions">
+            <button type="submit" className="primary-button" disabled={busy}>
+              {busy ? 'Sending…' : 'Send answer'}
+            </button>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={skipQuestion}
+              disabled={busy}
+              title="Recorded as skipped — scores at the floor, no judging of filler"
+            >
+              Skip
+            </button>
+          </div>
         </form>
       )}
 

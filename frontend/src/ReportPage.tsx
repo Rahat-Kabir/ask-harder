@@ -209,6 +209,9 @@ export function ReportPage() {
           <header>
             <span className="question-index">Q{question.position + 1}</span>
             <span className="question-type">{question.qtype.replace('_', ' ')}</span>
+            {question.evaluation.judge_model === 'skipped' && (
+              <span className="skipped-badge">Skipped</span>
+            )}
             <span className="question-score">
               {averageScore(question.evaluation.scores)} / 5
             </span>

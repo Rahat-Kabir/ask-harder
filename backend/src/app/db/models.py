@@ -155,6 +155,9 @@ class InterviewTurn(Base):
     role: Mapped[TurnRole] = mapped_column(Enum(TurnRole, name="turn_role"))
     content: Mapped[str] = mapped_column(Text)
     is_probe: Mapped[bool] = mapped_column(Boolean, default=False)
+    # candidate bailed instead of answering — a different fact than a bad
+    # answer; fully-skipped questions are judged deterministically, not by LLM
+    is_skip: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

@@ -290,6 +290,16 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   `useDrill`). Hidden until the user has interviews; hero unchanged for
   fresh accounts. Browser-verified on dogfood data.
 
+- 2026-06-13 — Skip question (honest bail-out): `POST
+  /api/interviews/{id}/skip` + `turns.is_skip` (migration `c9d0e1f2a3b4`).
+  Skipping records "(skipped)", advances with no probe; fully-skipped
+  questions get a deterministic floor evaluation (`judge_model="skipped"`,
+  missing = full key, zero LLM calls) while a skipped *probe* after a real
+  answer still uses the real judge. Floor scores feed skill tags. UI: Skip
+  button beside Send, italic "You · skipped" bubble, "Skipped" badge on the
+  report card. 4 new tests; browser-verified skip → advance → report badge
+  → CTA picks the skipped tag.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;

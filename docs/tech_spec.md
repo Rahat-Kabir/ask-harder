@@ -179,6 +179,13 @@ What actually exists, updated as it changes.
   probe or advance; 409 if not awaiting answer.
 - `POST /api/interviews/{id}/finish` → `in_progress→judging→complete`;
   409 if not all questions answered.
+- `POST /api/interviews/{id}/skip` → records a candidate turn flagged
+  `is_skip` ("(skipped)") and advances immediately — no probe. At finish,
+  a question whose only candidate turns are skips is judged
+  deterministically (floor scores, no evidence, missing = full key,
+  `judge_model="skipped"`) with no LLM call; skipping only a probe after
+  a real answer still goes to the real judge. Floor scores feed skill
+  tags — skipping isn't free, but it's labeled as what it was.
 - `GET /api/interviews/{id}/report` → full report with answer keys; 409
   until `complete`.
 - `GET /api/interviews/{id}/stream` → SSE (`text/event-stream`). Events:

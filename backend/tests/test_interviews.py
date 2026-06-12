@@ -238,6 +238,85 @@ async def test_state_profile_is_null_for_practice(client):
     assert state.json()["profile"] is None
 
 
+async def test_skip_advances_to_next_question(client):
+    await _register(client)
+    interview_id = await _create_interview(client)
+    await client.post(f"/api/interviews/{interview_id}/start")
+
+    skipped = await client.post(f"/api/interviews/{interview_id}/skip")
+    assert skipped.status_code == 200
+    state = skipped.json()
+    assert state["current_question_position"] == 1
+    assert state["awaiting_answer"] is True
+    skip_turns = [turn for turn in state["turns"] if turn["is_skip"]]
+    assert len(skip_turns) == 1
+    assert skip_turns[0]["role"] == "candidate"
+
+
+async def test_skip_before_start_is_409(client):
+    await _register(client)
+    interview_id = await _create_interview(client)
+
+    response = await client.post(f"/api/interviews/{interview_id}/skip")
+    assert response.status_code == 409
+
+
+async def test_fully_skipped_question_is_judged_deterministically(client):
+    await _register(client)
+    interview_id = await _create_interview(client)
+    await client.post(f"/api/interviews/{interview_id}/start")
+
+    # skip all three questions, then finish
+    for _ in range(3):
+        skipped = await client.post(f"/api/interviews/{interview_id}/skip")
+        assert skipped.status_code == 200
+    finish = await client.post(f"/api/interviews/{interview_id}/finish")
+    assert finish.status_code == 200
+
+    report = await client.get(f"/api/interviews/{interview_id}/report")
+    assert report.status_code == 200
+    for question in report.json()["questions"]:
+        evaluation = question["evaluation"]
+        assert evaluation["judge_model"] == "skipped"
+        assert evaluation["evidence"] == []
+        assert all(value == 1 for value in evaluation["scores"].values())
+        # the full frozen key is what was missed
+        assert evaluation["missing_points"] == question["answer_key"]["required_points"]
+
+    # skipping isn't free — floor scores feed the skill tags
+    skills = await client.get("/api/skills")
+    assert all(
+        item["average"] == pytest.approx(1.0) for item in skills.json()["skills"]
+    )
+
+
+async def test_skipping_only_the_probe_still_uses_the_judge(client):
+    await _register(client)
+    interview_id = await _create_interview(client)
+    await client.post(f"/api/interviews/{interview_id}/start")
+
+    # real answer → mock interviewer probes → skip the follow-up
+    answer = await client.post(
+        f"/api/interviews/{interview_id}/answer",
+        json={"text": LONG_ANSWER},
+    )
+    assert answer.status_code == 200
+    assert answer.json()["awaiting_answer"] is True
+    skipped = await client.post(f"/api/interviews/{interview_id}/skip")
+    assert skipped.status_code == 200
+    assert skipped.json()["current_question_position"] == 1
+
+    for _ in range(2):
+        await _answer_through_question(client, interview_id)
+    await client.post(f"/api/interviews/{interview_id}/finish")
+
+    report = await client.get(f"/api/interviews/{interview_id}/report")
+    first = report.json()["questions"][0]
+    # the real answer was judged normally; only fully-skipped questions
+    # take the deterministic path
+    assert first["evaluation"]["judge_model"] == "mock"
+
+
 async def test_retake_copies_jd_and_session_type(client):
     await _register(client)
     source_id = await _create_interview(client, session_type="round")

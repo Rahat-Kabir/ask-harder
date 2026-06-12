@@ -46,6 +46,7 @@ from app.llm.interviewer_common import iter_text_chunks, parse_interviewer_outpu
 from app.llm.mock import MockBackend
 from app.schemas import (
     AnswerKey,
+    Evaluation,
     EvidenceItem,
     InterviewerReply,
     InterviewQuestion,
@@ -397,6 +398,79 @@ class InterviewService:
         await db.commit()
         return await self._build_state(db, interview)
 
+    async def skip_question(
+        self,
+        db: AsyncSession,
+        interview_id: uuid.UUID,
+        user: User,
+    ) -> InterviewStateOut:
+        """Honest bail-out: record the skip and advance immediately — no
+        probe, and (if the whole question was skipped) no judge call later."""
+        interview = await self._load_owned_interview(db, interview_id, user)
+        assert_status(interview, InterviewStatus.in_progress)
+
+        if interview.current_question_position is None:
+            raise InvalidTransition("Interview has not been started")
+
+        questions = await self._load_questions(db, interview.id)
+        current_question = questions[interview.current_question_position]
+        turns = await self._load_turns_for_question(db, current_question.id)
+
+        if not awaiting_answer(turns):
+            raise InvalidTransition("Not awaiting an answer on the current question")
+
+        db.add(
+            await self._new_turn(
+                db,
+                interview_id=interview.id,
+                question_id=current_question.id,
+                role=TurnRole.candidate,
+                content="(skipped)",
+                is_skip=True,
+            )
+        )
+        await db.flush()
+
+        if interview.current_question_position < len(questions) - 1:
+            interview.current_question_position += 1
+            next_question = questions[interview.current_question_position]
+            db.add(
+                await self._new_turn(
+                    db,
+                    interview_id=interview.id,
+                    question_id=next_question.id,
+                    role=TurnRole.interviewer,
+                    content=next_question.text,
+                )
+            )
+            await db.commit()
+            await self._emit_interviewer_presentation(
+                interview.id,
+                position=next_question.position,
+                qtype=next_question.qtype.value,
+                text=next_question.text,
+                is_probe=False,
+                is_new_question=True,
+            )
+            return await self._build_state(db, interview)
+
+        await db.commit()
+        return await self._build_state(db, interview)
+
+    @staticmethod
+    def _skipped_evaluation(question: Question) -> Evaluation:
+        """Deterministic floor evaluation — skipping isn't free, but it
+        wastes no judge call and is labeled as what it was."""
+        key = AnswerKey.model_validate(question.answer_key_json)
+        return Evaluation(
+            scores=Scores(correctness=1, depth=1, structure=1, communication=1),
+            evidence=[],
+            missing_points=list(key.required_points),
+            model_answer=(
+                "A strong answer would cover: " + "; ".join(key.required_points) + "."
+            ),
+        )
+
     async def finish(
         self,
         db: AsyncSession,
@@ -418,8 +492,18 @@ class InterviewService:
 
         for question in questions:
             turns = await self._load_turns_for_question(db, question.id)
-            planned = self._to_planned_question(question)
-            evaluation = await self.llm.evaluate(planned, self._to_llm_turns(turns))
+            candidate_turns = [t for t in turns if t.role == TurnRole.candidate]
+            fully_skipped = bool(candidate_turns) and all(
+                turn.is_skip for turn in candidate_turns
+            )
+            if fully_skipped:
+                # nothing to judge — floor scores, no LLM call
+                evaluation = self._skipped_evaluation(question)
+                judge_model = "skipped"
+            else:
+                planned = self._to_planned_question(question)
+                evaluation = await self.llm.evaluate(planned, self._to_llm_turns(turns))
+                judge_model = self._judge_model_name()
             db.add(
                 QuestionEvaluation(
                     interview_id=interview.id,
@@ -428,7 +512,7 @@ class InterviewService:
                     evidence_json=[item.model_dump() for item in evaluation.evidence],
                     missing_points_json=evaluation.missing_points,
                     model_answer=evaluation.model_answer,
-                    judge_model=self._judge_model_name(),
+                    judge_model=judge_model,
                 )
             )
             await record_skill_scores(
@@ -697,6 +781,7 @@ class InterviewService:
         role: TurnRole,
         content: str,
         is_probe: bool = False,
+        is_skip: bool = False,
     ) -> InterviewTurn:
         turn_count = (
             await db.execute(
@@ -712,6 +797,7 @@ class InterviewService:
             role=role,
             content=content,
             is_probe=is_probe,
+            is_skip=is_skip,
         )
 
     @staticmethod
@@ -721,6 +807,7 @@ class InterviewService:
             role=turn.role.value,
             content=turn.content,
             is_probe=turn.is_probe,
+            is_skip=turn.is_skip,
             question_position=question_position,
             created_at=turn.created_at,
         )
