@@ -184,6 +184,15 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   auth page → re-login rejected. Quota display deferred with the quota
   feature itself.
 
+- 2026-06-12 — Mobile audit (390×844, real browser + programmatic
+  `scrollWidth` check on every page): all pages clean except report and
+  skill detail, which overflowed 71px — unbreakable tokens (inline code in
+  judge evidence/model answers) can't wrap. Fixed with one rule:
+  `overflow-wrap: anywhere` on `blockquote`, `.report-block`,
+  `.chat-bubble` (chat included — candidates can paste code/URLs).
+  Re-verified both pages at 0px overflow. Noted, not built: sticky chat
+  input on mobile; collapsible report question cards.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;

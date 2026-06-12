@@ -715,6 +715,14 @@ blockquote {
   font-style: italic;
 }
 
+/* judge output and chat can contain unbreakable tokens (inline code,
+   URLs) — without this they stretch the page sideways on mobile */
+blockquote,
+.report-block,
+.chat-bubble {
+  overflow-wrap: anywhere;
+}
+
 .answer-key {
   margin-top: 1rem;
   color: var(--muted);
