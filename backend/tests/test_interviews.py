@@ -164,6 +164,57 @@ async def test_other_user_cannot_access_interview(client):
         assert response.status_code == 404
 
 
+async def _complete_interview(client, interview_id: str) -> None:
+    start = await client.post(f"/api/interviews/{interview_id}/start")
+    assert start.status_code == 200
+    for _ in range(3):
+        await _answer_through_question(client, interview_id)
+    finish = await client.post(f"/api/interviews/{interview_id}/finish")
+    assert finish.status_code == 200
+
+
+async def test_list_requires_auth(client):
+    response = await client.get("/api/interviews")
+    assert response.status_code == 401
+
+
+async def test_list_newest_first_with_scores(client):
+    await _register(client)
+    completed_id = await _create_interview(client)
+    await _complete_interview(client, completed_id)
+    ready_id = await _create_interview(client)
+
+    response = await client.get("/api/interviews")
+    assert response.status_code == 200
+    interviews = response.json()["interviews"]
+    assert [item["id"] for item in interviews] == [ready_id, completed_id]
+
+    ready, completed = interviews
+    assert ready["status"] == "ready"
+    assert ready["overall_score"] is None
+    assert ready["finished_at"] is None
+    assert ready["question_count"] == 3
+    # mock intake parses the profile synchronously at create time
+    assert ready["role"]
+
+    assert completed["status"] == "complete"
+    assert 1 <= completed["overall_score"] <= 5
+    assert completed["finished_at"] is not None
+    assert completed["question_count"] == 3
+
+
+async def test_list_only_shows_own_interviews(client):
+    await _register(client)
+    await _create_interview(client)
+
+    await client.post("/api/auth/logout")
+    await _register(client, OTHER_CREDENTIALS)
+
+    response = await client.get("/api/interviews")
+    assert response.status_code == 200
+    assert response.json()["interviews"] == []
+
+
 async def test_delete_me_cascades_interviews(client):
     await _register(client)
     await _create_interview(client)

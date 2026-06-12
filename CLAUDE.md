@@ -76,6 +76,7 @@ ask-harder/
 │       ├── LoadingState.tsx       # shared spinner + label
 │       ├── Home.tsx             # landing CTA + weakest-skills teaser
 │       ├── SkillsPage.tsx       # skill dashboard (/skills)
+│       ├── HistoryPage.tsx      # interview history list (/interviews)
 │       ├── IntakePage.tsx       # JD paste → create interview
 │       ├── InterviewPage.tsx    # SSE chat + answer/finish
 │       ├── ReportPage.tsx       # scored report + answer keys

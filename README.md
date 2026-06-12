@@ -97,7 +97,8 @@ npm run dev                            # http://localhost:5173
 
 Then open http://localhost:5173 — register, start an interview, paste a job
 description, answer the questions, finish, read your report. Visit `/skills`
-to see skill averages after finishing at least one interview.
+to see skill averages after finishing at least one interview, and
+`/interviews` for the history of every interview you've taken.
 
 **LLM modes** (`LLM_BACKEND` in `.env`):
 

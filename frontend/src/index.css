@@ -802,6 +802,81 @@ blockquote {
   margin-bottom: 1rem;
 }
 
+.history-page .history-list {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.history-row {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.history-link {
+  display: block;
+  padding: 1rem 1.1rem;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 10px;
+}
+
+a.history-link:hover {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--surface) 92%, var(--accent));
+}
+
+.history-link-disabled {
+  opacity: 0.6;
+}
+
+.history-row-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 0.45rem;
+}
+
+.history-title {
+  font-weight: 600;
+}
+
+.history-score {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.history-meta {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.status-badge.status-complete {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.status-badge.status-abandoned {
+  color: var(--error, #e5484d);
+}
+
 .home-skills-teaser {
   margin-top: 3rem;
   padding-top: 2rem;

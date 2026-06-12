@@ -135,6 +135,29 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   Respects `prefers-reduced-motion`. Added streaming cursor on interviewer
   tokens and fixed film-grain overlay.
 
+- 2026-06-12 — Real-pipeline browser run (DeepSeek v4 thinking + Sonnet judge,
+  3-question dev mode, Playwright): both deferred verifications passed —
+  no `[[DONE]]` leak in streamed chat, no placeholder variables in model
+  answers. Probe logic worked as designed (two follow-ups on the weak
+  Postgres answer, none on strong ones); Finish button appeared unprompted;
+  report scores tracked answer quality (4.8 / 3.5 / 1.8); all evidence
+  quotes verbatim; skills dashboard + home teaser populated weakest-first.
+  New finding: Q1 model answer **fabricated a specific metric** ("latency …
+  averages under 3 seconds per turn") not present in the answer or JD — the
+  no-placeholder rule may push the judge to invent concrete numbers;
+  consider a prompt rule against unverifiable stats.
+
+- 2026-06-12 — Interview history slice: `GET /api/interviews` (newest-first
+  summaries, cap 50; `overall_score` = mean of per-question score averages,
+  null until judged; reuses `overall_score()` from skills) + `/interviews`
+  history page (`HistoryPage.tsx`, "History" nav link). Row click by status:
+  complete → report, ready/in_progress/judging → interview page,
+  preparing/abandoned → not clickable. 3 new API tests (auth, ordering +
+  scores, ownership isolation); verified clicking through to a real report
+  in the browser. Also fixed pre-existing ruff failures in
+  `tests/test_skills.py` and `src/app/skills/service.py` that were in CI
+  scope. No pagination yet — documented limitation.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;

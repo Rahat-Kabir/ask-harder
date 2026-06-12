@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { api, type User } from './api'
 import { AuthPage } from './AuthPage'
+import { HistoryPage } from './HistoryPage'
 import { Home } from './Home'
 import { IntakePage } from './IntakePage'
 import { InterviewPage } from './InterviewPage'
@@ -48,6 +49,7 @@ export default function App() {
             }
           >
             <Route index element={<Home />} />
+            <Route path="interviews" element={<HistoryPage />} />
             <Route path="interviews/new" element={<IntakePage />} />
             <Route path="interviews/:id" element={<InterviewPage />} />
             <Route path="interviews/:id/report" element={<ReportPage />} />

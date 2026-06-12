@@ -25,6 +25,24 @@ class CreateInterviewOut(BaseModel):
     status: Literal["ready", "preparing"]
 
 
+class InterviewSummaryOut(BaseModel):
+    id: uuid.UUID
+    status: str
+    dev_mode: bool
+    # from the parsed profile — null until intake completes
+    role: str | None
+    seniority: str | None
+    question_count: int
+    # mean of per-question score averages — null until the interview is judged
+    overall_score: float | None
+    created_at: datetime
+    finished_at: datetime | None
+
+
+class InterviewListOut(BaseModel):
+    interviews: list[InterviewSummaryOut]
+
+
 class TurnOut(BaseModel):
     id: uuid.UUID
     role: Literal["interviewer", "candidate"]

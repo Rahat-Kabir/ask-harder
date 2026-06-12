@@ -124,6 +124,12 @@ What actually exists, updated as it changes.
 - `POST /api/interviews` → 201 `{id, status: "ready"}` (mock) or 202
   `{id, status: "preparing"}` (deepseek, background intake+plan); body
   `{jd_text, resume_text?, dev_mode?}`. Intake failure → `abandoned`.
+- `GET /api/interviews` → 200 `{interviews: [...]}` — the caller's
+  interviews newest-first (cap 50, no pagination yet). Each summary:
+  `{id, status, dev_mode, role, seniority, question_count, overall_score,
+  created_at, finished_at}`; `role`/`seniority` null until intake parses,
+  `overall_score` (mean of per-question score averages) null until judged.
+  Rendered by the `/interviews` history page.
 - `GET /api/interviews/{id}` → interview state (status, current question,
   turns, `awaiting_answer`); 404 if not owned.
 - `POST /api/interviews/{id}/start` → `ready→in_progress`, presents Q1;

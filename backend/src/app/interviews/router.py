@@ -12,6 +12,7 @@ from app.interviews.schemas import (
     AnswerIn,
     CreateInterviewIn,
     CreateInterviewOut,
+    InterviewListOut,
     InterviewStateOut,
     ReportOut,
 )
@@ -56,6 +57,11 @@ async def create_interview(
         status_code=status_code,
         content=created.model_dump(mode="json"),
     )
+
+
+@router.get("/interviews", response_model=InterviewListOut)
+async def list_interviews(db: DbSession, user: CurrentUser) -> InterviewListOut:
+    return await _service.list_interviews(db, user)
 
 
 @router.get("/interviews/{interview_id}", response_model=InterviewStateOut)

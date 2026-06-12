@@ -21,7 +21,9 @@ from app.interviews.events import InterviewEventBus, StreamEventName, interview_
 from app.interviews.schemas import (
     CreateInterviewOut,
     EvaluationOut,
+    InterviewListOut,
     InterviewStateOut,
+    InterviewSummaryOut,
     ReportOut,
     ReportQuestionOut,
     TurnOut,
@@ -40,7 +42,6 @@ from app.llm.errors import LlmError
 from app.llm.factory import build_llm_backend
 from app.llm.interviewer_common import iter_text_chunks, parse_interviewer_output
 from app.llm.mock import MockBackend
-from app.skills.service import load_skill_profile, record_skill_scores
 from app.schemas import (
     AnswerKey,
     EvidenceItem,
@@ -51,12 +52,16 @@ from app.schemas import (
     Scores,
     Turn,
 )
+from app.skills.service import load_skill_profile, overall_score, record_skill_scores
 
 logger = logging.getLogger(__name__)
 LlmBackend = MockBackend | CompositeLlmBackend
 
 # strong references to fire-and-forget preparation tasks (see create())
 _background_tasks: set[asyncio.Task] = set()
+
+# newest interviews returned by the history list — no pagination yet
+HISTORY_LIMIT = 50
 
 
 class InterviewService:
@@ -390,6 +395,68 @@ class InterviewService:
             finished_at=interview.finished_at,
             questions=report_questions,
         )
+
+    async def list_interviews(self, db: AsyncSession, user: User) -> InterviewListOut:
+        interviews = (
+            (
+                await db.execute(
+                    select(Interview)
+                    .where(Interview.user_id == user.id)
+                    .order_by(Interview.created_at.desc())
+                    .limit(HISTORY_LIMIT)
+                )
+            )
+            .scalars()
+            .all()
+        )
+        interview_ids = [interview.id for interview in interviews]
+
+        question_counts: dict[uuid.UUID, int] = {}
+        scores_by_interview: dict[uuid.UUID, list[float]] = {}
+        if interview_ids:
+            count_rows = await db.execute(
+                select(Question.interview_id, func.count())
+                .where(Question.interview_id.in_(interview_ids))
+                .group_by(Question.interview_id)
+            )
+            question_counts = dict(count_rows.all())
+
+            evaluation_rows = await db.execute(
+                select(
+                    QuestionEvaluation.interview_id, QuestionEvaluation.scores_json
+                ).where(QuestionEvaluation.interview_id.in_(interview_ids))
+            )
+            for interview_id, scores_json in evaluation_rows.all():
+                scores_by_interview.setdefault(interview_id, []).append(
+                    overall_score(Scores.model_validate(scores_json))
+                )
+
+        summaries: list[InterviewSummaryOut] = []
+        for interview in interviews:
+            profile = (
+                Profile.model_validate(interview.profile_json)
+                if interview.profile_json is not None
+                else None
+            )
+            question_scores = scores_by_interview.get(interview.id)
+            summaries.append(
+                InterviewSummaryOut(
+                    id=interview.id,
+                    status=interview.status.value,
+                    dev_mode=interview.dev_mode,
+                    role=profile.role if profile else None,
+                    seniority=profile.seniority if profile else None,
+                    question_count=question_counts.get(interview.id, 0),
+                    overall_score=(
+                        sum(question_scores) / len(question_scores)
+                        if question_scores
+                        else None
+                    ),
+                    created_at=interview.created_at,
+                    finished_at=interview.finished_at,
+                )
+            )
+        return InterviewListOut(interviews=summaries)
 
     async def _load_owned_interview(
         self,

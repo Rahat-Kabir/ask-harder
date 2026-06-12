@@ -91,6 +91,18 @@ export type Report = {
   questions: ReportQuestion[]
 }
 
+export type InterviewSummary = {
+  id: string
+  status: string
+  dev_mode: boolean
+  role: string | null
+  seniority: string | null
+  question_count: number
+  overall_score: number | null
+  created_at: string
+  finished_at: string | null
+}
+
 export type Skill = {
   tag: string
   average: number
@@ -182,6 +194,9 @@ export const api = {
 
     throw new ApiError(504, 'Interview preparation timed out.')
   },
+
+  listInterviews: () =>
+    request<{ interviews: InterviewSummary[] }>('/api/interviews'),
 
   getInterview: (id: string) =>
     request<InterviewState>(`/api/interviews/${id}`),

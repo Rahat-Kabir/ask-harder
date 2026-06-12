@@ -20,6 +20,9 @@ export function Layout({
           ask-harder
         </Link>
         <nav className="header-nav" aria-label="Main">
+          <NavLink to="/interviews" end>
+            History
+          </NavLink>
           <NavLink to="/skills">Skills</NavLink>
           <NavLink to="/interviews/new">New interview</NavLink>
         </nav>
