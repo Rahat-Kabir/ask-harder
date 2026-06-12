@@ -11,7 +11,19 @@ function SkillRow({ skill }: { skill: Skill }) {
       <Link to={`/skills/${skill.tag}`} className="skill-row-link">
         <div className="skill-row-header">
           <span className="skill-tag">{formatTag(skill.tag)}</span>
-          <span className="skill-average">{skill.average.toFixed(1)} / 5</span>
+          <span className="skill-numbers">
+            {skill.trend !== null && (
+              <span
+                className={
+                  skill.trend >= 0 ? 'skill-trend up' : 'skill-trend down'
+                }
+                title="Change vs your previous interview on this skill"
+              >
+                {skill.trend >= 0 ? '▲' : '▼'} {Math.abs(skill.trend).toFixed(1)}
+              </span>
+            )}
+            <span className="skill-average">{skill.average.toFixed(1)} / 5</span>
+          </span>
         </div>
         <div
           className="skill-bar-track"

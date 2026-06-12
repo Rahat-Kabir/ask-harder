@@ -24,6 +24,65 @@ function averageScore(scores: SkillAnswer['scores']): string {
   )
 }
 
+type TrendPoint = {
+  date: string
+  average: number
+}
+
+// answers come newest-first; one point per interview, oldest first
+function trendPoints(answers: SkillAnswer[]): TrendPoint[] {
+  const byInterview = new Map<string, { date: string; scores: number[] }>()
+  for (const answer of answers) {
+    const entry = byInterview.get(answer.interview_id) ?? {
+      date: answer.interview_created_at,
+      scores: [],
+    }
+    entry.scores.push(Number(averageScore(answer.scores)))
+    byInterview.set(answer.interview_id, entry)
+  }
+  return [...byInterview.values()]
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .map((entry) => ({
+      date: entry.date,
+      average: entry.scores.reduce((sum, s) => sum + s, 0) / entry.scores.length,
+    }))
+}
+
+function TrendChart({ points }: { points: TrendPoint[] }) {
+  const width = 320
+  const height = 80
+  const padding = 8
+  // y maps score 1..5 to bottom..top
+  const x = (index: number) =>
+    padding + (index * (width - 2 * padding)) / (points.length - 1)
+  const y = (score: number) =>
+    height - padding - ((score - 1) / 4) * (height - 2 * padding)
+  const path = points
+    .map((point, index) => `${x(index)},${y(point.average)}`)
+    .join(' ')
+
+  return (
+    <div className="trend-chart">
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        role="img"
+        aria-label={`Score per interview, oldest to newest: ${points
+          .map((point) => point.average.toFixed(1))
+          .join(', ')}`}
+      >
+        <polyline points={path} fill="none" />
+        {points.map((point, index) => (
+          <circle key={point.date} cx={x(index)} cy={y(point.average)} r="3" />
+        ))}
+      </svg>
+      <div className="trend-chart-labels">
+        <span>{formatDate(points[0].date)}</span>
+        <span>{formatDate(points[points.length - 1].date)}</span>
+      </div>
+    </div>
+  )
+}
+
 function AnswerCard({ answer }: { answer: SkillAnswer }) {
   return (
     <section className="report-question">
@@ -131,6 +190,8 @@ export function SkillDetailPage() {
     )
   }
 
+  const points = trendPoints(detail.answers)
+
   return (
     <main className="page report-page">
       <div className="report-header">
@@ -143,6 +204,7 @@ export function SkillDetailPage() {
           {detail.evaluation_count}{' '}
           {detail.evaluation_count === 1 ? 'judged answer' : 'judged answers'}
         </p>
+        {points.length >= 2 && <TrendChart points={points} />}
       </div>
 
       {detail.answers.map((answer) => (

@@ -66,6 +66,41 @@ async def record_skill_scores(
         await db.execute(upsert)
 
 
+async def _tag_trends(db: AsyncSession, user_id: uuid.UUID) -> dict[str, float]:
+    """Per tag: latest interview's average minus the previous interview's.
+
+    Only tags judged in at least two interviews get a trend — one data
+    point has no direction.
+    """
+    rows = (
+        await db.execute(
+            select(Question.tags, QuestionEvaluation.scores_json, Interview.created_at)
+            .join(QuestionEvaluation, QuestionEvaluation.question_id == Question.id)
+            .join(Interview, Interview.id == Question.interview_id)
+            .where(Interview.user_id == user_id)
+        )
+    ).all()
+
+    # tag → interview created_at → overall scores in that interview
+    by_tag: dict[str, dict[datetime, list[float]]] = {}
+    for tags, scores_json, interview_created_at in rows:
+        overall = overall_score(Scores(**scores_json))
+        for tag in tags:
+            by_tag.setdefault(tag, {}).setdefault(interview_created_at, []).append(
+                overall
+            )
+
+    trends: dict[str, float] = {}
+    for tag, by_interview in by_tag.items():
+        if len(by_interview) < 2:
+            continue
+        ordered = sorted(by_interview)
+        latest = by_interview[ordered[-1]]
+        previous = by_interview[ordered[-2]]
+        trends[tag] = sum(latest) / len(latest) - sum(previous) / len(previous)
+    return trends
+
+
 async def list_skills(db: AsyncSession, user: User) -> SkillsOut:
     rows = (
         (
@@ -81,6 +116,7 @@ async def list_skills(db: AsyncSession, user: User) -> SkillsOut:
         .scalars()
         .all()
     )
+    trends = await _tag_trends(db, user.id)
 
     return SkillsOut(
         skills=[
@@ -89,6 +125,7 @@ async def list_skills(db: AsyncSession, user: User) -> SkillsOut:
                 average=row.score_sum / row.evaluation_count,
                 evaluation_count=row.evaluation_count,
                 updated_at=row.updated_at,
+                trend=trends.get(row.tag),
             )
             for row in rows
         ]

@@ -817,6 +817,52 @@ blockquote,
   font-size: 0.85rem;
 }
 
+.skill-numbers {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.skill-trend {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.skill-trend.up {
+  color: #4fa869;
+}
+
+.skill-trend.down {
+  color: #e05a68;
+}
+
+.trend-chart {
+  max-width: 320px;
+  margin-top: 0.75rem;
+}
+
+.trend-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.trend-chart polyline {
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.trend-chart circle {
+  fill: var(--accent);
+}
+
+.trend-chart-labels {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
 .skills-empty {
   margin-top: 2rem;
   text-align: center;

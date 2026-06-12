@@ -23,6 +23,16 @@ LONG_ANSWER = (
 # mock judge: 33 words → level 2 → overall 2.0 on all four dimensions above
 MOCK_OVERALL = 2.0
 
+# 56 words with the probe reply — mock judge level 3 → overall 3.0
+BETTER_ANSWER = (
+    "I designed a rate-limited API gateway with token buckets backed by Redis, "
+    "chose fail-closed behavior under store outage, and measured p99 latency "
+    "before and after adding covering indexes on the hot lookup path. "
+    "I also documented the failure modes, added alerting on rejection rates, "
+    "and load-tested the limiter at ten times the expected peak traffic."
+)
+BETTER_OVERALL = 3.0
+
 
 async def _register(client) -> None:
     response = await client.post("/api/auth/register", json=CREDENTIALS)
@@ -38,7 +48,9 @@ async def _create_interview(client) -> str:
     return response.json()["id"]
 
 
-async def _answer_through_question(client, interview_id: str) -> None:
+async def _answer_through_question(
+    client, interview_id: str, answer: str = LONG_ANSWER
+) -> None:
     probe = await client.post(
         f"/api/interviews/{interview_id}/answer",
         json={"text": "I did some work on it."},
@@ -46,16 +58,16 @@ async def _answer_through_question(client, interview_id: str) -> None:
     assert probe.status_code == 200
     advance = await client.post(
         f"/api/interviews/{interview_id}/answer",
-        json={"text": LONG_ANSWER},
+        json={"text": answer},
     )
     assert advance.status_code == 200
 
 
-async def _finish_mock_interview(client) -> None:
+async def _finish_mock_interview(client, answer: str = LONG_ANSWER) -> None:
     interview_id = await _create_interview(client)
     await client.post(f"/api/interviews/{interview_id}/start")
     for _ in range(3):
-        await _answer_through_question(client, interview_id)
+        await _answer_through_question(client, interview_id, answer)
     finish = await client.post(f"/api/interviews/{interview_id}/finish")
     assert finish.status_code == 200
 
@@ -229,6 +241,26 @@ async def test_second_interview_passes_weakest_skill_profile(client, monkeypatch
     assert passed["behavioral/ownership"] == pytest.approx(MOCK_OVERALL)
     assert passed["databases/indexing"] == pytest.approx(MOCK_OVERALL)
     assert passed["system_design/rate-limiting"] == pytest.approx(MOCK_OVERALL)
+
+
+async def test_trend_null_with_single_interview(client):
+    await _register(client)
+    await _finish_mock_interview(client)
+
+    skills = await client.get("/api/skills")
+    assert skills.status_code == 200
+    assert all(item["trend"] is None for item in skills.json()["skills"])
+
+
+async def test_trend_is_latest_minus_previous_interview(client):
+    await _register(client)
+    await _finish_mock_interview(client, answer=LONG_ANSWER)  # 2.0 per tag
+    await _finish_mock_interview(client, answer=BETTER_ANSWER)  # 3.0 per tag
+
+    skills = await client.get("/api/skills")
+    assert skills.status_code == 200
+    for item in skills.json()["skills"]:
+        assert item["trend"] == pytest.approx(BETTER_OVERALL - MOCK_OVERALL)
 
 
 async def test_skill_detail_requires_auth(client):

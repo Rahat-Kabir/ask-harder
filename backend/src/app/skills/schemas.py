@@ -11,6 +11,9 @@ class SkillOut(BaseModel):
     average: float = Field(ge=1.0, le=5.0)
     evaluation_count: int = Field(ge=1)
     updated_at: datetime
+    # latest-interview average minus the previous interview's on this tag;
+    # null until the tag has been judged in two interviews
+    trend: float | None = None
 
 
 class SkillsOut(BaseModel):

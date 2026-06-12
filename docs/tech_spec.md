@@ -156,8 +156,11 @@ What actually exists, updated as it changes.
   from `backend/evals/results/*.json`, validated against `JudgeResults`,
   real judges sorted before the mock self-test. Rendered by the
   `/methodology` page (also public — the SPA router wraps both auth states).
-- `GET /api/skills` → 200 `{skills: [{tag, average, evaluation_count, updated_at}]}`
-  sorted weakest-first; 401 without session. Populated when interviews finish.
+- `GET /api/skills` → 200 `{skills: [{tag, average, evaluation_count,
+  updated_at, trend}]}` sorted weakest-first; 401 without session. Populated
+  when interviews finish. `trend` = latest-interview average minus the
+  previous interview's on that tag (computed from evaluations); null until
+  the tag is judged in two interviews.
 - `GET /api/skills/{tag}` → 200 `{tag, average, evaluation_count, answers: [...]}` —
   every judged answer on the tag (question, candidate turns, scores, evidence,
   missing points, judge model, interview id/date), newest interview first.

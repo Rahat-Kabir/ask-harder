@@ -205,6 +205,14 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   default Round → "Question 1 of 5" → 5-question report "· Round",
   history row "· Round · 5 questions". No quota — deferred deliberately.
 
+- 2026-06-12 — Trend view ("am I improving?", $0): `GET /api/skills` items
+  gain `trend` — latest-interview average minus previous on that tag,
+  computed from stored evaluations, null until 2 interviews. Dashboard rows
+  show ▲/▼ delta; skill detail renders a hand-rolled SVG score-per-interview
+  line (no chart library). 2 new API tests (null with one interview, exact
+  delta across two). Browser-verified on dogfood data (ownership ▲ 2.8,
+  chart 2.0 → 4.8).
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;

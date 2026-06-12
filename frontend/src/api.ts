@@ -110,6 +110,8 @@ export type Skill = {
   average: number
   evaluation_count: number
   updated_at: string
+  // latest-interview average minus previous; null until 2 interviews
+  trend: number | null
 }
 
 export type SkillAnswer = {
