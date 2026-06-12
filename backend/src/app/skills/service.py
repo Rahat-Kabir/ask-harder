@@ -60,15 +60,19 @@ async def record_skill_scores(
 
 async def list_skills(db: AsyncSession, user: User) -> SkillsOut:
     rows = (
-        await db.execute(
-            select(SkillScore)
-            .where(SkillScore.user_id == user.id)
-            .order_by(
-                (SkillScore.score_sum / SkillScore.evaluation_count).asc(),
-                SkillScore.tag.asc(),
+        (
+            await db.execute(
+                select(SkillScore)
+                .where(SkillScore.user_id == user.id)
+                .order_by(
+                    (SkillScore.score_sum / SkillScore.evaluation_count).asc(),
+                    SkillScore.tag.asc(),
+                )
             )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
 
     return SkillsOut(
         skills=[
@@ -91,14 +95,18 @@ async def load_skill_profile(
 ) -> dict[str, float]:
     """Weakest tags first — fed to the planner on the next interview."""
     rows = (
-        await db.execute(
-            select(SkillScore)
-            .where(SkillScore.user_id == user_id)
-            .order_by(
-                (SkillScore.score_sum / SkillScore.evaluation_count).asc(),
-                SkillScore.tag.asc(),
+        (
+            await db.execute(
+                select(SkillScore)
+                .where(SkillScore.user_id == user_id)
+                .order_by(
+                    (SkillScore.score_sum / SkillScore.evaluation_count).asc(),
+                    SkillScore.tag.asc(),
+                )
+                .limit(limit)
             )
-            .limit(limit)
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     return {row.tag: row.score_sum / row.evaluation_count for row in rows}

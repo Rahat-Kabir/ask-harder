@@ -1,5 +1,3 @@
-import uuid
-
 import pytest
 from sqlalchemy import func, select
 
@@ -109,10 +107,10 @@ async def test_record_skill_scores_full_score_per_tag(client):
         )
         await db.commit()
         rows = (
-            await db.execute(
-                select(SkillScore).where(SkillScore.user_id == user.id)
-            )
-        ).scalars().all()
+            (await db.execute(select(SkillScore).where(SkillScore.user_id == user.id)))
+            .scalars()
+            .all()
+        )
     assert len(rows) == 2
     assert {row.tag for row in rows} == {
         "databases/indexing",
@@ -146,7 +144,9 @@ async def test_same_tag_accumulates_across_two_interviews(client):
 
     skills = await client.get("/api/skills")
     ownership = next(
-        item for item in skills.json()["skills"] if item["tag"] == "behavioral/ownership"
+        item
+        for item in skills.json()["skills"]
+        if item["tag"] == "behavioral/ownership"
     )
     assert ownership["evaluation_count"] == 2
     assert ownership["average"] == pytest.approx(MOCK_OVERALL)
