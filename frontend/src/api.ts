@@ -241,6 +241,13 @@ export const api = {
 
   getQuota: () => request<Quota>('/api/quota'),
 
+  // fresh interview from a previous one's stored JD/tag, same session type
+  retakeInterview: (id: string) =>
+    request<{ id: string; status: 'ready' | 'preparing' }>(
+      `/api/interviews/${id}/retake`,
+      { method: 'POST' },
+    ),
+
   listInterviews: () =>
     request<{ interviews: InterviewSummary[] }>('/api/interviews'),
 

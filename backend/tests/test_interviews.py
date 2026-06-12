@@ -238,6 +238,59 @@ async def test_state_profile_is_null_for_practice(client):
     assert state.json()["profile"] is None
 
 
+async def test_retake_copies_jd_and_session_type(client):
+    await _register(client)
+    source_id = await _create_interview(client, session_type="round")
+
+    retake = await client.post(f"/api/interviews/{source_id}/retake")
+    assert retake.status_code == 201
+    new_id = retake.json()["id"]
+    assert new_id != source_id
+
+    state = await client.get(f"/api/interviews/{new_id}")
+    assert state.json()["session_type"] == "round"
+    assert state.json()["question_count"] == 5
+    # same JD reparsed — the profile comes out the same
+    assert state.json()["profile"]["role"] == "Backend Engineer"
+
+
+async def test_retake_of_practice_copies_tag(client):
+    await _register(client)
+    source = await client.post(
+        "/api/interviews",
+        json={"practice_tag": "databases/indexing", "session_type": "screen"},
+    )
+    source_id = source.json()["id"]
+
+    retake = await client.post(f"/api/interviews/{source_id}/retake")
+    assert retake.status_code == 201
+
+    state = await client.get(f"/api/interviews/{retake.json()['id']}")
+    assert state.json()["practice_tag"] == "databases/indexing"
+
+
+async def test_retake_requires_ownership(client):
+    await _register(client)
+    source_id = await _create_interview(client)
+
+    await client.post("/api/auth/logout")
+    await _register(client, OTHER_CREDENTIALS)
+
+    response = await client.post(f"/api/interviews/{source_id}/retake")
+    assert response.status_code == 404
+
+
+async def test_retake_respects_quota(client, monkeypatch):
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "daily_interview_limit", 1)
+    await _register(client)
+    source_id = await _create_interview(client)
+
+    blocked = await client.post(f"/api/interviews/{source_id}/retake")
+    assert blocked.status_code == 429
+
+
 async def test_quota_blocks_after_daily_limit(client, monkeypatch):
     from app.config import settings
 

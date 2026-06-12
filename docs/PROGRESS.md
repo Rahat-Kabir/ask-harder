@@ -256,6 +256,14 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   2 new API tests (profile in state, null for practice); browser-verified
   both card variants, the start transition, and the legend.
 
+- 2026-06-13 — Retake: `POST /api/interviews/{id}/retake` builds a fresh
+  interview from the source's stored JD (or drilled tag), resume, and
+  session type — quota applies. Report actions gain "Retake this
+  interview" / "Drill this skill again". Pairs with the trend chart:
+  attempt 1 → attempt 2 on the same role is now one click. 4 new tests
+  (copies JD+session, copies practice tag, ownership, quota);
+  browser-verified report → retake → confirmation card with same profile.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;

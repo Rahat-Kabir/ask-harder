@@ -71,6 +71,39 @@ async def create_interview(
     )
 
 
+@router.post(
+    "/interviews/{interview_id}/retake",
+    response_model=CreateInterviewOut,
+    responses={
+        201: {"description": "Interview ready (mock backend)"},
+        202: {"description": "Interview preparing (DeepSeek intake + plan)"},
+    },
+)
+async def retake_interview(
+    interview_id: UUID,
+    db: DbSession,
+    user: CurrentUser,
+) -> CreateInterviewOut | JSONResponse:
+    try:
+        created = await _service.retake(db, interview_id, user)
+    except InterviewNotFound:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Interview not found") from None
+    except QuotaExceeded:
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            "Daily interview limit reached — resets at midnight UTC",
+        ) from None
+    status_code = (
+        status.HTTP_202_ACCEPTED
+        if created.status == "preparing"
+        else status.HTTP_201_CREATED
+    )
+    return JSONResponse(
+        status_code=status_code,
+        content=created.model_dump(mode="json"),
+    )
+
+
 @router.get("/quota", response_model=QuotaOut)
 async def get_quota(db: DbSession, user: CurrentUser) -> QuotaOut:
     return await _service.get_quota(db, user)

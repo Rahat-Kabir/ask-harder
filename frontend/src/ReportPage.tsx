@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api, ApiError, type Report } from './api'
 import { formatTag, SESSION_LABELS } from './formatTag'
 import { LoadingState } from './LoadingState'
@@ -38,9 +38,29 @@ function weakestArea(
 
 export function ReportPage() {
   const { id = '' } = useParams()
+  const navigate = useNavigate()
   const [report, setReport] = useState<Report | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [retaking, setRetaking] = useState(false)
+  const [retakeError, setRetakeError] = useState<string | null>(null)
   const { startDrill, drilling, drillError } = useDrill()
+
+  async function retake() {
+    setRetaking(true)
+    setRetakeError(null)
+    try {
+      const created = await api.retakeInterview(id)
+      if (created.status === 'preparing') {
+        await api.waitUntilInterviewReady(created.id)
+      }
+      navigate(`/interviews/${created.id}`)
+    } catch (err) {
+      setRetakeError(
+        err instanceof ApiError ? err.message : 'Could not retake the interview',
+      )
+      setRetaking(false)
+    }
+  }
 
   useEffect(() => {
     if (!id) return
@@ -245,8 +265,21 @@ export function ReportPage() {
         </section>
       )}
 
+      {retakeError && <p className="error">{retakeError}</p>}
       <div className="report-actions">
-        <Link to="/interviews/new" className="primary-button">
+        <button
+          type="button"
+          className="primary-button"
+          onClick={retake}
+          disabled={retaking}
+        >
+          {retaking
+            ? 'Building your interview…'
+            : report.practice_tag
+              ? 'Drill this skill again'
+              : 'Retake this interview'}
+        </button>
+        <Link to="/interviews/new" className="secondary-button">
           Start another interview
         </Link>
         <Link to="/skills" className="secondary-button">

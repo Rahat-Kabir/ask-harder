@@ -147,6 +147,9 @@ What actually exists, updated as it changes.
   per UTC calendar day) — counted from the interviews table itself, so
   abandoned interviews are refunded by exclusion; checked before any LLM
   call. Known race: concurrent creates at the boundary can exceed by one.
+- `POST /api/interviews/{id}/retake` → fresh interview from the source's
+  stored `jd_text`/`practice_tag` + `resume_text` + `session_type`, new
+  plan; same 201/202 shape as create; 404 not owned, 429 quota.
 - `GET /api/quota` → 200 `{limit, used_today, remaining, resets_at}`;
   401 without session. Rendered on intake (counter + disabled submit at
   zero) and profile.

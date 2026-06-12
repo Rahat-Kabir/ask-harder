@@ -206,6 +206,24 @@ class InterviewService:
         interview.status = InterviewStatus.ready
         await db.commit()
 
+    async def retake(
+        self,
+        db: AsyncSession,
+        interview_id: uuid.UUID,
+        user: User,
+    ) -> CreateInterviewOut:
+        """Fresh interview from a previous one's stored inputs — same JD
+        (or drilled tag), same session type, new plan. Quota applies."""
+        source = await self._load_owned_interview(db, interview_id, user)
+        return await self.create(
+            db,
+            user,
+            jd_text=source.jd_text or None,
+            resume_text=source.resume_text,
+            session_type=source.session_type,
+            practice_tag=source.practice_tag,
+        )
+
     async def get_quota(self, db: AsyncSession, user: User) -> QuotaOut:
         used_today = await count_interviews_today(db, user.id)
         _, resets_at = _utc_day_bounds()
