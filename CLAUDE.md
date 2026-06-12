@@ -73,6 +73,7 @@ ask-harder/
 │       ├── api.ts               # typed fetch wrapper for /api/*
 │       ├── AuthPage.tsx         # login / register tabs
 │       ├── Layout.tsx           # header shell (brand, logout)
+│       ├── LoadingState.tsx       # shared spinner + label
 │       ├── Home.tsx             # landing CTA + weakest-skills teaser
 │       ├── SkillsPage.tsx       # skill dashboard (/skills)
 │       ├── IntakePage.tsx       # JD paste → create interview

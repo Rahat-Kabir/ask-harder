@@ -74,6 +74,9 @@ export function AuthPage({ onAuthed }: { onAuthed: (user: User) => void }) {
             minLength={mode === 'register' ? 8 : undefined}
             required
           />
+          {mode === 'register' && (
+            <span className="field-hint">At least 8 characters</span>
+          )}
         </label>
 
         {error && <p className="error">{error}</p>}

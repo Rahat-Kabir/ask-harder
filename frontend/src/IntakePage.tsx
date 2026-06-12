@@ -9,11 +9,13 @@ export function IntakePage() {
   const [devMode, setDevMode] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [statusLine, setStatusLine] = useState<string | null>(null)
 
   async function submit(event: FormEvent) {
     event.preventDefault()
     setBusy(true)
     setError(null)
+    setStatusLine(null)
     try {
       const created = await api.createInterview({
         jd_text: jdText,
@@ -21,6 +23,7 @@ export function IntakePage() {
         dev_mode: devMode,
       })
       if (created.status === 'preparing') {
+        setStatusLine('Tailoring questions to the job description…')
         await api.waitUntilInterviewReady(created.id)
       }
       navigate(`/interviews/${created.id}`)
@@ -70,6 +73,12 @@ export function IntakePage() {
         </label>
 
         {error && <p className="error">{error}</p>}
+
+        {statusLine && (
+          <p className="status-line lede" role="status">
+            {statusLine}
+          </p>
+        )}
 
         <button type="submit" className="primary-button" disabled={busy}>
           {busy ? 'Building your interview…' : 'Create interview'}

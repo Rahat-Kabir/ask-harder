@@ -28,6 +28,10 @@ export function Home() {
         Start interview
       </Link>
 
+      <p className="home-footer-link">
+        <Link to="/methodology">How we test the judge</Link>
+      </p>
+
       {weakest.length > 0 && (
         <section className="home-skills-teaser">
           <h2>Weakest areas</h2>

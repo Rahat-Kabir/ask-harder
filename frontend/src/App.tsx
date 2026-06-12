@@ -8,6 +8,7 @@ import { InterviewPage } from './InterviewPage'
 import { Layout } from './Layout'
 import { MethodologyPage } from './MethodologyPage'
 import { ReportPage } from './ReportPage'
+import { LoadingState } from './LoadingState'
 import { SkillsPage } from './SkillsPage'
 
 type AuthState = 'checking' | { user: User } | 'anonymous'
@@ -22,7 +23,13 @@ export default function App() {
       .catch(() => setAuth('anonymous'))
   }, [])
 
-  if (auth === 'checking') return null
+  if (auth === 'checking') {
+    return (
+      <div className="app-loading">
+        <LoadingState label="Checking session…" />
+      </div>
+    )
+  }
 
   return (
     <BrowserRouter>

@@ -1,6 +1,20 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { LoadingState } from './LoadingState'
 import { api, ApiError, type InterviewState, type Turn } from './api'
+
+type InterviewProgress = {
+  current: number
+  total: number
+}
+
+function progressFromState(state: InterviewState): InterviewProgress | null {
+  if (state.current_question_position === null) return null
+  return {
+    current: state.current_question_position + 1,
+    total: state.question_count,
+  }
+}
 
 type ChatMessage = {
   id: string
@@ -36,6 +50,7 @@ export function InterviewPage() {
   const [answerText, setAnswerText] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [progress, setProgress] = useState<InterviewProgress | null>(null)
   const [streamConnected, setStreamConnected] = useState(false)
   const bootedRef = useRef(false)
   // true while tokens are building an interviewer message; interviewer_done
@@ -148,6 +163,7 @@ export function InterviewPage() {
           setMessages(turnsToMessages(state.turns))
           setAwaitingAnswer(state.awaiting_answer)
           setCanSubmitFinish(canFinish(state))
+          setProgress(progressFromState(state))
           return
         }
         if (state.status === 'preparing') {
@@ -161,6 +177,7 @@ export function InterviewPage() {
         if (state.status === 'ready') {
           const started = await api.startInterview(id)
           setCanSubmitFinish(canFinish(started))
+          setProgress(progressFromState(started))
         }
       } catch (err) {
         setError(err instanceof ApiError ? err.message : 'Could not start interview')
@@ -195,6 +212,7 @@ export function InterviewPage() {
       const state = await api.submitAnswer(id, text)
       setAwaitingAnswer(state.awaiting_answer)
       setCanSubmitFinish(canFinish(state))
+      setProgress(progressFromState(state))
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not submit answer')
     } finally {
@@ -217,31 +235,52 @@ export function InterviewPage() {
   return (
     <main className="page interview-page">
       <div className="interview-meta">
-        <h1>Interview</h1>
+        <div className="interview-meta-header">
+          <h1>Interview</h1>
+          {progress && (
+            <span className="question-progress">
+              Question {progress.current} of {progress.total}
+            </span>
+          )}
+        </div>
         <p className="lede">
           Answer in your own words. The interviewer may probe once before moving on.
         </p>
       </div>
 
       <div className="chat-log" role="log" aria-live="polite">
+        {messages.length === 0 && !error && (
+          <LoadingState label="Starting interview…" />
+        )}
         {messages.map((message) => (
           <article
             key={message.id}
             className={`chat-bubble ${message.role}${
               message.isProbe ? ' probe' : ''
-            }`}
+            }${message.streaming ? ' streaming' : ''}`}
           >
             <header>
               {message.role === 'interviewer' ? 'Interviewer' : 'You'}
               {message.isProbe ? ' · follow-up' : ''}
             </header>
-            <p>{message.content}</p>
+            <p>
+              {message.content}
+              {message.role === 'interviewer' && message.streaming && (
+                <span className="stream-cursor" aria-hidden="true" />
+              )}
+            </p>
           </article>
         ))}
         <div ref={messagesEndRef} />
       </div>
 
       {error && <p className="error chat-error">{error}</p>}
+
+      {busy && !awaitingAnswer && !canSubmitFinish && (
+        <p className="status-line lede" role="status">
+          Interviewer is thinking…
+        </p>
+      )}
 
       {awaitingAnswer && (
         <form className="answer-form" onSubmit={submitAnswer}>

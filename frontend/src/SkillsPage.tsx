@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api, ApiError, type Skill } from './api'
+import { LoadingState } from './LoadingState'
 
 function formatTag(tag: string): string {
   const [category, subtopic] = tag.split('/')
@@ -59,7 +60,7 @@ export function SkillsPage() {
   if (!skills) {
     return (
       <main className="page skills-page">
-        <p className="lede">Loading skills…</p>
+        <LoadingState label="Loading skills…" />
       </main>
     )
   }

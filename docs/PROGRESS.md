@@ -126,6 +126,15 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   bars, header nav, home teaser), `_prepare_interview()` loads top 3 weak
   tags into `skill_profile` for the planner.
 
+- 2026-06-12 — UX polish (M8 slice): loading spinners, interview question
+  progress, active nav, mobile header, focus rings, report overall score +
+  skill link, intake preparing status line.
+
+- 2026-06-12 — Visual pass: Instrument Serif + DM Sans, subtle background
+  glow, page/card fade-in, staggered lists, skill-bar grow, button hover.
+  Respects `prefers-reduced-motion`. Added streaming cursor on interviewer
+  tokens and fixed film-grain overlay.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;

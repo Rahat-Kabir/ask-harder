@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api, ApiError, type JudgeResults } from './api'
+import { LoadingState } from './LoadingState'
 
 const SUITES = [
   {
@@ -94,7 +95,7 @@ export function MethodologyPage() {
       </section>
 
       {error && <p className="error">{error}</p>}
-      {!error && results === null && <p className="lede">Loading results…</p>}
+      {!error && results === null && <LoadingState label="Loading results…" />}
       {results?.length === 0 && (
         <p className="lede">No eval results are published yet.</p>
       )}

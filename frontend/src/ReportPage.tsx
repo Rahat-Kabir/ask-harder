@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api, ApiError, type Report } from './api'
+import { LoadingState } from './LoadingState'
 
 function averageScore(scores: Report['questions'][0]['evaluation']['scores']) {
   const values = [
@@ -41,10 +42,23 @@ export function ReportPage() {
   if (!report) {
     return (
       <main className="page report-page">
-        <p className="lede">Loading report…</p>
+        <LoadingState label="Loading report…" />
       </main>
     )
   }
+
+  const overallAverage = (
+    report.questions.reduce(
+      (sum, question) =>
+        sum +
+        (question.evaluation.scores.correctness +
+          question.evaluation.scores.depth +
+          question.evaluation.scores.structure +
+          question.evaluation.scores.communication) /
+          4,
+      0,
+    ) / report.questions.length
+  ).toFixed(1)
 
   return (
     <main className="page report-page">
@@ -53,6 +67,9 @@ export function ReportPage() {
         <p className="lede">
           {report.profile.role} · {report.profile.seniority}
           {report.dev_mode ? ' · dev mode' : ''}
+        </p>
+        <p className="report-overall">
+          Overall average: <strong>{overallAverage} / 5</strong>
         </p>
       </div>
 
@@ -149,9 +166,14 @@ export function ReportPage() {
         </section>
       ))}
 
-      <Link to="/interviews/new" className="primary-button report-cta">
-        Start another interview
-      </Link>
+      <div className="report-actions">
+        <Link to="/interviews/new" className="primary-button">
+          Start another interview
+        </Link>
+        <Link to="/skills" className="secondary-button">
+          View skill tracking
+        </Link>
+      </div>
     </main>
   )
 }

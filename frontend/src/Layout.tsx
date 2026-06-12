@@ -1,4 +1,4 @@
-import { Link, Outlet } from 'react-router-dom'
+import { Link, NavLink, Outlet } from 'react-router-dom'
 import { api, type User } from './api'
 
 export function Layout({
@@ -19,12 +19,14 @@ export function Layout({
         <Link to="/" className="brand">
           ask-harder
         </Link>
-        <nav className="header-nav">
-          <Link to="/skills">Skills</Link>
-          <Link to="/interviews/new">New interview</Link>
+        <nav className="header-nav" aria-label="Main">
+          <NavLink to="/skills">Skills</NavLink>
+          <NavLink to="/interviews/new">New interview</NavLink>
         </nav>
         <div className="session">
-          <span>{user.email}</span>
+          <span className="session-email" title={user.email}>
+            {user.email}
+          </span>
           <button type="button" onClick={logout}>
             Log out
           </button>
