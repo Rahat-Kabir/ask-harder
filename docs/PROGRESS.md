@@ -226,6 +226,13 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   flywheel: seed screen → drill from skill page → finish → drilled tag
   went 1 → 4 judged answers.
 
+- 2026-06-12 — Report CTA (frontend-only, closes the loop): report ends
+  with "What to work on next" — the lowest-scoring question's tag with
+  [Drill it] (shared `useDrill`) and [See the receipts] (skill detail).
+  Report → receipts → drill → trend is now one connected flywheel.
+  Browser-verified on the real Sonnet report (picked the 1.8
+  query-optimization question).
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;

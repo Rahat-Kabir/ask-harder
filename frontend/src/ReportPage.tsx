@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { api, ApiError, type Report } from './api'
 import { formatTag, SESSION_LABELS } from './formatTag'
 import { LoadingState } from './LoadingState'
+import { useDrill } from './useDrill'
 
 function averageScore(scores: Report['questions'][0]['evaluation']['scores']) {
   const values = [
@@ -16,10 +17,30 @@ function averageScore(scores: Report['questions'][0]['evaluation']['scores']) {
   )
 }
 
+// the lowest-scoring question's first tag — what to work on next
+function weakestArea(
+  questions: Report['questions'],
+): { tag: string; score: string } | null {
+  let weakest: Report['questions'][0] | null = null
+  for (const question of questions) {
+    if (question.tags.length === 0) continue
+    if (
+      weakest === null ||
+      Number(averageScore(question.evaluation.scores)) <
+        Number(averageScore(weakest.evaluation.scores))
+    ) {
+      weakest = question
+    }
+  }
+  if (!weakest) return null
+  return { tag: weakest.tags[0], score: averageScore(weakest.evaluation.scores) }
+}
+
 export function ReportPage() {
   const { id = '' } = useParams()
   const [report, setReport] = useState<Report | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const { startDrill, drilling, drillError } = useDrill()
 
   useEffect(() => {
     if (!id) return
@@ -48,6 +69,7 @@ export function ReportPage() {
     )
   }
 
+  const weakest = weakestArea(report.questions)
   const overallAverage = (
     report.questions.reduce(
       (sum, question) =>
@@ -168,6 +190,30 @@ export function ReportPage() {
           </details>
         </section>
       ))}
+
+      {weakest && (
+        <section className="report-question report-cta">
+          <h2>What to work on next</h2>
+          <p>
+            Your weakest area this interview:{' '}
+            <strong>{formatTag(weakest.tag)}</strong> ({weakest.score} / 5).
+          </p>
+          {drillError && <p className="error">{drillError}</p>}
+          <div className="report-actions">
+            <button
+              type="button"
+              className="primary-button"
+              onClick={() => startDrill(weakest.tag)}
+              disabled={drilling}
+            >
+              {drilling ? 'Building your drill…' : 'Drill it'}
+            </button>
+            <Link to={`/skills/${weakest.tag}`} className="secondary-button">
+              See the receipts
+            </Link>
+          </div>
+        </section>
+      )}
 
       <div className="report-actions">
         <Link to="/interviews/new" className="primary-button">

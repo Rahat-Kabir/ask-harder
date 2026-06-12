@@ -1047,6 +1047,22 @@ a.history-link:hover {
   color: var(--muted);
 }
 
+.report-cta {
+  border-color: var(--accent);
+}
+
+.report-cta h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.05rem;
+  font-family: var(--font-body);
+  font-weight: 600;
+}
+
+.report-cta p {
+  margin: 0 0 0.5rem;
+  color: var(--muted);
+}
+
 .profile-stats {
   margin-bottom: 0;
 }
