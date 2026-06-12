@@ -100,6 +100,15 @@ description, answer the questions, finish, read your report. Visit `/skills`
 to see skill averages after finishing at least one interview, and
 `/interviews` for the history of every interview you've taken.
 
+**Explore the database** (interactive `psql` shell; requires Postgres running):
+
+```powershell
+docker exec -it askharder-postgres-1 psql -U askharder -d askharder
+```
+
+Inside `psql`: `\dt` lists tables, `SELECT COUNT(*) FROM users;` counts
+accounts, `\q` quits.
+
 **LLM modes** (`LLM_BACKEND` in `.env`):
 
 - `mock` (default) — deterministic fake LLM, no API keys, full flow works.
