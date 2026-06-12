@@ -77,6 +77,7 @@ ask-harder/
 │       ├── Home.tsx             # landing CTA + weakest-skills teaser
 │       ├── SkillsPage.tsx       # skill dashboard (/skills)
 │       ├── SkillDetailPage.tsx  # per-tag judged answers (/skills/*)
+│       ├── ProfilePage.tsx      # account stats + delete account (/profile)
 │       ├── formatTag.ts         # tag → display label helper
 │       ├── HistoryPage.tsx      # interview history list (/interviews)
 │       ├── IntakePage.tsx       # JD paste → create interview

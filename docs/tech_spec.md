@@ -27,7 +27,9 @@ What actually exists, updated as it changes.
   single typed fetch wrapper. Dev: Vite proxies `/api` → `127.0.0.1:8000`
   (same-origin, cookies work, no CORS). `react-router-dom` routes:
   `/`, `/interviews/new`, `/interviews/:id`, `/interviews/:id/report`,
-  `/skills`, `/skills/*` (splat, not `:tag` — tags contain slashes).
+  `/skills`, `/skills/*` (splat, not `:tag` — tags contain slashes),
+  `/profile` (account stats client-side from existing endpoints + delete
+  account via `DELETE /api/me`; header email links here).
   Chat page uses `EventSource` on `/api/interviews/:id/stream`.
 - URL scheme: **all API routes under `/api`**; `/health` unprefixed (infra
   probes). Page routes and API routes must never share a path — prod serves

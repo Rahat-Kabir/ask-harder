@@ -344,6 +344,12 @@ form button[type='submit']:disabled {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.session-email:hover {
+  color: var(--accent);
 }
 
 .brand {
@@ -926,6 +932,46 @@ a.history-link:hover {
   color: var(--accent);
 }
 
+.profile-stats {
+  margin-bottom: 0;
+}
+
+.profile-danger h2,
+.profile-page .report-question h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+  font-family: var(--font-body);
+  font-weight: 600;
+}
+
+.profile-danger-warning {
+  margin: 0 0 1rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.danger-button {
+  display: inline-block;
+  padding: 0.65rem 1.2rem;
+  background: transparent;
+  border: 1px solid #b3303f;
+  border-radius: 6px;
+  color: #e05a68;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.danger-button:hover:not(:disabled) {
+  background: #b3303f;
+  color: #fff;
+}
+
+.danger-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
 @media (max-width: 640px) {
   .shell header {
     flex-wrap: wrap;
@@ -944,8 +990,9 @@ a.history-link:hover {
     margin-left: auto;
   }
 
+  /* truncate instead of hide — the email is the only link to /profile */
   .session-email {
-    display: none;
+    max-width: 7rem;
   }
 
   .score-grid {

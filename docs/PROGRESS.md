@@ -172,6 +172,18 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   receipts but aren't in `evaluation_count` — dev-data artifact only, the two
   are written in the same transaction going forward.
 
+- 2026-06-12 — Profile page (frontend-only slice): `/profile` shows account
+  info (email, member since), stats computed client-side from the existing
+  `/api/interviews` + `/api/skills` endpoints (interviews taken/completed,
+  overall average, judged answers, weakest/strongest skill), links to
+  history/skills, and the first UI for `DELETE /api/me` (two-step inline
+  confirm). Header email is now the link to `/profile` (was dead text);
+  mobile truncates it instead of hiding it. Layout passes `{user, onLogout}`
+  via router outlet context. Verified in the browser: rahat stats correct,
+  fresh-account empty states, cancel resets the confirm, delete →
+  auth page → re-login rejected. Quota display deferred with the quota
+  feature itself.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;

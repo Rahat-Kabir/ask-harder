@@ -1,6 +1,11 @@
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { api, type User } from './api'
 
+export type LayoutContext = {
+  user: User
+  onLogout: () => void
+}
+
 export function Layout({
   user,
   onLogout,
@@ -27,15 +32,15 @@ export function Layout({
           <NavLink to="/interviews/new">New interview</NavLink>
         </nav>
         <div className="session">
-          <span className="session-email" title={user.email}>
+          <Link to="/profile" className="session-email" title={user.email}>
             {user.email}
-          </span>
+          </Link>
           <button type="button" onClick={logout}>
             Log out
           </button>
         </div>
       </header>
-      <Outlet />
+      <Outlet context={{ user, onLogout } satisfies LayoutContext} />
     </div>
   )
 }

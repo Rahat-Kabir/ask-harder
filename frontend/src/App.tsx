@@ -8,6 +8,7 @@ import { IntakePage } from './IntakePage'
 import { InterviewPage } from './InterviewPage'
 import { Layout } from './Layout'
 import { MethodologyPage } from './MethodologyPage'
+import { ProfilePage } from './ProfilePage'
 import { ReportPage } from './ReportPage'
 import { LoadingState } from './LoadingState'
 import { SkillDetailPage } from './SkillDetailPage'
@@ -57,6 +58,7 @@ export default function App() {
             <Route path="skills" element={<SkillsPage />} />
             {/* splat, not :tag — tags contain slashes (databases/indexing) */}
             <Route path="skills/*" element={<SkillDetailPage />} />
+            <Route path="profile" element={<ProfilePage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         )}

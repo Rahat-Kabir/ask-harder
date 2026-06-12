@@ -99,7 +99,8 @@ Then open http://localhost:5173 — register, start an interview, paste a job
 description, answer the questions, finish, read your report. Visit `/skills`
 to see skill averages after finishing at least one interview — click any
 skill to see every judged answer behind its score — and `/interviews` for
-the history of every interview you've taken.
+the history of every interview you've taken. Your email in the header opens
+`/profile`: account stats at a glance and account deletion.
 
 **Explore the database** (interactive `psql` shell; requires Postgres running):
 

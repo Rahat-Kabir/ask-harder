@@ -186,6 +186,9 @@ export const api = {
 
   logout: () => request<void>('/api/auth/logout', { method: 'POST' }),
 
+  // permanent: cascades interviews, evaluations, skills, sessions
+  deleteMe: () => request<void>('/api/me', { method: 'DELETE' }),
+
   createInterview: (input: CreateInterviewInput) =>
     request<{ id: string; status: 'ready' | 'preparing' }>('/api/interviews', {
       method: 'POST',
