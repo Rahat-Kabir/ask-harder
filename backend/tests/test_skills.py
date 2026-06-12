@@ -32,7 +32,7 @@ async def _register(client) -> None:
 async def _create_interview(client) -> str:
     response = await client.post(
         "/api/interviews",
-        json={"jd_text": JD, "dev_mode": True},
+        json={"jd_text": JD, "session_type": "screen"},
     )
     assert response.status_code == 201
     return response.json()["id"]

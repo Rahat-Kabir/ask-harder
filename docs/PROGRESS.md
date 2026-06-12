@@ -193,6 +193,18 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   Re-verified both pages at 0px overflow. Noted, not built: sticky chat
   input on mobile; collapsible report question cards.
 
+- 2026-06-12 — Session types (product reframe of interview length):
+  `screen` (3 q, quick readiness check), `round` (5 q, default),
+  `full_loop` (7 q, stress test) — named like real hiring stages, picked
+  as cards on the intake page. Replaces `dev_mode` everywhere: enum column
+  + migration `d4e5f6a7b8c9` (backfill true→screen, false→full_loop, drop
+  bool), `question_count(session_type)`, planner prompt mix per count
+  (5 = 1 warmup, 1 behavioral, 2 technical, 1 system_design), API in/out
+  `session_type`, history/report show "Screen/Round/Full loop". 90 tests
+  pass (+5: counts per type, default round, invalid 422). Browser-verified:
+  default Round → "Question 1 of 5" → 5-question report "· Round",
+  history row "· Round · 5 questions". No quota — deferred deliberately.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;

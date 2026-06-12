@@ -36,9 +36,12 @@ PLAN_JSON_EXAMPLE = """{
 }"""
 
 
-def plan_system_prompt(n_questions: int, dev_mode: bool) -> str:
-    if dev_mode:
+def plan_system_prompt(n_questions: int) -> str:
+    # mix per session type: screen (3), round (5), full_loop (7)
+    if n_questions == 3:
         mix = "1 warmup, 2 technical (no behavioral or system_design)."
+    elif n_questions == 5:
+        mix = "1 warmup, 1 behavioral, 2 technical, 1 system_design."
     elif n_questions == 7:
         mix = "1 warmup, 2 behavioral, 3 technical, 1 system_design."
     else:

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api, ApiError, type InterviewSummary } from './api'
+import { SESSION_LABELS } from './formatTag'
 import { LoadingState } from './LoadingState'
 
 const STATUS_LABELS: Record<string, string> = {
@@ -42,7 +43,7 @@ function HistoryRow({ interview }: { interview: InterviewSummary }) {
       <div className="history-row-header">
         <span className="history-title">
           {title}
-          {interview.dev_mode ? ' · dev mode' : ''}
+          {` · ${SESSION_LABELS[interview.session_type]}`}
         </span>
         {interview.overall_score !== null && (
           <span className="history-score">

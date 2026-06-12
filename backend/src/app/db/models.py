@@ -35,6 +35,14 @@ class TurnRole(enum.StrEnum):
     candidate = "candidate"
 
 
+class SessionType(enum.StrEnum):
+    """Interview length, named like real hiring stages."""
+
+    screen = "screen"  # 3 questions — quick readiness check
+    round = "round"  # 5 questions — the default
+    full_loop = "full_loop"  # 7 questions — pre-interview stress test
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -78,7 +86,9 @@ class Interview(Base):
     jd_text: Mapped[str] = mapped_column(Text, default="")
     resume_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     profile_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
-    dev_mode: Mapped[bool] = mapped_column(Boolean, default=False)
+    session_type: Mapped[SessionType] = mapped_column(
+        Enum(SessionType, name="session_type"), default=SessionType.round
+    )
     # set when the interview starts; indexes into the ordered questions list
     current_question_position: Mapped[int | None] = mapped_column(
         Integer, nullable=True

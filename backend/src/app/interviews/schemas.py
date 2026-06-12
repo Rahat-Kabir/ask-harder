@@ -4,6 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from app.db.models import SessionType
 from app.schemas import (
     AnswerKey,
     EvidenceItem,
@@ -17,7 +18,7 @@ from app.schemas import (
 class CreateInterviewIn(BaseModel):
     jd_text: str = Field(min_length=1)
     resume_text: str | None = None
-    dev_mode: bool = False
+    session_type: SessionType = SessionType.round
 
 
 class CreateInterviewOut(BaseModel):
@@ -28,7 +29,7 @@ class CreateInterviewOut(BaseModel):
 class InterviewSummaryOut(BaseModel):
     id: uuid.UUID
     status: str
-    dev_mode: bool
+    session_type: SessionType
     # from the parsed profile — null until intake completes
     role: str | None
     seniority: str | None
@@ -55,7 +56,7 @@ class TurnOut(BaseModel):
 class InterviewStateOut(BaseModel):
     id: uuid.UUID
     status: str
-    dev_mode: bool
+    session_type: SessionType
     question_count: int
     current_question_position: int | None
     awaiting_answer: bool
@@ -89,6 +90,6 @@ class ReportOut(BaseModel):
     id: uuid.UUID
     status: Literal["complete"]
     profile: Profile
-    dev_mode: bool
+    session_type: SessionType
     finished_at: datetime
     questions: list[ReportQuestionOut]

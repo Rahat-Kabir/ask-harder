@@ -13,6 +13,7 @@ from app.db.models import (
     InterviewTurn,
     Question,
     QuestionEvaluation,
+    SessionType,
     TurnRole,
     User,
 )
@@ -79,14 +80,14 @@ class InterviewService:
         user: User,
         jd_text: str,
         resume_text: str | None,
-        dev_mode: bool,
+        session_type: SessionType,
     ) -> CreateInterviewOut:
         interview = Interview(
             user_id=user.id,
             status=InterviewStatus.preparing,
             jd_text=jd_text,
             resume_text=resume_text,
-            dev_mode=dev_mode,
+            session_type=session_type,
         )
         db.add(interview)
         await db.commit()
@@ -125,7 +126,7 @@ class InterviewService:
             plan = await self.llm.generate(
                 profile,
                 skill_profile=skill_profile,
-                n_questions=question_count(interview.dev_mode),
+                n_questions=question_count(interview.session_type),
             )
         except LlmError:
             # covers IntakeParseError too — any provider failure during
@@ -391,7 +392,7 @@ class InterviewService:
             id=interview.id,
             status="complete",
             profile=profile,
-            dev_mode=interview.dev_mode,
+            session_type=interview.session_type,
             finished_at=interview.finished_at,
             questions=report_questions,
         )
@@ -443,7 +444,7 @@ class InterviewService:
                 InterviewSummaryOut(
                     id=interview.id,
                     status=interview.status.value,
-                    dev_mode=interview.dev_mode,
+                    session_type=interview.session_type,
                     role=profile.role if profile else None,
                     seniority=profile.seniority if profile else None,
                     question_count=question_counts.get(interview.id, 0),
@@ -548,7 +549,7 @@ class InterviewService:
         return InterviewStateOut(
             id=interview.id,
             status=interview.status.value,
-            dev_mode=interview.dev_mode,
+            session_type=interview.session_type,
             question_count=len(questions),
             current_question_position=interview.current_question_position,
             awaiting_answer=is_awaiting,

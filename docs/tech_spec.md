@@ -89,7 +89,8 @@ What actually exists, updated as it changes.
   Cascade is the model for all future user-owned tables.
 - `interviews`: `id` UUID pk, `user_id` FK → users CASCADE, `status`
   enum (`preparing|ready|in_progress|judging|complete|abandoned`),
-  `jd_text`, `resume_text`, `profile_json` JSONB, `dev_mode` bool,
+  `jd_text`, `resume_text`, `profile_json` JSONB,
+  `session_type` enum (`screen|round|full_loop`, default `round`),
   `current_question_position` int nullable, `created_at`, `finished_at`.
 - `questions`: `id` UUID pk, `interview_id` FK CASCADE, `position` int,
   unique `(interview_id, position)`, `qtype` enum, `text`, `answer_key_json`
@@ -112,7 +113,10 @@ What actually exists, updated as it changes.
   (`preparing→ready`), judge inline on finish (`judging→complete`).
 - Per question: ASK → AWAIT_ANSWER → (PROBE → AWAIT_ANSWER)×≤2 → NEXT.
   Interviewer reply is advisory; backend enforces probe cap and index.
-- `dev_mode`: 3 questions; default: 7. Question count from plan only.
+- Session types (named like real hiring stages): `screen` = 3 questions,
+  `round` = 5 (default), `full_loop` = 7. Planner prompt mixes per count.
+  Question count from plan only. (Replaced the old `dev_mode` bool —
+  migration `d4e5f6a7b8c9` backfilled true→screen, false→full_loop.)
 
 ## Endpoints
 
@@ -126,10 +130,10 @@ What actually exists, updated as it changes.
 - `DELETE /api/me` → 204, deletes user (sessions cascade), clears cookie.
 - `POST /api/interviews` → 201 `{id, status: "ready"}` (mock) or 202
   `{id, status: "preparing"}` (deepseek, background intake+plan); body
-  `{jd_text, resume_text?, dev_mode?}`. Intake failure → `abandoned`.
+  `{jd_text, resume_text?, session_type?}`. Intake failure → `abandoned`.
 - `GET /api/interviews` → 200 `{interviews: [...]}` — the caller's
   interviews newest-first (cap 50, no pagination yet). Each summary:
-  `{id, status, dev_mode, role, seniority, question_count, overall_score,
+  `{id, status, session_type, role, seniority, question_count, overall_score,
   created_at, finished_at}`; `role`/`seniority` null until intake parses,
   `overall_score` (mean of per-question score averages) null until judged.
   Rendered by the `/interviews` history page.

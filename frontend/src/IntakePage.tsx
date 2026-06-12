@@ -1,12 +1,42 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { api, ApiError } from './api'
+import { api, ApiError, type SessionType } from './api'
+
+const SESSION_OPTIONS: {
+  value: SessionType
+  title: string
+  questions: number
+  minutes: number
+  pitch: string
+}[] = [
+  {
+    value: 'screen',
+    title: 'Screen',
+    questions: 3,
+    minutes: 15,
+    pitch: 'Quick readiness check',
+  },
+  {
+    value: 'round',
+    title: 'Round',
+    questions: 5,
+    minutes: 30,
+    pitch: 'The standard session',
+  },
+  {
+    value: 'full_loop',
+    title: 'Full loop',
+    questions: 7,
+    minutes: 60,
+    pitch: 'Pre-interview stress test',
+  },
+]
 
 export function IntakePage() {
   const navigate = useNavigate()
   const [jdText, setJdText] = useState('')
   const [resumeText, setResumeText] = useState('')
-  const [devMode, setDevMode] = useState(false)
+  const [sessionType, setSessionType] = useState<SessionType>('round')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [statusLine, setStatusLine] = useState<string | null>(null)
@@ -20,7 +50,7 @@ export function IntakePage() {
       const created = await api.createInterview({
         jd_text: jdText,
         resume_text: resumeText.trim() || undefined,
-        dev_mode: devMode,
+        session_type: sessionType,
       })
       if (created.status === 'preparing') {
         setStatusLine('Tailoring questions to the job description…')
@@ -38,7 +68,7 @@ export function IntakePage() {
     <main className="page intake-page">
       <h1>Paste the job description</h1>
       <p className="lede">
-        We&apos;ll build a short mock interview from the role requirements.
+        We&apos;ll build a mock interview from the role requirements.
       </p>
 
       <form className="intake-form" onSubmit={submit}>
@@ -63,14 +93,34 @@ export function IntakePage() {
           />
         </label>
 
-        <label className="checkbox-row">
-          <input
-            type="checkbox"
-            checked={devMode}
-            onChange={(event) => setDevMode(event.target.checked)}
-          />
-          Dev mode (3 questions instead of 7)
-        </label>
+        <fieldset className="session-picker">
+          <legend>Session</legend>
+          <div className="session-options">
+            {SESSION_OPTIONS.map((option) => (
+              <label
+                key={option.value}
+                className={
+                  sessionType === option.value
+                    ? 'session-card selected'
+                    : 'session-card'
+                }
+              >
+                <input
+                  type="radio"
+                  name="session_type"
+                  value={option.value}
+                  checked={sessionType === option.value}
+                  onChange={() => setSessionType(option.value)}
+                />
+                <span className="session-card-title">{option.title}</span>
+                <span className="session-card-meta">
+                  {option.questions} questions · ~{option.minutes} min
+                </span>
+                <span className="session-card-pitch">{option.pitch}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
 
         {error && <p className="error">{error}</p>}
 

@@ -157,7 +157,6 @@ class DeepSeekPlanGenerator:
         skill_profile: dict[str, float],
         n_questions: int,
     ) -> Plan:
-        dev_mode = n_questions == 3
         weakest_tags = sorted(skill_profile, key=skill_profile.get)[:3]
         user_prompt = (
             f"Candidate profile JSON:\n{profile.model_dump_json()}\n\n"
@@ -167,7 +166,7 @@ class DeepSeekPlanGenerator:
 
         try:
             parsed = await self._client.complete_json(
-                system_prompt=plan_system_prompt(n_questions, dev_mode),
+                system_prompt=plan_system_prompt(n_questions),
                 user_prompt=user_prompt,
                 schema=_PlanResponse,
             )

@@ -1,8 +1,20 @@
 """Interview flow rules — the backend owns all transitions."""
 
-from app.db.models import Interview, InterviewStatus, InterviewTurn, TurnRole
+from app.db.models import (
+    Interview,
+    InterviewStatus,
+    InterviewTurn,
+    SessionType,
+    TurnRole,
+)
 
 MAX_PROBES_PER_QUESTION = 2
+
+QUESTIONS_PER_SESSION: dict[SessionType, int] = {
+    SessionType.screen: 3,
+    SessionType.round: 5,
+    SessionType.full_loop: 7,
+}
 
 
 class InvalidTransition(Exception):
@@ -11,8 +23,8 @@ class InvalidTransition(Exception):
         super().__init__(detail)
 
 
-def question_count(dev_mode: bool) -> int:
-    return 3 if dev_mode else 7
+def question_count(session_type: SessionType) -> int:
+    return QUESTIONS_PER_SESSION[session_type]
 
 
 def assert_status(

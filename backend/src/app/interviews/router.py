@@ -46,7 +46,7 @@ async def create_interview(
         user,
         jd_text=body.jd_text,
         resume_text=body.resume_text,
-        dev_mode=body.dev_mode,
+        session_type=body.session_type,
     )
     status_code = (
         status.HTTP_202_ACCEPTED

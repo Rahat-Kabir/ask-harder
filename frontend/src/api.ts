@@ -10,6 +10,8 @@ export type QuestionType =
   | 'technical'
   | 'system_design'
 
+export type SessionType = 'screen' | 'round' | 'full_loop'
+
 export type InterviewQuestion = {
   position: number
   qtype: QuestionType
@@ -28,7 +30,7 @@ export type Turn = {
 export type InterviewState = {
   id: string
   status: string
-  dev_mode: boolean
+  session_type: SessionType
   question_count: number
   current_question_position: number | null
   awaiting_answer: boolean
@@ -39,7 +41,7 @@ export type InterviewState = {
 export type CreateInterviewInput = {
   jd_text: string
   resume_text?: string
-  dev_mode?: boolean
+  session_type?: SessionType
 }
 
 export type Scores = {
@@ -86,7 +88,7 @@ export type Report = {
     competencies: string[]
     resume_claims: string[]
   }
-  dev_mode: boolean
+  session_type: SessionType
   finished_at: string
   questions: ReportQuestion[]
 }
@@ -94,7 +96,7 @@ export type Report = {
 export type InterviewSummary = {
   id: string
   status: string
-  dev_mode: boolean
+  session_type: SessionType
   role: string | null
   seniority: string | null
   question_count: number

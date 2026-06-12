@@ -24,10 +24,10 @@ async def _register(client, credentials: dict[str, str] = CREDENTIALS) -> None:
     assert response.status_code == 201
 
 
-async def _create_interview(client, dev_mode: bool = True) -> str:
+async def _create_interview(client, session_type: str = "screen") -> str:
     response = await client.post(
         "/api/interviews",
-        json={"jd_text": JD, "dev_mode": dev_mode},
+        json={"jd_text": JD, "session_type": session_type},
     )
     assert response.status_code == 201
     body = response.json()
@@ -55,14 +55,14 @@ async def _answer_through_question(client, interview_id: str) -> None:
 async def test_create_requires_auth(client):
     response = await client.post(
         "/api/interviews",
-        json={"jd_text": JD, "dev_mode": True},
+        json={"jd_text": JD, "session_type": "screen"},
     )
     assert response.status_code == 401
 
 
 async def test_create_persists_questions(client):
     await _register(client)
-    interview_id = await _create_interview(client, dev_mode=True)
+    interview_id = await _create_interview(client, session_type="screen")
 
     async with new_session() as db:
         interview = (
@@ -83,7 +83,7 @@ async def test_create_persists_questions(client):
 
 async def test_full_mock_interview_lifecycle(client):
     await _register(client)
-    interview_id = await _create_interview(client, dev_mode=True)
+    interview_id = await _create_interview(client, session_type="screen")
 
     start = await client.post(f"/api/interviews/{interview_id}/start")
     assert start.status_code == 200
@@ -123,6 +123,41 @@ async def test_full_mock_interview_lifecycle(client):
             )
         ).scalar_one()
     assert evaluation_count == 3
+
+
+@pytest.mark.parametrize(
+    ("session_type", "expected_questions"),
+    [("screen", 3), ("round", 5), ("full_loop", 7)],
+)
+async def test_session_type_sets_question_count(
+    client, session_type, expected_questions
+):
+    await _register(client)
+    interview_id = await _create_interview(client, session_type=session_type)
+
+    state = await client.get(f"/api/interviews/{interview_id}")
+    assert state.status_code == 200
+    assert state.json()["session_type"] == session_type
+    assert state.json()["question_count"] == expected_questions
+
+
+async def test_session_type_defaults_to_round(client):
+    await _register(client)
+    response = await client.post("/api/interviews", json={"jd_text": JD})
+    assert response.status_code == 201
+
+    state = await client.get(f"/api/interviews/{response.json()['id']}")
+    assert state.json()["session_type"] == "round"
+    assert state.json()["question_count"] == 5
+
+
+async def test_invalid_session_type_is_422(client):
+    await _register(client)
+    response = await client.post(
+        "/api/interviews",
+        json={"jd_text": JD, "session_type": "marathon"},
+    )
+    assert response.status_code == 422
 
 
 async def test_answer_before_start_is_409(client):
