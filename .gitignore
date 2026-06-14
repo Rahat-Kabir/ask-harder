@@ -20,3 +20,5 @@ Thumbs.db
 
 # playwright artifacts
 .playwright-mcp/
+# stray screenshots from browser-driven testing (saved to repo root)
+/*.png
