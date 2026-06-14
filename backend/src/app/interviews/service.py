@@ -39,6 +39,7 @@ from app.interviews.state_machine import (
     probes_used_on_question,
     question_count,
 )
+from app.interviews.verdict import QuestionResult, build_verdict
 from app.llm.composite import CompositeLlmBackend
 from app.llm.errors import LlmError
 from app.llm.factory import build_llm_backend
@@ -603,6 +604,20 @@ class InterviewService:
                 )
             )
 
+        verdict = build_verdict(
+            seniority=profile.seniority if profile is not None else None,
+            role=profile.role if profile is not None else None,
+            practice_tag=interview.practice_tag,
+            results=[
+                QuestionResult(
+                    qtype=str(rq.qtype),
+                    tags=rq.tags,
+                    scores=rq.evaluation.scores,
+                )
+                for rq in report_questions
+            ],
+        )
+
         return ReportOut(
             id=interview.id,
             status="complete",
@@ -610,6 +625,7 @@ class InterviewService:
             practice_tag=interview.practice_tag,
             session_type=interview.session_type,
             finished_at=interview.finished_at,
+            verdict=verdict,
             questions=report_questions,
         )
 

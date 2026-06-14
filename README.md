@@ -41,8 +41,10 @@ job description ──► profile ──► question plan (hidden answer keys)
    probes; the backend enforces the probe cap, not the model.
 4. **Judge** — after you finish, each answer is scored 1–5 on correctness,
    depth, structure, and communication — strictly against the frozen key.
-5. **Report** — scores, evidence quotes, what you failed to mention, and a
-   model answer per question. Answer keys are revealed only here.
+5. **Report** — a top-line **verdict** (pass / borderline / no for the role
+   at its seniority, with a rationale grounded in your weakest answer and
+   dimension), then scores, evidence quotes, what you failed to mention, and
+   a model answer per question. Answer keys are revealed only here.
 
 Two trust guarantees are enforced in code, not in prompts:
 

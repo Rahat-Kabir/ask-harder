@@ -319,6 +319,22 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   (ready/in_progress) have no delete path in the UI — delete lives only
   on the report page.
 
+- 2026-06-14 — The Verdict (the product's defining moment): the report now
+  leads with a **pass / borderline / no** call for the role at its seniority,
+  not just an average. Synthesized deterministically in
+  `app/interviews/verdict.py` from the per-question scores already in the
+  report — no LLM call, no stored column, no migration. Pass/borderline
+  thresholds rise with seniority (junior 3.0/2.2 … senior 4.0/3.0 …
+  staff/principal 4.3/3.3); drills and unknown seniority use the mid bar.
+  Rationale is grounded — names the weakest question (by tag) and the
+  weakest scoring dimension, and shows the bar vs. the achieved average so
+  the call isn't a black box. `VerdictOut` on `ReportOut`; colored banner
+  (green/amber/red) at the top of `ReportPage`. 8 new unit tests (bands per
+  seniority, same scores pass at mid but fail at senior, borderline, drill
+  skill-framing, weakest-question/dimension callout, empty, unknown
+  seniority); 125 backend tests pass. Browser-verified: 3.3 mid → Borderline,
+  2.7 senior → No (would've passed at mid — the seniority bar working).
+
 - 2026-06-14 — Favicon + per-route tab titles (pre-ship polish): hand-rolled
   SVG favicon (`frontend/public/favicon.svg`) — a serif "a" in the accent
   orange on the dark surface, reusing the brand type/colors; linked in

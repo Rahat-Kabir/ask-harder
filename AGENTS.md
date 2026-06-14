@@ -120,6 +120,7 @@ ask-harder/
     │   ├── interviews/
     │   │   ├── state_machine.py # flow rules, probe cap, transition guards
     │   │   ├── schemas.py       # API I/O for interview endpoints
+    │   │   ├── verdict.py       # deterministic pass/borderline/no verdict (seniority-banded)
     │   │   ├── service.py       # InterviewService (DB + LLM backend via factory)
     │   │   ├── events.py        # in-process SSE fan-out bus
     │   │   ├── sse.py           # SSE line formatting

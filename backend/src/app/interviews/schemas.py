@@ -108,6 +108,17 @@ class ReportQuestionOut(BaseModel):
     evaluation: EvaluationOut
 
 
+class VerdictOut(BaseModel):
+    # the product's defining moment — would you pass this round?
+    decision: Literal["pass", "borderline", "no"]
+    headline: str
+    rationale: str
+    # the pass threshold used (rises with seniority) and the achieved average,
+    # both surfaced so the call is transparent, not a black box
+    bar: float
+    overall: float
+
+
 class ReportOut(BaseModel):
     id: uuid.UUID
     status: Literal["complete"]
@@ -116,4 +127,5 @@ class ReportOut(BaseModel):
     practice_tag: str | None
     session_type: SessionType
     finished_at: datetime
+    verdict: VerdictOut
     questions: list[ReportQuestionOut]

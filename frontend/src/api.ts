@@ -93,6 +93,15 @@ export type ReportQuestion = {
   }
 }
 
+export type Verdict = {
+  decision: 'pass' | 'borderline' | 'no'
+  headline: string
+  rationale: string
+  // pass threshold used (rises with seniority) and achieved average
+  bar: number
+  overall: number
+}
+
 export type Report = {
   id: string
   status: 'complete'
@@ -101,6 +110,7 @@ export type Report = {
   practice_tag: string | null
   session_type: SessionType
   finished_at: string
+  verdict: Verdict
   questions: ReportQuestion[]
 }
 

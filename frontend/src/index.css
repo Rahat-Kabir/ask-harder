@@ -627,6 +627,62 @@ textarea:focus {
   gap: 1.5rem;
 }
 
+/* the verdict — the product's defining moment, so it leads the report */
+.verdict {
+  border: 1px solid var(--border);
+  border-left-width: 4px;
+  border-radius: 12px;
+  padding: 1.4rem 1.5rem;
+  background: var(--surface);
+}
+
+.verdict-label {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.18rem 0.6rem;
+  border-radius: 999px;
+  margin-bottom: 0.7rem;
+}
+
+.verdict-headline {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+
+.verdict-rationale {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.98rem;
+}
+
+.verdict-pass {
+  border-left-color: #3fb950;
+}
+.verdict-pass .verdict-label {
+  background: rgba(63, 185, 80, 0.16);
+  color: #4ac35c;
+}
+
+.verdict-borderline {
+  border-left-color: #d4a017;
+}
+.verdict-borderline .verdict-label {
+  background: rgba(212, 160, 23, 0.16);
+  color: #e0b341;
+}
+
+.verdict-no {
+  border-left-color: #e05252;
+}
+.verdict-no .verdict-label {
+  background: rgba(224, 82, 82, 0.16);
+  color: #ec6a6a;
+}
+
 .report-overall {
   margin: 0.75rem 0 0;
   font-size: 1.05rem;

@@ -175,8 +175,22 @@ export function ReportPage() {
     ) / report.questions.length
   ).toFixed(1)
 
+  const { verdict } = report
+
   return (
     <main className="page report-page">
+      <section className={`verdict verdict-${verdict.decision}`}>
+        <span className="verdict-label">
+          {verdict.decision === 'pass'
+            ? 'Pass'
+            : verdict.decision === 'borderline'
+              ? 'Borderline'
+              : 'No'}
+        </span>
+        <h2 className="verdict-headline">{verdict.headline}</h2>
+        <p className="verdict-rationale">{verdict.rationale}</p>
+      </section>
+
       <div className="report-header">
         <h1>Interview report</h1>
         <p className="lede">

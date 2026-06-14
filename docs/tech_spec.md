@@ -187,7 +187,13 @@ What actually exists, updated as it changes.
   a real answer still goes to the real judge. Floor scores feed skill
   tags — skipping isn't free, but it's labeled as what it was.
 - `GET /api/interviews/{id}/report` → full report with answer keys; 409
-  until `complete`.
+  until `complete`. Includes a `verdict` (`pass`|`borderline`|`no` +
+  headline + grounded rationale + `bar`/`overall`) synthesized
+  deterministically from the per-question scores in `app/interviews/verdict.py`
+  — no LLM call, no stored column. Pass/borderline thresholds rise with
+  seniority (junior 3.0/2.2 … senior 4.0/3.0 … staff/principal 4.3/3.3);
+  drills and unknown seniority use the mid bar. The rationale names the
+  weakest question (by tag) and the weakest scoring dimension.
 - `GET /api/interviews/{id}/stream` → SSE (`text/event-stream`). Events:
   `question`, `token`, `interviewer_done`, `interview_complete`. Probes
   stream one `token` per LLM delta; planned questions chunk text. `InterviewEventBus` (in-process)
