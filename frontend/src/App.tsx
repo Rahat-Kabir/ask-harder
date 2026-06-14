@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+} from 'react-router-dom'
 import { api, type User } from './api'
 import { AuthPage } from './AuthPage'
 import { HistoryPage } from './HistoryPage'
@@ -15,6 +21,33 @@ import { SkillDetailPage } from './SkillDetailPage'
 import { SkillsPage } from './SkillsPage'
 
 type AuthState = 'checking' | { user: User } | 'anonymous'
+
+// Page-specific browser-tab titles so multiple open tabs are distinguishable.
+// Keyed by route; dynamic pages (report, skill detail) get a generic label —
+// the data they show isn't loaded at routing time.
+function titleForPath(pathname: string): string {
+  const exact: Record<string, string> = {
+    '/': 'ask-harder',
+    '/interviews': 'History · ask-harder',
+    '/interviews/new': 'New interview · ask-harder',
+    '/skills': 'Skills · ask-harder',
+    '/profile': 'Profile · ask-harder',
+    '/methodology': 'Methodology · ask-harder',
+  }
+  if (exact[pathname]) return exact[pathname]
+  if (pathname.endsWith('/report')) return 'Report · ask-harder'
+  if (pathname.startsWith('/skills/')) return 'Skill · ask-harder'
+  if (pathname.startsWith('/interviews/')) return 'Interview · ask-harder'
+  return 'ask-harder'
+}
+
+function TitleSync() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    document.title = titleForPath(pathname)
+  }, [pathname])
+  return null
+}
 
 export default function App() {
   const [auth, setAuth] = useState<AuthState>('checking')
@@ -36,6 +69,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <TitleSync />
       <Routes>
         {/* public — the eval-results page needs no account */}
         <Route path="methodology" element={<MethodologyPage />} />

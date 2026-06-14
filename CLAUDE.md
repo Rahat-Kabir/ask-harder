@@ -68,8 +68,9 @@ ask-harder/
 │
 ├── frontend/                    # Vite + React 19 + TypeScript
 │   ├── vite.config.ts           # dev proxy: /api → 127.0.0.1:8000
+│   ├── public/favicon.svg       # serif "a" lettermark (brand colors)
 │   └── src/
-│       ├── main.tsx / App.tsx   # auth + react-router routes
+│       ├── main.tsx / App.tsx   # auth + routes + TitleSync (per-route tab title)
 │       ├── api.ts               # typed fetch wrapper for /api/*
 │       ├── AuthPage.tsx         # login / register tabs
 │       ├── Layout.tsx           # header shell (brand, logout)

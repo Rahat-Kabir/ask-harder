@@ -319,6 +319,15 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   (ready/in_progress) have no delete path in the UI — delete lives only
   on the report page.
 
+- 2026-06-14 — Favicon + per-route tab titles (pre-ship polish): hand-rolled
+  SVG favicon (`frontend/public/favicon.svg`) — a serif "a" in the accent
+  orange on the dark surface, reusing the brand type/colors; linked in
+  `index.html` (kills the favicon.ico 404). `TitleSync` in `App.tsx` sets
+  `document.title` per route via `useLocation` ("History · ask-harder",
+  "Report · ask-harder", etc.) so multiple open tabs are distinguishable;
+  dynamic pages get a generic label. Browser-verified: titles change per
+  route, favicon served 200 as image/svg+xml, no console 404.
+
 - 2026-06-14 — Fix skipped-question model answer: replaced the raw
   `"; ".join(required_points)` string with `_skipped_model_answer()` — a
   module-level helper that produces Oxford-comma prose ("This question was
