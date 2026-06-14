@@ -319,6 +319,13 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   (ready/in_progress) have no delete path in the UI — delete lives only
   on the report page.
 
+- 2026-06-14 — Fix skipped-question model answer: replaced the raw
+  `"; ".join(required_points)` string with `_skipped_model_answer()` — a
+  module-level helper that produces Oxford-comma prose ("This question was
+  skipped. A strong answer would cover: X, Y, and Z.") instead of a
+  debug-looking semicolon list. 117 tests pass. Browser-verified on a
+  fully-skipped Screen drill.
+
 - 2026-06-14 — Delete non-complete interviews from History: `HistoryRow`
   gains a `×` button on every non-complete row (`preparing`, `ready`,
   `in_progress`, `judging`, `abandoned`). One click shows an inline

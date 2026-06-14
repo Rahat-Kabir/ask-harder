@@ -101,6 +101,20 @@ async def count_interviews_today(db: AsyncSession, user_id: uuid.UUID) -> int:
     ).scalar_one()
 
 
+def _skipped_model_answer(points: list[str]) -> str:
+    """Build a readable prose sentence from required_points for a skipped question.
+    Avoids the raw '; '.join() that reads like debug output."""
+    if not points:
+        return "This question was skipped."
+    if len(points) == 1:
+        return f"This question was skipped. A strong answer would cover: {points[0]}."
+    *head, tail = points
+    return (
+        "This question was skipped. "
+        f"A strong answer would cover: {', '.join(head)}, and {tail}."
+    )
+
+
 class InterviewService:
     def __init__(
         self,
@@ -466,9 +480,7 @@ class InterviewService:
             scores=Scores(correctness=1, depth=1, structure=1, communication=1),
             evidence=[],
             missing_points=list(key.required_points),
-            model_answer=(
-                "A strong answer would cover: " + "; ".join(key.required_points) + "."
-            ),
+            model_answer=_skipped_model_answer(key.required_points),
         )
 
     async def finish(
