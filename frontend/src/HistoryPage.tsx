@@ -32,13 +32,36 @@ function formatDate(iso: string): string {
   })
 }
 
-function HistoryRow({ interview }: { interview: InterviewSummary }) {
+function HistoryRow({
+  interview,
+  onDelete,
+}: {
+  interview: InterviewSummary
+  onDelete: (id: string) => void
+}) {
+  const [confirming, setConfirming] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
   const path = interviewPath(interview)
+  // complete interviews have a delete action on their report page
+  const canDelete = interview.status !== 'complete'
+
   const title = interview.practice_tag
     ? `Practice · ${formatTag(interview.practice_tag)}`
     : interview.role
       ? `${interview.role} · ${interview.seniority}`
       : 'Preparing…'
+
+  async function handleDelete() {
+    setDeleting(true)
+    try {
+      await api.deleteInterview(interview.id)
+      onDelete(interview.id)
+    } catch {
+      setDeleting(false)
+      setConfirming(false)
+    }
+  }
 
   const body = (
     <>
@@ -66,13 +89,47 @@ function HistoryRow({ interview }: { interview: InterviewSummary }) {
 
   return (
     <li className="history-row">
-      {path ? (
-        <Link to={path} className="history-link">
-          {body}
-        </Link>
-      ) : (
-        <div className="history-link history-link-disabled">{body}</div>
-      )}
+      <div className="history-row-inner">
+        {path ? (
+          <Link to={path} className="history-link">
+            {body}
+          </Link>
+        ) : (
+          <div className="history-link history-link-disabled">{body}</div>
+        )}
+        {canDelete && (
+          <div className="history-row-delete">
+            {confirming ? (
+              <>
+                <span className="history-delete-prompt">Delete?</span>
+                <button
+                  className="history-delete-confirm"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                >
+                  {deleting ? '…' : 'Yes'}
+                </button>
+                <button
+                  className="history-delete-cancel"
+                  onClick={() => setConfirming(false)}
+                  disabled={deleting}
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <button
+                className="history-delete-btn"
+                onClick={() => setConfirming(true)}
+                title="Delete this interview"
+                aria-label="Delete this interview"
+              >
+                ×
+              </button>
+            )}
+          </div>
+        )}
+      </div>
     </li>
   )
 }
@@ -91,6 +148,10 @@ export function HistoryPage() {
         ),
       )
   }, [])
+
+  function handleDelete(id: string) {
+    setInterviews((prev) => (prev ? prev.filter((i) => i.id !== id) : null))
+  }
 
   if (error) {
     return (
@@ -129,7 +190,11 @@ export function HistoryPage() {
       ) : (
         <ul className="history-list">
           {interviews.map((interview) => (
-            <HistoryRow key={interview.id} interview={interview} />
+            <HistoryRow
+              key={interview.id}
+              interview={interview}
+              onDelete={handleDelete}
+            />
           ))}
         </ul>
       )}

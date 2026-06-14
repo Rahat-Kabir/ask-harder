@@ -319,6 +319,16 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   (ready/in_progress) have no delete path in the UI — delete lives only
   on the report page.
 
+- 2026-06-14 — Delete non-complete interviews from History: `HistoryRow`
+  gains a `×` button on every non-complete row (`preparing`, `ready`,
+  `in_progress`, `judging`, `abandoned`). One click shows an inline
+  "Delete? / Yes / Cancel" confirm; confirming calls the existing
+  `DELETE /api/interviews/{id}` (soft delete) and removes the row from
+  local state immediately. Complete interviews are unchanged — their
+  delete action lives on the report page. Browser-verified: confirm
+  flow, row disappears on "Yes", Cancel restores `×`, complete rows
+  unaffected.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;
