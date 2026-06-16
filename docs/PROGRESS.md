@@ -407,6 +407,18 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   disclosure expand, and mobile 390px (scorecard stacks). Deliberately left
   unbuilt: the question overview / jump-list nav.
 
+- 2026-06-16 - Dimension bars show a word, not a number (dogfood confusion fix):
+  the per-dimension `/100` values (e.g. Correctness 15 above an overall of 10)
+  read as a contradiction — two numbers in the same units that don't visibly
+  reconcile. Replaced them with a word rating (`scoreLabel` in `scoring.ts`:
+  Poor / Weak / Fair / Strong / Excellent, banded on the midpoints of the
+  judge's native 1-5 buckets), colored to match the bar. The single `/100`
+  overall is now the only number on the card, so nothing competes with it. The
+  judge still scores 1-5 — deliberately *not* changed to score on 100 (an LLM
+  can't reproduce 0-100 resolution; 1-5 is what the eval harness asserts on).
+  Frontend-only. Playwright-verified: fail report reads Weak/Poor/Poor/Poor
+  (red), pass report Strong (green) with Excellent per-question.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;

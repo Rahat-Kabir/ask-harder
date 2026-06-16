@@ -7,6 +7,7 @@ import {
   dimensionAverages,
   overallOf,
   scoreBand,
+  scoreLabel,
   SCORE_MAX,
   toHundred,
 } from './scoring'
@@ -22,16 +23,19 @@ const DIMENSIONS: { key: keyof Scores; label: string }[] = [
 // A labeled 0-100 score as a color-banded bar — used both in the summary
 // scorecard and per question.
 function ScoreBar({ label, score }: { label: string; score: number }) {
+  const band = scoreBand(score)
   return (
     <div className="score-bar-row">
       <span className="score-bar-label">{label}</span>
       <div className="score-bar-track">
         <div
-          className={`score-bar-fill band-${scoreBand(score)}`}
+          className={`score-bar-fill band-${band}`}
           style={{ width: `${score}%` }}
         />
       </div>
-      <span className="score-bar-value">{score}</span>
+      <span className={`score-bar-rating band-${band}`}>
+        {scoreLabel(score)}
+      </span>
     </div>
   )
 }

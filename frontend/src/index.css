@@ -731,10 +731,11 @@ textarea:focus {
   gap: 0.55rem;
 }
 
-/* one labeled, color-banded 0-100 bar */
+/* one labeled, color-banded bar with a word rating (no second number, so
+   nothing competes with the single /100 overall) */
 .score-bar-row {
   display: grid;
-  grid-template-columns: 7.5rem 1fr 2rem;
+  grid-template-columns: 7.5rem 1fr 5rem;
   align-items: center;
   gap: 0.75rem;
 }
@@ -769,11 +770,22 @@ textarea:focus {
   background: #3fb950;
 }
 
-.score-bar-value {
+.score-bar-rating {
   text-align: right;
-  font-variant-numeric: tabular-nums;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+}
+
+.score-bar-rating.band-low {
+  color: #ec6a6a;
+}
+
+.score-bar-rating.band-mid {
+  color: #e0b341;
+}
+
+.score-bar-rating.band-high {
+  color: #4ac35c;
 }
 
 .score-bars {

@@ -48,3 +48,15 @@ export function scoreBand(score: number): 'low' | 'mid' | 'high' {
   if (score < 75) return 'mid'
   return 'high'
 }
+
+// Word rating for a 0-100 score. Shown on the dimension bars instead of a
+// second number, so the only number on the card is the one /100 overall —
+// nothing competes with it. Bands sit on the midpoints of the judge's
+// underlying 1-5 buckets (0/25/50/75/100 → Poor/Weak/Fair/Strong/Excellent).
+export function scoreLabel(score: number): string {
+  if (score < 12.5) return 'Poor'
+  if (score < 37.5) return 'Weak'
+  if (score < 62.5) return 'Fair'
+  if (score < 87.5) return 'Strong'
+  return 'Excellent'
+}
