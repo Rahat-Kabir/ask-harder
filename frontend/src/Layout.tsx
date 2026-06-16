@@ -1,9 +1,35 @@
-import { Link, NavLink, Outlet } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { api, type User } from './api'
 
 export type LayoutContext = {
   user: User
   onLogout: () => void
+}
+
+// the live interview is a focused, full-height workspace — a footer there
+// competes with the answer box, so it's suppressed. /interviews/new (intake)
+// and /interviews/:id/report are ordinary content pages and keep the footer.
+function isInterviewWorkspace(pathname: string): boolean {
+  return /^\/interviews\/[^/]+$/.test(pathname) && pathname !== '/interviews/new'
+}
+
+function SiteFooter() {
+  return (
+    <footer className="site-footer">
+      <span>ask-harder — a mock interviewer that actually says no.</span>
+      <nav className="site-footer-links" aria-label="Footer">
+        <Link to="/methodology">How we test the judge</Link>
+        <a
+          href="https://github.com/Rahat-Kabir/ask-harder"
+          target="_blank"
+          rel="noreferrer"
+        >
+          GitHub
+        </a>
+        <span className="site-footer-note">Portfolio project · 2026</span>
+      </nav>
+    </footer>
+  )
 }
 
 export function Layout({
@@ -13,6 +39,8 @@ export function Layout({
   user: User
   onLogout: () => void
 }) {
+  const { pathname } = useLocation()
+
   async function logout() {
     await api.logout()
     onLogout()
@@ -41,6 +69,7 @@ export function Layout({
         </div>
       </header>
       <Outlet context={{ user, onLogout } satisfies LayoutContext} />
+      {!isInterviewWorkspace(pathname) && <SiteFooter />}
     </div>
   )
 }

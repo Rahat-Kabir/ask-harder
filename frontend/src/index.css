@@ -384,6 +384,48 @@ form button[type='submit']:disabled {
   padding: 2rem 0 3rem;
 }
 
+/* margin-top:auto in the flex-column shell pins the footer to the bottom even
+   on short pages, giving content pages a defined bottom edge */
+.site-footer {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.site-footer-links {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.site-footer a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.site-footer a:hover {
+  color: var(--accent);
+}
+
+.site-footer-note {
+  opacity: 0.7;
+}
+
+@media (max-width: 640px) {
+  .site-footer {
+    justify-content: center;
+    text-align: center;
+  }
+}
+
 .page h1 {
   font-size: clamp(1.85rem, 4vw, 2.35rem);
   line-height: 1.15;

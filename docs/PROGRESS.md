@@ -438,6 +438,17 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   `.report-actions` / `.answer-actions` and added `align-items: center`.
   Playwright-verified the report CTA.
 
+- 2026-06-16 - Site footer (content pages gave way to dead space at the bottom
+  with no closure or home for secondary links). Slim global footer in `Layout`:
+  brand voice line on the left, "How we test the judge" (→ /methodology),
+  GitHub (github.com/Rahat-Kabir/ask-harder), and "Portfolio project · 2026"
+  on the right. `margin-top: auto` in the flex-column shell pins it to the
+  bottom on short pages. Deliberately **suppressed on the live interview
+  workspace** (`/interviews/:id`, including the judging state) — a focused,
+  full-height view where a footer competes with the answer box; intake
+  (`/interviews/new`) and the report keep it. Playwright-verified footer
+  present on home/intake/report and absent on the in-progress interview.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;
