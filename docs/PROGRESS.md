@@ -393,6 +393,20 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   candidate turns before evidence/missing points, and the old "Model answer"
   heading is renamed to "What a strong answer could include".
 
+- 2026-06-16 - Report redesign (frontend-only, $0 — the page was one flat
+  ~5000px stack of identical cards with no hierarchy or overview). Two slices:
+  (1) **summary scorecard** under the verdict — large overall + `bar` "to pass"
+  and the four dimensions as color-banded 0–100 bars (`dimensionAverages` in
+  `scoring.ts`), so the shape of the interview reads at a glance; (2)
+  per-question cards now **lead with score bars + "Missing from your answer"**
+  and tuck *Your answer* / *Evidence* / *What a strong answer could include*
+  behind `<details>` (cards default to calm, expand on demand). New `scoreBand`
+  (red <50 / amber <75 / green ≥75) drives bar and per-question badge color.
+  No schema/API change. Frontend builds clean; Playwright-verified across a
+  pass report (80/100, green), a fail report (10/100, red/amber), the
+  disclosure expand, and mobile 390px (scorecard stacks). Deliberately left
+  unbuilt: the question overview / jump-list nav.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;

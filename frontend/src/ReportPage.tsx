@@ -1,10 +1,40 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { api, ApiError, type Report } from './api'
+import { api, ApiError, type Report, type Scores } from './api'
 import { formatTag, SESSION_LABELS } from './formatTag'
 import { LoadingState } from './LoadingState'
-import { overallOf, SCORE_MAX } from './scoring'
+import {
+  dimensionAverages,
+  overallOf,
+  scoreBand,
+  SCORE_MAX,
+  toHundred,
+} from './scoring'
 import { useDrill } from './useDrill'
+
+const DIMENSIONS: { key: keyof Scores; label: string }[] = [
+  { key: 'correctness', label: 'Correctness' },
+  { key: 'depth', label: 'Depth' },
+  { key: 'structure', label: 'Structure' },
+  { key: 'communication', label: 'Communication' },
+]
+
+// A labeled 0-100 score as a color-banded bar — used both in the summary
+// scorecard and per question.
+function ScoreBar({ label, score }: { label: string; score: number }) {
+  return (
+    <div className="score-bar-row">
+      <span className="score-bar-label">{label}</span>
+      <div className="score-bar-track">
+        <div
+          className={`score-bar-fill band-${scoreBand(score)}`}
+          style={{ width: `${score}%` }}
+        />
+      </div>
+      <span className="score-bar-value">{score}</span>
+    </div>
+  )
+}
 
 // presentation → last candidate turn, from stored timestamps
 function answeredIn(turns: Report['questions'][0]['turns']): string | null {
@@ -155,11 +185,8 @@ export function ReportPage() {
   }
 
   const weakest = weakestArea(report.questions)
-  const overallAverage = Math.round(
-    report.questions.reduce(
-      (sum, question) => sum + overallOf(question.evaluation.scores),
-      0,
-    ) / report.questions.length,
+  const dimensions = dimensionAverages(
+    report.questions.map((question) => question.evaluation.scores),
   )
 
   const { verdict } = report
@@ -185,9 +212,6 @@ export function ReportPage() {
             ? `Practice · ${formatTag(report.practice_tag)}`
             : `${report.profile?.role} · ${report.profile?.seniority}`}{' '}
           · {SESSION_LABELS[report.session_type]}
-        </p>
-        <p className="report-overall">
-          Overall: <strong>{overallAverage} / {SCORE_MAX}</strong>
         </p>
         <details className="answer-key scoring-legend">
           <summary>How scoring works</summary>
@@ -222,6 +246,23 @@ export function ReportPage() {
         </details>
       </div>
 
+      <section className="report-scorecard">
+        <div className="scorecard-overall">
+          <span className="scorecard-overall-value">{verdict.overall}</span>
+          <span className="scorecard-overall-max">/ {SCORE_MAX}</span>
+          <span className="scorecard-overall-bar">{verdict.bar} to pass</span>
+        </div>
+        <div className="scorecard-bars">
+          {DIMENSIONS.map((dimension) => (
+            <ScoreBar
+              key={dimension.key}
+              label={dimension.label}
+              score={dimensions[dimension.key]}
+            />
+          ))}
+        </div>
+      </section>
+
       {report.questions.map((question) => (
         <section key={question.position} className="report-question">
           <header>
@@ -235,63 +276,28 @@ export function ReportPage() {
                 {answeredIn(question.turns)}
               </span>
             )}
-            <span className="question-score">
+            <span
+              className={`question-score band-${scoreBand(overallOf(question.evaluation.scores))}`}
+            >
               {overallOf(question.evaluation.scores)} / {SCORE_MAX}
             </span>
           </header>
 
           <h2>{question.text}</h2>
 
-          <div className="score-grid">
-            <div>
-              <span>Correctness</span>
-              <strong>{question.evaluation.scores.correctness}</strong>
-            </div>
-            <div>
-              <span>Depth</span>
-              <strong>{question.evaluation.scores.depth}</strong>
-            </div>
-            <div>
-              <span>Structure</span>
-              <strong>{question.evaluation.scores.structure}</strong>
-            </div>
-            <div>
-              <span>Communication</span>
-              <strong>{question.evaluation.scores.communication}</strong>
-            </div>
+          <div className="score-bars">
+            {DIMENSIONS.map((dimension) => (
+              <ScoreBar
+                key={dimension.key}
+                label={dimension.label}
+                score={toHundred(question.evaluation.scores[dimension.key])}
+              />
+            ))}
           </div>
 
-          {candidateTurns(question.turns).length > 0 && (
-            <div className="report-block">
-              <h3>Your answer</h3>
-              {candidateTurns(question.turns).map((turn, index) => (
-                <blockquote key={turn.id}>
-                  {turn.is_skip
-                    ? '(skipped)'
-                    : candidateTurns(question.turns).length > 1
-                      ? `${index === 0 ? 'Initial answer' : 'Follow-up answer'}: ${turn.content}`
-                      : turn.content}
-                </blockquote>
-              ))}
-            </div>
-          )}
-
-          {question.evaluation.evidence.length > 0 && (
-            <div className="report-block">
-              <h3>Evidence</h3>
-              <ul>
-                {question.evaluation.evidence.map((item) => (
-                  <li key={item.claim}>
-                    <strong>{item.claim}</strong>
-                    <blockquote>{item.quote}</blockquote>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
+          {/* the takeaway stays open — the gap is the point of the report */}
           {question.evaluation.missing_points.length > 0 && (
-            <div className="report-block">
+            <div className="report-block report-takeaway">
               <h3>Missing from your answer</h3>
               <ul>
                 {question.evaluation.missing_points.map((point) => (
@@ -301,10 +307,39 @@ export function ReportPage() {
             </div>
           )}
 
-          <div className="report-block">
-            <h3>What a strong answer could include</h3>
+          {candidateTurns(question.turns).length > 0 && (
+            <details className="report-disclosure">
+              <summary>Your answer</summary>
+              {candidateTurns(question.turns).map((turn, index) => (
+                <blockquote key={turn.id}>
+                  {turn.is_skip
+                    ? '(skipped)'
+                    : candidateTurns(question.turns).length > 1
+                      ? `${index === 0 ? 'Initial answer' : 'Follow-up answer'}: ${turn.content}`
+                      : turn.content}
+                </blockquote>
+              ))}
+            </details>
+          )}
+
+          {question.evaluation.evidence.length > 0 && (
+            <details className="report-disclosure">
+              <summary>Evidence</summary>
+              <ul>
+                {question.evaluation.evidence.map((item) => (
+                  <li key={item.claim}>
+                    <strong>{item.claim}</strong>
+                    <blockquote>{item.quote}</blockquote>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+
+          <details className="report-disclosure">
+            <summary>What a strong answer could include</summary>
             <p>{question.evaluation.model_answer}</p>
-          </div>
+          </details>
 
           <details className="answer-key">
             <summary>Answer key (revealed after interview)</summary>
