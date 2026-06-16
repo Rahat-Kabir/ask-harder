@@ -1372,6 +1372,12 @@ a.history-link:hover {
   color: var(--muted);
 }
 
+.session-note {
+  margin: 0.75rem 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
 .quota-line {
   margin: 0;
   color: var(--muted);

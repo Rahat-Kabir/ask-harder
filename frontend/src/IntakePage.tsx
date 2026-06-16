@@ -14,21 +14,21 @@ const SESSION_OPTIONS: {
     title: 'Screen',
     questions: 3,
     minutes: 15,
-    pitch: 'Quick readiness check',
+    pitch: 'A fast gut-check before you invest real time',
   },
   {
     value: 'round',
     title: 'Round',
     questions: 5,
     minutes: 30,
-    pitch: 'The standard session',
+    pitch: 'One realistic interview round — the default',
   },
   {
     value: 'full_loop',
     title: 'Full loop',
     questions: 7,
     minutes: 60,
-    pitch: 'Pre-interview stress test',
+    pitch: 'The full gauntlet before the real thing',
   },
 ]
 
@@ -130,12 +130,16 @@ export function IntakePage() {
                 />
                 <span className="session-card-title">{option.title}</span>
                 <span className="session-card-meta">
-                  {option.questions} questions · ~{option.minutes} min
+                  {option.questions} core questions · ~{option.minutes} min
                 </span>
                 <span className="session-card-pitch">{option.pitch}</span>
               </label>
             ))}
           </div>
+          <p className="session-note">
+            The interviewer may dig in with up to two follow-ups per question, so
+            expect to go a little deeper than the number suggests.
+          </p>
         </fieldset>
 
         {error && <p className="error">{error}</p>}

@@ -419,6 +419,17 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   Frontend-only. Playwright-verified: fail report reads Weak/Poor/Poor/Poor
   (red), pass report Strong (green) with Excellent per-question.
 
+- 2026-06-16 - Intake expectation-setting copy (content fix — the session cards
+  promised a flat "N questions", but the interviewer asks up to two follow-ups
+  per question, so the count is contradicted in the live interview and the
+  "Question 1 of N" counter looks stuck on a probe). Frontend-only copy:
+  cards now say "N **core** questions", pitches name who each session is for
+  ("A fast gut-check…" / "One realistic interview round — the default" / "The
+  full gauntlet…"), and a note under the picker sets the follow-up expectation.
+  Pre-start ready card mirrors "core questions". The in-interview probe label
+  (`Interviewer · follow-up`) already existed, so it was left as-is.
+  Playwright-verified the intake page.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;

@@ -88,7 +88,7 @@ function ReadyCard({
             <strong>
               {state.profile?.role} · {state.profile?.seniority}
             </strong>{' '}
-            · {SESSION_LABELS[state.session_type]} · {state.question_count}{' '}
+            · {SESSION_LABELS[state.session_type]} · {state.question_count} core
             questions
           </p>
           {state.profile && state.profile.stack.length > 0 && (
