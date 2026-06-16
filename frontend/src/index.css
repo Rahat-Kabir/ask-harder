@@ -798,8 +798,16 @@ textarea:focus {
 .report-actions {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 0.75rem;
   padding-top: 0.5rem;
+}
+
+/* the primary button's standalone hero margin would push it below the
+   bordered buttons it shares a flex row with — neutralize it in button rows */
+.report-actions .primary-button,
+.answer-actions .primary-button {
+  margin-top: 0;
 }
 
 .report-question {

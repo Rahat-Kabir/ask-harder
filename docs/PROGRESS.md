@@ -430,6 +430,14 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   (`Interviewer · follow-up`) already existed, so it was left as-is.
   Playwright-verified the intake page.
 
+- 2026-06-16 - Button-row alignment fix: `.primary-button` carried a
+  `margin-top: 1rem` (intended for standalone hero CTAs) that pushed the orange
+  button below the bordered buttons it shares a flex row with, so the report
+  CTA (Drill it / See the receipts), the report footer actions, and the
+  interview Send / Skip row looked misaligned. Neutralized the margin inside
+  `.report-actions` / `.answer-actions` and added `align-items: center`.
+  Playwright-verified the report CTA.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;
