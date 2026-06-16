@@ -449,6 +449,15 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   (`/interviews/new`) and the report keep it. Playwright-verified footer
   present on home/intake/report and absent on the in-progress interview.
 
+- 2026-06-16 - Account avatar + dropdown (the header showed a bare email, which
+  reads as data, not "your account", and barely signals it's clickable). The
+  email + standalone Log out button are replaced by an avatar circle (the
+  email's first initial) that opens a dropdown with the full email, Profile,
+  and Log out. `AccountMenu` in `Layout.tsx`: closes on outside-click, Escape
+  (focus returns to the avatar), and route change; `aria-haspopup`/`aria-expanded`
+  for a11y. Removed the now-dead `.session*` CSS. Playwright-verified open/close,
+  outside-click, Escape, and Profile navigation; build clean.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;

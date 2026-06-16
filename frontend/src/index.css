@@ -151,7 +151,6 @@ h2,
   .primary-button,
   .secondary-button,
   form button[type='submit'],
-  .session button,
   .mode-switch button {
     transition:
       transform var(--motion-fast) var(--ease-out),
@@ -340,16 +339,74 @@ form button[type='submit']:disabled {
   border-bottom-color: var(--accent);
 }
 
-.session-email {
-  max-width: 10rem;
+.account-menu {
+  position: relative;
+}
+
+.account-avatar {
+  width: 2.1rem;
+  height: 2.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition:
+    border-color var(--motion-fast) var(--ease-out),
+    box-shadow var(--motion-fast) var(--ease-out);
+}
+
+.account-avatar:hover,
+.account-avatar[aria-expanded='true'] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.account-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 20;
+  min-width: 12rem;
+  display: flex;
+  flex-direction: column;
+  padding: 0.4rem;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+
+.account-email {
+  padding: 0.4rem 0.6rem 0.5rem;
+  margin-bottom: 0.3rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.8rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--muted);
-  text-decoration: none;
 }
 
-.session-email:hover {
+.account-item {
+  padding: 0.45rem 0.6rem;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--text);
+  font-size: 0.9rem;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.account-item:hover {
+  background: var(--surface);
   color: var(--accent);
 }
 
@@ -359,23 +416,6 @@ form button[type='submit']:disabled {
   letter-spacing: -0.01em;
   color: var(--text);
   text-decoration: none;
-}
-
-.session {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-
-.session button {
-  padding: 0.35rem 0.8rem;
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  color: var(--text);
-  cursor: pointer;
 }
 
 .page {
@@ -1607,13 +1647,8 @@ a.history-link:hover {
     border-top: 1px solid var(--border);
   }
 
-  .session {
+  .account-menu {
     margin-left: auto;
-  }
-
-  /* truncate instead of hide — the email is the only link to /profile */
-  .session-email {
-    max-width: 7rem;
   }
 
   .score-grid {

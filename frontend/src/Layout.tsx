@@ -1,9 +1,77 @@
+import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { api, type User } from './api'
 
 export type LayoutContext = {
   user: User
   onLogout: () => void
+}
+
+// avatar + dropdown replacing the bare email in the header — a circle reads as
+// "your account" and signals clickability that a raw email string doesn't.
+function AccountMenu({
+  email,
+  onLogout,
+}: {
+  email: string
+  onLogout: () => void
+}) {
+  const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const { pathname } = useLocation()
+
+  // close on navigation (e.g. after picking Profile)
+  useEffect(() => setOpen(false), [pathname])
+
+  // dismiss on outside-click and Escape, only while open
+  useEffect(() => {
+    if (!open) return
+    function onPointerDown(event: PointerEvent) {
+      if (!containerRef.current?.contains(event.target as Node)) setOpen(false)
+    }
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [open])
+
+  return (
+    <div className="account-menu" ref={containerRef}>
+      <button
+        type="button"
+        className="account-avatar"
+        aria-label="Your account"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((previous) => !previous)}
+      >
+        {email.charAt(0).toUpperCase() || '?'}
+      </button>
+      {open && (
+        <div className="account-dropdown" role="menu">
+          <span className="account-email" title={email}>
+            {email}
+          </span>
+          <Link to="/profile" className="account-item" role="menuitem">
+            Profile
+          </Link>
+          <button
+            type="button"
+            className="account-item"
+            role="menuitem"
+            onClick={onLogout}
+          >
+            Log out
+          </button>
+        </div>
+      )}
+    </div>
+  )
 }
 
 // the live interview is a focused, full-height workspace — a footer there
@@ -59,14 +127,7 @@ export function Layout({
           <NavLink to="/skills">Skills</NavLink>
           <NavLink to="/interviews/new">New interview</NavLink>
         </nav>
-        <div className="session">
-          <Link to="/profile" className="session-email" title={user.email}>
-            {user.email}
-          </Link>
-          <button type="button" onClick={logout}>
-            Log out
-          </button>
-        </div>
+        <AccountMenu email={user.email} onLogout={logout} />
       </header>
       <Outlet context={{ user, onLogout } satisfies LayoutContext} />
       {!isInterviewWorkspace(pathname) && <SiteFooter />}
