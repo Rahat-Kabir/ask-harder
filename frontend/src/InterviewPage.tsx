@@ -414,7 +414,8 @@ export function InterviewPage() {
           )}
         </div>
         <p className="lede">
-          Answer in your own words. The interviewer may probe once before moving on.
+          Answer in your own words. The interviewer may ask up to two follow-ups
+          before moving on.
         </p>
       </div>
 

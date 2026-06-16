@@ -41,6 +41,10 @@ function weakestArea(
   return { tag: weakest.tags[0], score: overallOf(weakest.evaluation.scores) }
 }
 
+function candidateTurns(turns: Report['questions'][0]['turns']) {
+  return turns.filter((turn) => turn.role === 'candidate')
+}
+
 function DeleteInterview({ id }: { id: string }) {
   const navigate = useNavigate()
   const [confirming, setConfirming] = useState(false)
@@ -257,6 +261,21 @@ export function ReportPage() {
             </div>
           </div>
 
+          {candidateTurns(question.turns).length > 0 && (
+            <div className="report-block">
+              <h3>Your answer</h3>
+              {candidateTurns(question.turns).map((turn, index) => (
+                <blockquote key={turn.id}>
+                  {turn.is_skip
+                    ? '(skipped)'
+                    : candidateTurns(question.turns).length > 1
+                      ? `${index === 0 ? 'Initial answer' : 'Follow-up answer'}: ${turn.content}`
+                      : turn.content}
+                </blockquote>
+              ))}
+            </div>
+          )}
+
           {question.evaluation.evidence.length > 0 && (
             <div className="report-block">
               <h3>Evidence</h3>
@@ -283,7 +302,7 @@ export function ReportPage() {
           )}
 
           <div className="report-block">
-            <h3>Model answer</h3>
+            <h3>What a strong answer could include</h3>
             <p>{question.evaluation.model_answer}</p>
           </div>
 

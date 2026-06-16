@@ -379,6 +379,20 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   Playwright-verified end-to-end: report "You scored 80/100, clearing the 75
   bar", skills/trend all on /100, skipped answers read 0/100.
 
+- 2026-06-16 - Dogfood transcript audit for interview
+  `53702a68-56af-44e0-95c7-79415bec6c1f`: DB showed a Round session with 5
+  planned questions, 5 evaluations, and 18 turns. The apparent "9 questions"
+  were 5 main questions plus 4 follow-up probes (two on Q1, two on Q3), so
+  report/history correctly showed 5 planned questions. Fixed misleading
+  interview-page copy from "may probe once" to "up to two follow-ups" to
+  match the backend cap.
+
+- 2026-06-16 - Report clarity slice after the same dogfood report: the strong
+  model answer read like it might be the candidate's answer, especially next
+  to 0/100 cards. Report cards now show "Your answer" from the stored
+  candidate turns before evidence/missing points, and the old "Model answer"
+  heading is renamed to "What a strong answer could include".
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;
