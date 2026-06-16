@@ -2,11 +2,27 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { formatTag, SESSION_LABELS } from './formatTag'
 import { LoadingState } from './LoadingState'
-import { api, ApiError, type InterviewState, type Turn } from './api'
+import {
+  api,
+  ApiError,
+  type InterviewState,
+  type QuestionType,
+  type Turn,
+} from './api'
 
 type InterviewProgress = {
   current: number
   total: number
+}
+
+// signals the *shape* expected (a story vs. trade-offs vs. precision) without
+// leaking the answer key — beginners otherwise can't tell what kind of answer
+// the question wants
+const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
+  warmup: 'Warm-up',
+  behavioral: 'Behavioral',
+  technical: 'Technical',
+  system_design: 'System design',
 }
 
 function progressFromState(state: InterviewState): InterviewProgress | null {
@@ -127,6 +143,7 @@ export function InterviewPage() {
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [progress, setProgress] = useState<InterviewProgress | null>(null)
+  const [questionType, setQuestionType] = useState<QuestionType | null>(null)
   const [readyState, setReadyState] = useState<InterviewState | null>(null)
   const [streamConnected, setStreamConnected] = useState(false)
   // soft time pressure: visible elapsed clock per question, no enforcement
@@ -198,8 +215,12 @@ export function InterviewPage() {
     })
 
     source.addEventListener('question', (event) => {
-      const data = JSON.parse(event.data) as { is_probe: boolean }
+      const data = JSON.parse(event.data) as {
+        is_probe: boolean
+        qtype: QuestionType
+      }
       if (data.is_probe) return
+      setQuestionType(data.qtype)
       setMessages((previous) => {
         const last = previous[previous.length - 1]
         if (last?.role === 'interviewer' && last.streaming) {
@@ -268,6 +289,7 @@ export function InterviewPage() {
           setAwaitingAnswer(state.awaiting_answer)
           setCanSubmitFinish(canFinish(state))
           setProgress(progressFromState(state))
+          setQuestionType(state.current_question?.qtype ?? null)
           if (!canFinish(state)) {
             startQuestionClock(questionStartMs(state))
           }
@@ -303,6 +325,7 @@ export function InterviewPage() {
       setReadyState(null)
       setCanSubmitFinish(canFinish(started))
       setProgress(progressFromState(started))
+      setQuestionType(started.current_question?.qtype ?? null)
       startQuestionClock(Date.now())
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not start interview')
@@ -343,6 +366,7 @@ export function InterviewPage() {
         startQuestionClock(Date.now())
       }
       setProgress(next)
+      setQuestionType(state.current_question?.qtype ?? null)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not submit answer')
     } finally {
@@ -377,6 +401,7 @@ export function InterviewPage() {
         startQuestionClock(Date.now())
       }
       setProgress(next)
+      setQuestionType(state.current_question?.qtype ?? null)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not skip')
     } finally {
@@ -404,6 +429,12 @@ export function InterviewPage() {
           {progress && (
             <span className="question-progress">
               Question {progress.current} of {progress.total}
+              {questionType && (
+                <span className="question-type-tag">
+                  {' '}
+                  · {QUESTION_TYPE_LABELS[questionType]}
+                </span>
+              )}
               {elapsedSeconds !== null && (
                 <span className="question-clock">
                   {' '}
@@ -470,7 +501,7 @@ export function InterviewPage() {
               value={answerText}
               onChange={(event) => setAnswerText(event.target.value)}
               rows={4}
-              placeholder="Type your answer…"
+              placeholder="Answer as you'd say it out loud in a real interview — be specific and concrete. Vague answers score low."
               disabled={busy}
               required
             />

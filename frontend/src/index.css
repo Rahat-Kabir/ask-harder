@@ -1579,6 +1579,13 @@ a.history-link:hover {
   font-variant-numeric: tabular-nums;
 }
 
+/* the question type is a leak-free hint about the expected answer shape —
+   give it a touch more weight than the rest of the muted progress pill */
+.question-type-tag {
+  color: var(--text);
+  font-weight: 600;
+}
+
 .question-time {
   color: var(--muted);
   font-size: 0.8rem;

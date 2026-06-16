@@ -458,6 +458,23 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   for a11y. Removed the now-dead `.session*` CSS. Playwright-verified open/close,
   outside-click, Escape, and Profile navigation; build clean.
 
+- 2026-06-16 - Leak-free answer guidance (beginners couldn't tell what kind of
+  answer a question wanted — short? long? what's needed to pass? — so a thin,
+  unguessable answer risked measuring tool-confusion, not skill). Two changes,
+  both deliberately *mechanics/format only*, never the rubric: (1) answer
+  placeholder rewritten to "Answer as you'd say it out loud in a real interview
+  — be specific and concrete. Vague answers score low." (register + specificity,
+  no content leak); (2) the current question type (Warm-up / Behavioral /
+  Technical / System design) now shows in the progress chip — a leak-free hint
+  about the *shape* expected, sourced from `current_question.qtype` and the SSE
+  `question` event. It stays unchanged through a follow-up probe (same question)
+  and updates on advance. Explicitly **not** done: per-question content hints,
+  required-point previews, or word-count targets — those would leak the frozen
+  answer key, gut the report, and soften the "actually says no" identity.
+  Verified $0 on a mock stack (uvicorn :8001 + vite :5176 via VITE_API_TARGET):
+  chip showed "Question 1 of 5 · Warm-up", held through a probe, advanced to
+  "Question 2 of 5 · Technical". Frontend builds clean.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;
