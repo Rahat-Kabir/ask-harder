@@ -62,6 +62,7 @@ from app.skills.service import (
     recompute_skill_scores,
     record_skill_scores,
     skill_average,
+    to_hundred,
 )
 
 logger = logging.getLogger(__name__)
@@ -685,7 +686,7 @@ class InterviewService:
                     seniority=profile.seniority if profile else None,
                     question_count=question_counts.get(interview.id, 0),
                     overall_score=(
-                        sum(question_scores) / len(question_scores)
+                        to_hundred(sum(question_scores) / len(question_scores))
                         if question_scores
                         else None
                     ),

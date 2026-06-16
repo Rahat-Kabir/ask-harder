@@ -28,6 +28,17 @@ def overall_score(scores: Scores) -> float:
     return sum(values) / len(values)
 
 
+def to_hundred(average: float) -> float:
+    """Map a 1-5 score onto a 0-100 scale for display: 1->0, 3->50, 5->100.
+
+    The judge still scores in 1-5 buckets; this is a presentation transform
+    applied only at output boundaries, so storage and the eval harness stay in
+    native units. It is affine, so a stored running average converts directly
+    and a score difference (a trend) scales by 25.
+    """
+    return round(25 * average - 25, 1)
+
+
 async def record_skill_scores(
     db: AsyncSession,
     *,
@@ -122,10 +133,14 @@ async def list_skills(db: AsyncSession, user: User) -> SkillsOut:
         skills=[
             SkillOut(
                 tag=row.tag,
-                average=row.score_sum / row.evaluation_count,
+                average=to_hundred(row.score_sum / row.evaluation_count),
                 evaluation_count=row.evaluation_count,
                 updated_at=row.updated_at,
-                trend=trends.get(row.tag),
+                # a trend is a difference of 1-5 averages, so it scales by 25
+                # onto the 0-100 scale (the offset cancels in a difference)
+                trend=(
+                    round(25 * trends[row.tag], 1) if row.tag in trends else None
+                ),
             )
             for row in rows
         ]
@@ -187,7 +202,7 @@ async def skill_detail(
 
     return SkillDetailOut(
         tag=skill_row.tag,
-        average=skill_row.score_sum / skill_row.evaluation_count,
+        average=to_hundred(skill_row.score_sum / skill_row.evaluation_count),
         evaluation_count=skill_row.evaluation_count,
         answers=[
             SkillAnswerOut(

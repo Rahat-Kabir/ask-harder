@@ -7,7 +7,12 @@ from app.interviews import router as interviews_router
 from app.interviews.service import InterviewService
 from app.llm.mock import MockBackend
 from app.schemas import Scores
-from app.skills.service import load_skill_profile, overall_score, record_skill_scores
+from app.skills.service import (
+    load_skill_profile,
+    overall_score,
+    record_skill_scores,
+    to_hundred,
+)
 
 pytestmark = pytest.mark.anyio
 
@@ -146,7 +151,9 @@ async def test_finish_aggregates_skills_from_mock_interview(client):
         "databases/indexing",
         "system_design/rate-limiting",
     }
-    assert all(item["average"] == pytest.approx(MOCK_OVERALL) for item in body)
+    assert all(
+        item["average"] == pytest.approx(to_hundred(MOCK_OVERALL)) for item in body
+    )
     assert all(item["evaluation_count"] == 1 for item in body)
 
 
@@ -162,7 +169,7 @@ async def test_same_tag_accumulates_across_two_interviews(client):
         if item["tag"] == "behavioral/ownership"
     )
     assert ownership["evaluation_count"] == 2
-    assert ownership["average"] == pytest.approx(MOCK_OVERALL)
+    assert ownership["average"] == pytest.approx(to_hundred(MOCK_OVERALL))
 
 
 async def test_skills_sorted_weakest_first(client):
@@ -183,7 +190,7 @@ async def test_skills_sorted_weakest_first(client):
     assert skills.status_code == 200
     tags = [item["tag"] for item in skills.json()["skills"]]
     assert tags[0] == "zzzz/weak"
-    assert skills.json()["skills"][0]["average"] == pytest.approx(1.0)
+    assert skills.json()["skills"][0]["average"] == pytest.approx(to_hundred(1.0))
 
 
 async def test_skills_requires_auth(client):
@@ -261,7 +268,8 @@ async def test_trend_is_latest_minus_previous_interview(client):
     skills = await client.get("/api/skills")
     assert skills.status_code == 200
     for item in skills.json()["skills"]:
-        assert item["trend"] == pytest.approx(BETTER_OVERALL - MOCK_OVERALL)
+        # a trend is a difference of 1-5 averages, scaled by 25 onto 0-100
+        assert item["trend"] == pytest.approx(25 * (BETTER_OVERALL - MOCK_OVERALL))
 
 
 async def test_delete_interview_recomputes_skill_scores(client):
@@ -274,7 +282,7 @@ async def test_delete_interview_recomputes_skill_scores(client):
         s for s in before.json()["skills"] if s["tag"] == "databases/indexing"
     )
     assert indexing["evaluation_count"] == 2
-    assert indexing["average"] == pytest.approx(2.5)
+    assert indexing["average"] == pytest.approx(to_hundred(2.5))
 
     delete = await client.delete(f"/api/interviews/{better_id}")
     assert delete.status_code == 204
@@ -284,7 +292,7 @@ async def test_delete_interview_recomputes_skill_scores(client):
         s for s in after.json()["skills"] if s["tag"] == "databases/indexing"
     )
     assert indexing["evaluation_count"] == 1
-    assert indexing["average"] == pytest.approx(MOCK_OVERALL)
+    assert indexing["average"] == pytest.approx(to_hundred(MOCK_OVERALL))
 
     # receipts agree with the recomputed number
     detail = await client.get("/api/skills/databases/indexing")
@@ -320,7 +328,7 @@ async def test_skill_detail_returns_judged_answers(client):
     assert response.status_code == 200
     body = response.json()
     assert body["tag"] == "databases/indexing"
-    assert body["average"] == pytest.approx(MOCK_OVERALL)
+    assert body["average"] == pytest.approx(to_hundred(MOCK_OVERALL))
     assert body["evaluation_count"] == 1
 
     assert len(body["answers"]) == 1

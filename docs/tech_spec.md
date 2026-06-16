@@ -59,6 +59,16 @@ What actually exists, updated as it changes.
   verbatim substrings of candidate turns (one retry, then strip invalid quotes);
   `missing_points` filtered to answer-key strings. `judge_model` column stores
   the Anthropic model id (e.g. `claude-sonnet-4-6`).
+- Scoring scale: the judge scores each answer 1–5 on four dimensions
+  (correctness, depth, structure, communication) — the honest resolution an
+  LLM can reproduce, and what storage (`scores_json`, `skill_scores.score_sum`)
+  and the eval harness keep. Everything user-facing (overall, verdict
+  `bar`/`overall`, skill `average`/`trend`) is mapped to 0–100 only at the
+  output boundary via `to_hundred` in `app/skills/service.py`:
+  `25 × avg − 25` (1→0, 3→50, 5→100). The map is affine, so a stored running
+  average converts directly (`25 × score_sum/count − 25`) and a trend scales
+  ×25 — no migration, and pre-existing 1–5 data renders correctly. Per-
+  dimension chips stay 1–5 in the UI.
 - Eval harness (`backend/evals/`): four suites (ordering,
   stability, grounding, key adherence) over 10 committed fixtures (question
   + answer key + bad/mediocre/strong answers). Judge selected via
@@ -166,7 +176,8 @@ What actually exists, updated as it changes.
   interviews newest-first (cap 50, no pagination yet). Each summary:
   `{id, status, session_type, practice_tag, role, seniority, question_count, overall_score,
   created_at, finished_at}`; `role`/`seniority` null until intake parses,
-  `overall_score` (mean of per-question score averages) null until judged.
+  `overall_score` (mean of per-question score averages, on the 0–100 scale)
+  null until judged.
   Rendered by the `/interviews` history page.
 - `GET /api/interviews/{id}` → interview state (status, current question,
   turns, `awaiting_answer`, parsed `profile` — null for drills/preparing);
@@ -190,9 +201,11 @@ What actually exists, updated as it changes.
   until `complete`. Includes a `verdict` (`pass`|`borderline`|`no` +
   headline + grounded rationale + `bar`/`overall`) synthesized
   deterministically from the per-question scores in `app/interviews/verdict.py`
-  — no LLM call, no stored column. Pass/borderline thresholds rise with
-  seniority (junior 3.0/2.2 … senior 4.0/3.0 … staff/principal 4.3/3.3);
-  drills and unknown seniority use the mid bar. The rationale names the
+  — no LLM call, no stored column. Banding runs on the native 1–5 average;
+  `bar`/`overall` are surfaced on the 0–100 scale (see Scoring scale). Pass/
+  borderline thresholds rise with seniority (junior 3.0/2.2 → 50/30, senior
+  4.0/3.0 → 75/50, staff/principal 4.3/3.3 → 82.5/57.5); drills and unknown
+  seniority use the mid bar (3.5/2.6 → 62.5/40). The rationale names the
   weakest question (by tag) and the weakest scoring dimension.
 - `GET /api/interviews/{id}/stream` → SSE (`text/event-stream`). Events:
   `question`, `token`, `interviewer_done`, `interview_complete`. Probes
@@ -205,8 +218,9 @@ What actually exists, updated as it changes.
   `/methodology` page (also public — the SPA router wraps both auth states).
 - `GET /api/skills` → 200 `{skills: [{tag, average, evaluation_count,
   updated_at, trend}]}` sorted weakest-first; 401 without session. Populated
-  when interviews finish. `trend` = latest-interview average minus the
-  previous interview's on that tag (computed from evaluations); null until
+  when interviews finish. `average`/`trend` are on the 0–100 scale.
+  `trend` = latest-interview average minus the previous interview's on that
+  tag (computed from evaluations, then scaled ×25 onto 0–100); null until
   the tag is judged in two interviews.
 - `GET /api/skills/{tag}` → 200 `{tag, average, evaluation_count, answers: [...]}` —
   every judged answer on the tag (question, candidate turns, scores, evidence,

@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { api, ApiError, type SkillAnswer, type SkillDetail } from './api'
 import { formatTag } from './formatTag'
 import { LoadingState } from './LoadingState'
+import { overallOf, SCORE_MAX } from './scoring'
 import { useDrill } from './useDrill'
 
 function formatDate(iso: string): string {
@@ -11,18 +12,6 @@ function formatDate(iso: string): string {
     month: 'short',
     day: 'numeric',
   })
-}
-
-function averageScore(scores: SkillAnswer['scores']): string {
-  const values = [
-    scores.correctness,
-    scores.depth,
-    scores.structure,
-    scores.communication,
-  ]
-  return (values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(
-    1,
-  )
 }
 
 type TrendPoint = {
@@ -38,7 +27,7 @@ function trendPoints(answers: SkillAnswer[]): TrendPoint[] {
       date: answer.interview_created_at,
       scores: [],
     }
-    entry.scores.push(Number(averageScore(answer.scores)))
+    entry.scores.push(overallOf(answer.scores))
     byInterview.set(answer.interview_id, entry)
   }
   return [...byInterview.values()]
@@ -53,11 +42,11 @@ function TrendChart({ points }: { points: TrendPoint[] }) {
   const width = 320
   const height = 80
   const padding = 8
-  // y maps score 1..5 to bottom..top
+  // y maps a 0..100 score to bottom..top
   const x = (index: number) =>
     padding + (index * (width - 2 * padding)) / (points.length - 1)
   const y = (score: number) =>
-    height - padding - ((score - 1) / 4) * (height - 2 * padding)
+    height - padding - (score / SCORE_MAX) * (height - 2 * padding)
   const path = points
     .map((point, index) => `${x(index)},${y(point.average)}`)
     .join(' ')
@@ -68,7 +57,7 @@ function TrendChart({ points }: { points: TrendPoint[] }) {
         viewBox={`0 0 ${width} ${height}`}
         role="img"
         aria-label={`Score per interview, oldest to newest: ${points
-          .map((point) => point.average.toFixed(1))
+          .map((point) => Math.round(point.average))
           .join(', ')}`}
       >
         <polyline points={path} fill="none" />
@@ -90,7 +79,9 @@ function AnswerCard({ answer }: { answer: SkillAnswer }) {
       <header>
         <span className="question-type">{answer.qtype.replace('_', ' ')}</span>
         <span>{formatDate(answer.interview_created_at)}</span>
-        <span className="question-score">{averageScore(answer.scores)} / 5</span>
+        <span className="question-score">
+          {overallOf(answer.scores)} / {SCORE_MAX}
+        </span>
       </header>
 
       <h2>{answer.question_text}</h2>
@@ -202,7 +193,8 @@ export function SkillDetailPage() {
           Every judged answer behind this score — the receipts, newest first.
         </p>
         <p className="report-overall">
-          Average: <strong>{detail.average.toFixed(1)} / 5</strong> across{' '}
+          Average: <strong>{Math.round(detail.average)} / {SCORE_MAX}</strong>{' '}
+          across{' '}
           {detail.evaluation_count}{' '}
           {detail.evaluation_count === 1 ? 'judged answer' : 'judged answers'}
         </p>

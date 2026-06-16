@@ -43,8 +43,9 @@ job description ──► profile ──► question plan (hidden answer keys)
    depth, structure, and communication — strictly against the frozen key.
 5. **Report** — a top-line **verdict** (pass / borderline / no for the role
    at its seniority, with a rationale grounded in your weakest answer and
-   dimension), then scores, evidence quotes, what you failed to mention, and
-   a model answer per question. Answer keys are revealed only here.
+   dimension) and an **overall out of 100** (the four 1–5 dimensions mapped
+   onto 0–100), then per-question scores, evidence quotes, what you failed to
+   mention, and a model answer per question. Answer keys are revealed only here.
 
 Two trust guarantees are enforced in code, not in prompts:
 

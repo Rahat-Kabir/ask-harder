@@ -10,6 +10,7 @@ import {
 import { formatTag } from './formatTag'
 import type { LayoutContext } from './Layout'
 import { LoadingState } from './LoadingState'
+import { SCORE_MAX } from './scoring'
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString(undefined, {
@@ -30,10 +31,12 @@ function StatsGrid({ interviews, skills, quota }: Stats) {
   const scored = interviews.filter((i) => i.overall_score !== null)
   const overallAverage =
     scored.length > 0
-      ? (
+      ? Math.round(
           scored.reduce((sum, i) => sum + (i.overall_score as number), 0) /
-          scored.length
-        ).toFixed(1) + ' / 5'
+            scored.length,
+        ) +
+        ' / ' +
+        SCORE_MAX
       : '—'
   const judgedAnswers = skills.reduce(
     (sum, skill) => sum + skill.evaluation_count,

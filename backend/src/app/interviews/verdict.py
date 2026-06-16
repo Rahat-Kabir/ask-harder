@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 from app.interviews.schemas import VerdictOut
 from app.schemas import Scores
-from app.skills.service import overall_score
+from app.skills.service import overall_score, to_hundred
 
 # Pass / borderline thresholds by seniority — the bar rises with the level.
 # A senior is expected to clear a higher floor than a junior for the same answer.
@@ -80,7 +80,7 @@ def build_verdict(
             rationale=(
                 "Every question was left unanswered, so there is nothing to assess."
             ),
-            bar=pass_bar,
+            bar=to_hundred(pass_bar),
             overall=0.0,
         )
 
@@ -102,13 +102,13 @@ def build_verdict(
     headline = _headline(decision, seniority, role, practice_tag)
     rationale = _rationale(
         decision=decision,
-        overall=overall,
-        pass_bar=pass_bar,
-        borderline_bar=borderline_bar,
+        overall=to_hundred(overall),
+        pass_bar=to_hundred(pass_bar),
+        borderline_bar=to_hundred(borderline_bar),
         seniority=seniority,
         is_drill=practice_tag is not None,
         weakest_label=weakest_label,
-        weakest_score=weakest_score,
+        weakest_score=to_hundred(weakest_score),
         weakest_dim=weakest_dim,
     )
 
@@ -116,8 +116,8 @@ def build_verdict(
         decision=decision,
         headline=headline,
         rationale=rationale,
-        bar=pass_bar,
-        overall=round(overall, 1),
+        bar=to_hundred(pass_bar),
+        overall=to_hundred(overall),
     )
 
 
@@ -172,19 +172,19 @@ def _rationale(
 
     if decision == "no":
         return (
-            f"You averaged {overall:.1f}/5 against a {pass_bar:.1f} bar{level_clause}. "
-            f"Your {weakest_label} answer ({weakest_score:.1f}/5) is what sinks it, "
+            f"You scored {overall:.0f}/100 against a {pass_bar:.0f} bar{level_clause}. "
+            f"Your {weakest_label} answer ({weakest_score:.0f}/100) is what sinks it, "
             f"and {weakest_dim} was your weakest dimension across the interview."
         )
     if decision == "borderline":
         return (
-            f"You averaged {overall:.1f}/5 — above the {borderline_bar:.1f} floor but "
-            f"short of the {pass_bar:.1f} bar for a clear pass. Tighten your "
-            f"{weakest_label} answer ({weakest_score:.1f}/5) and your {weakest_dim}, "
+            f"You scored {overall:.0f}/100 — above the {borderline_bar:.0f} floor but "
+            f"short of the {pass_bar:.0f} bar for a clear pass. Tighten your "
+            f"{weakest_label} answer ({weakest_score:.0f}/100) and your {weakest_dim}, "
             f"and this becomes a yes."
         )
     return (
-        f"You averaged {overall:.1f}/5, clearing the {pass_bar:.1f} bar. Weakest spot "
-        f"was {weakest_label} ({weakest_score:.1f}/5) — worth shoring up, but not a "
+        f"You scored {overall:.0f}/100, clearing the {pass_bar:.0f} bar. Weakest spot "
+        f"was {weakest_label} ({weakest_score:.0f}/100) — worth shoring up, but not a "
         f"blocker."
     )

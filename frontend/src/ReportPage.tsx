@@ -3,19 +3,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api, ApiError, type Report } from './api'
 import { formatTag, SESSION_LABELS } from './formatTag'
 import { LoadingState } from './LoadingState'
+import { overallOf, SCORE_MAX } from './scoring'
 import { useDrill } from './useDrill'
-
-function averageScore(scores: Report['questions'][0]['evaluation']['scores']) {
-  const values = [
-    scores.correctness,
-    scores.depth,
-    scores.structure,
-    scores.communication,
-  ]
-  return (values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(
-    1,
-  )
-}
 
 // presentation → last candidate turn, from stored timestamps
 function answeredIn(turns: Report['questions'][0]['turns']): string | null {
@@ -36,20 +25,20 @@ function answeredIn(turns: Report['questions'][0]['turns']): string | null {
 // the lowest-scoring question's first tag — what to work on next
 function weakestArea(
   questions: Report['questions'],
-): { tag: string; score: string } | null {
+): { tag: string; score: number } | null {
   let weakest: Report['questions'][0] | null = null
   for (const question of questions) {
     if (question.tags.length === 0) continue
     if (
       weakest === null ||
-      Number(averageScore(question.evaluation.scores)) <
-        Number(averageScore(weakest.evaluation.scores))
+      overallOf(question.evaluation.scores) <
+        overallOf(weakest.evaluation.scores)
     ) {
       weakest = question
     }
   }
   if (!weakest) return null
-  return { tag: weakest.tags[0], score: averageScore(weakest.evaluation.scores) }
+  return { tag: weakest.tags[0], score: overallOf(weakest.evaluation.scores) }
 }
 
 function DeleteInterview({ id }: { id: string }) {
@@ -162,18 +151,12 @@ export function ReportPage() {
   }
 
   const weakest = weakestArea(report.questions)
-  const overallAverage = (
+  const overallAverage = Math.round(
     report.questions.reduce(
-      (sum, question) =>
-        sum +
-        (question.evaluation.scores.correctness +
-          question.evaluation.scores.depth +
-          question.evaluation.scores.structure +
-          question.evaluation.scores.communication) /
-          4,
+      (sum, question) => sum + overallOf(question.evaluation.scores),
       0,
-    ) / report.questions.length
-  ).toFixed(1)
+    ) / report.questions.length,
+  )
 
   const { verdict } = report
 
@@ -200,13 +183,14 @@ export function ReportPage() {
           · {SESSION_LABELS[report.session_type]}
         </p>
         <p className="report-overall">
-          Overall average: <strong>{overallAverage} / 5</strong>
+          Overall: <strong>{overallAverage} / {SCORE_MAX}</strong>
         </p>
         <details className="answer-key scoring-legend">
           <summary>How scoring works</summary>
           <p>
             Every answer is scored 1–5 on four dimensions, strictly against a
-            rubric frozen before the interview began:
+            rubric frozen before the interview began. The overall is those four
+            mapped onto 0–100 (a 3/5 is 50, a 5/5 is 100):
           </p>
           <ul>
             <li>
@@ -248,7 +232,7 @@ export function ReportPage() {
               </span>
             )}
             <span className="question-score">
-              {averageScore(question.evaluation.scores)} / 5
+              {overallOf(question.evaluation.scores)} / {SCORE_MAX}
             </span>
           </header>
 
@@ -340,7 +324,8 @@ export function ReportPage() {
           <h2>What to work on next</h2>
           <p>
             Your weakest area this interview:{' '}
-            <strong>{formatTag(weakest.tag)}</strong> ({weakest.score} / 5).
+            <strong>{formatTag(weakest.tag)}</strong> ({weakest.score} /{' '}
+            {SCORE_MAX}).
           </p>
           {drillError && <p className="error">{drillError}</p>}
           <div className="report-actions">

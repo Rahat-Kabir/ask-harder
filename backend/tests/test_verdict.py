@@ -22,8 +22,9 @@ def test_strong_interview_passes_at_mid():
         results=[_result(4), _result(4), _result(4)],
     )
     assert verdict.decision == "pass"
-    assert verdict.bar == 3.5
-    assert verdict.overall == 4.0
+    # 1-5 bars/scores surface on the 0-100 scale: 3.5->62.5, 4.0->75.0
+    assert verdict.bar == 62.5
+    assert verdict.overall == 75.0
     assert "Backend Engineer" in verdict.headline
 
 
@@ -38,7 +39,7 @@ def test_same_scores_fail_at_senior_bar():
     )
     assert mid.decision == "pass"
     assert senior.decision in {"borderline", "no"}
-    assert senior.bar == 4.0
+    assert senior.bar == 75.0
 
 
 def test_weak_interview_is_a_no():
@@ -101,8 +102,8 @@ def test_drill_uses_skill_framing_not_role():
     )
     assert "ownership" in verdict.headline
     assert "round" not in verdict.headline
-    # drills are judged at the mid bar
-    assert verdict.bar == 3.5
+    # drills are judged at the mid bar (3.5 -> 62.5 on the 0-100 scale)
+    assert verdict.bar == 62.5
 
 
 def test_empty_results_is_a_no():
@@ -120,4 +121,4 @@ def test_unknown_seniority_falls_back_to_mid_bar():
         practice_tag=None,
         results=[_result(4), _result(4), _result(4)],
     )
-    assert verdict.bar == 3.5
+    assert verdict.bar == 62.5

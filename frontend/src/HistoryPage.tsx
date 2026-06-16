@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { api, ApiError, type InterviewSummary } from './api'
 import { formatTag, SESSION_LABELS } from './formatTag'
 import { LoadingState } from './LoadingState'
+import { SCORE_MAX } from './scoring'
 
 const STATUS_LABELS: Record<string, string> = {
   preparing: 'Preparing',
@@ -72,7 +73,7 @@ function HistoryRow({
         </span>
         {interview.overall_score !== null && (
           <span className="history-score">
-            {interview.overall_score.toFixed(1)} / 5
+            {Math.round(interview.overall_score)} / {SCORE_MAX}
           </span>
         )}
       </div>

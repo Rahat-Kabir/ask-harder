@@ -5,6 +5,7 @@ from sqlalchemy import func, select
 
 from app.db.models import Interview, Question, QuestionEvaluation, User
 from app.db.session import new_session
+from app.skills.service import to_hundred
 
 pytestmark = pytest.mark.anyio
 
@@ -286,7 +287,8 @@ async def test_fully_skipped_question_is_judged_deterministically(client):
     # skipping isn't free — floor scores feed the skill tags
     skills = await client.get("/api/skills")
     assert all(
-        item["average"] == pytest.approx(1.0) for item in skills.json()["skills"]
+        item["average"] == pytest.approx(to_hundred(1.0))
+        for item in skills.json()["skills"]
     )
 
 
@@ -555,7 +557,7 @@ async def test_list_newest_first_with_scores(client):
     assert ready["role"]
 
     assert completed["status"] == "complete"
-    assert 1 <= completed["overall_score"] <= 5
+    assert 0 <= completed["overall_score"] <= 100
     assert completed["finished_at"] is not None
     assert completed["question_count"] == 3
 

@@ -361,6 +361,24 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   flow, row disappears on "Yes", Cancel restores `×`, complete rows
   unaffected.
 
+- 2026-06-16 — Scores presented out of 100 (product reframe — "out of 5"
+  read like a failing academic grade; /100 is the familiar interview/exam
+  frame). Design decision: keep the judge and all storage at 1–5 (the honest
+  resolution an LLM can reproduce, and what the eval harness asserts on), and
+  map to 0–100 only at the output boundary via `to_hundred` in
+  `app/skills/service.py` — `25 × avg − 25` (1→0, 3→50, 5→100). The map is
+  affine, so a stored running average converts directly and a trend scales
+  ×25: **no DB migration, and pre-existing 1–5 data renders correctly**.
+  Banding logic in `verdict.py` still runs on the 1–5 average; only its
+  `bar`/`overall` outputs and rationale text are scaled (mid bar 62.5, senior
+  75). Frontend: shared `scoring.ts` (`toHundred`/`overallOf`/`SCORE_MAX`),
+  applied across Report/Skills/SkillDetail/Home/History/Profile; per-dimension
+  chips deliberately stay 1–5; the skill-detail trend SVG y-axis rescaled to
+  0–100. Equal dimension weighting kept (weighting correctness higher is a
+  separate, deferred decision). 223 backend tests pass, frontend builds clean,
+  Playwright-verified end-to-end: report "You scored 80/100, clearing the 75
+  bar", skills/trend all on /100, skipped answers read 0/100.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;

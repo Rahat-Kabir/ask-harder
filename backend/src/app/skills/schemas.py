@@ -8,7 +8,7 @@ from app.schemas import EvidenceItem, QuestionType, Scores
 
 class SkillOut(BaseModel):
     tag: str
-    average: float = Field(ge=1.0, le=5.0)
+    average: float = Field(ge=0.0, le=100.0)
     evaluation_count: int = Field(ge=1)
     updated_at: datetime
     # latest-interview average minus the previous interview's on this tag;
@@ -38,6 +38,6 @@ class SkillAnswerOut(BaseModel):
 
 class SkillDetailOut(BaseModel):
     tag: str
-    average: float = Field(ge=1.0, le=5.0)
+    average: float = Field(ge=0.0, le=100.0)
     evaluation_count: int = Field(ge=1)
     answers: list[SkillAnswerOut]

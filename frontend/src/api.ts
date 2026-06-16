@@ -97,7 +97,8 @@ export type Verdict = {
   decision: 'pass' | 'borderline' | 'no'
   headline: string
   rationale: string
-  // pass threshold used (rises with seniority) and achieved average
+  // pass threshold and achieved overall, both on the 0-100 scale (the 1-5
+  // dimension scores mapped via (avg-1)/4*100); bar rises with seniority
   bar: number
   overall: number
 }
@@ -122,6 +123,7 @@ export type InterviewSummary = {
   role: string | null
   seniority: string | null
   question_count: number
+  // mean of the per-question scores, on the 0-100 scale; null until judged
   overall_score: number | null
   created_at: string
   finished_at: string | null
@@ -136,10 +138,11 @@ export type Quota = {
 
 export type Skill = {
   tag: string
+  // running average on the 0-100 scale
   average: number
   evaluation_count: number
   updated_at: string
-  // latest-interview average minus previous; null until 2 interviews
+  // latest-interview average minus previous (0-100 scale); null until 2 interviews
   trend: number | null
 }
 

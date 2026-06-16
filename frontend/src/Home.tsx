@@ -7,6 +7,7 @@ import {
   type Skill,
 } from './api'
 import { formatTag, SESSION_LABELS } from './formatTag'
+import { SCORE_MAX } from './scoring'
 import { useDrill } from './useDrill'
 
 type Briefing = {
@@ -24,15 +25,15 @@ function suggestedAction(skills: Skill[]): { skill: Skill; reason: string } | nu
     return {
       skill: dropping,
       reason: `${formatTag(dropping.tag)} dropped ▼${Math.abs(
-        dropping.trend ?? 0,
-      ).toFixed(1)} since your previous interview`,
+        Math.round(dropping.trend ?? 0),
+      )} since your previous interview`,
     }
   }
   const weakest = skills[0]
   if (weakest) {
     return {
       skill: weakest,
-      reason: `your weakest area is ${formatTag(weakest.tag)} (${weakest.average.toFixed(1)} / 5)`,
+      reason: `your weakest area is ${formatTag(weakest.tag)} (${Math.round(weakest.average)} / ${SCORE_MAX})`,
     }
   }
   return null
@@ -64,7 +65,10 @@ function BriefingSection({ skills, quota, interviews }: Briefing) {
             <span>Last report</span>
             <strong>
               <Link to={`/interviews/${lastReport.id}/report`}>
-                {lastReport.overall_score?.toFixed(1)} / 5 ·{' '}
+                {lastReport.overall_score !== null
+                  ? Math.round(lastReport.overall_score)
+                  : null}{' '}
+                / {SCORE_MAX} ·{' '}
                 {lastReport.practice_tag
                   ? 'Practice'
                   : SESSION_LABELS[lastReport.session_type]}
@@ -77,7 +81,7 @@ function BriefingSection({ skills, quota, interviews }: Briefing) {
             <span>Weakest skill</span>
             <strong>
               <Link to={`/skills/${weakest.tag}`}>
-                {formatTag(weakest.tag)} · {weakest.average.toFixed(1)}
+                {formatTag(weakest.tag)} · {Math.round(weakest.average)}
                 {weakest.trend !== null && (
                   <span
                     className={
@@ -86,7 +90,7 @@ function BriefingSection({ skills, quota, interviews }: Briefing) {
                   >
                     {' '}
                     {weakest.trend >= 0 ? '▲' : '▼'}
-                    {Math.abs(weakest.trend).toFixed(1)}
+                    {Math.abs(Math.round(weakest.trend))}
                   </span>
                 )}
               </Link>

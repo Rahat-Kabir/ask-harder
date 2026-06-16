@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom'
 import { api, ApiError, type Skill } from './api'
 import { formatTag } from './formatTag'
 import { LoadingState } from './LoadingState'
+import { SCORE_MAX } from './scoring'
 
 function SkillRow({ skill }: { skill: Skill }) {
-  const percent = (skill.average / 5) * 100
+  // average already arrives on the 0-100 scale, so it is its own bar percentage
+  const percent = skill.average
   return (
     <li className="skill-row">
       <Link to={`/skills/${skill.tag}`} className="skill-row-link">
@@ -19,19 +21,21 @@ function SkillRow({ skill }: { skill: Skill }) {
                 }
                 title="Change vs your previous interview on this skill"
               >
-                {skill.trend >= 0 ? '▲' : '▼'} {Math.abs(skill.trend).toFixed(1)}
+                {skill.trend >= 0 ? '▲' : '▼'} {Math.abs(Math.round(skill.trend))}
               </span>
             )}
-            <span className="skill-average">{skill.average.toFixed(1)} / 5</span>
+            <span className="skill-average">
+              {Math.round(skill.average)} / {SCORE_MAX}
+            </span>
           </span>
         </div>
         <div
           className="skill-bar-track"
           role="meter"
-          aria-valuemin={1}
-          aria-valuemax={5}
-          aria-valuenow={skill.average}
-          aria-label={`${skill.tag}: ${skill.average.toFixed(1)} out of 5`}
+          aria-valuemin={0}
+          aria-valuemax={SCORE_MAX}
+          aria-valuenow={Math.round(skill.average)}
+          aria-label={`${skill.tag}: ${Math.round(skill.average)} out of ${SCORE_MAX}`}
         >
           <div className="skill-bar-fill" style={{ width: `${percent}%` }} />
         </div>
