@@ -166,11 +166,21 @@ uv run alembic revision --autogenerate -m "describe change"   # after editing db
 uv run alembic upgrade head                                   # apply locally and test
 ```
 
-Before shipping, then deploy:
+Before shipping, run the same gates CI enforces (`.github/workflows/ci.yml`),
+then deploy:
 
 ```powershell
-cd backend;  uv run ruff check .;  uv run pytest tests
-cd ../frontend;  npm run build
+# backend — ruff lint + format check, then tests and the eval harness
+cd backend
+uv run ruff check src tests evals
+uv run ruff format --check src tests evals
+uv run pytest tests
+uv run pytest evals
+
+# frontend — eslint (not run by `build`) + the type-checked build
+cd ../frontend
+npm run lint
+npm run build
 
 git push origin feat/my-thing         # open a PR, or merge to main when ready
 # merging to main → Vercel auto-deploys the frontend
