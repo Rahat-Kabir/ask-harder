@@ -536,9 +536,7 @@ class InterviewService:
                     interview.status = InterviewStatus.in_progress
                     await db.commit()
 
-    async def _judge_interview(
-        self, db: AsyncSession, interview_id: uuid.UUID
-    ) -> None:
+    async def _judge_interview(self, db: AsyncSession, interview_id: uuid.UUID) -> None:
         interview = await db.get(Interview, interview_id)
         if interview is None or interview.status != InterviewStatus.judging:
             return

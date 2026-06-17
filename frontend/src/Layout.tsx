@@ -19,9 +19,14 @@ function AccountMenu({
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const { pathname } = useLocation()
+  const [menuPath, setMenuPath] = useState(pathname)
 
-  // close on navigation (e.g. after picking Profile)
-  useEffect(() => setOpen(false), [pathname])
+  // close on navigation (e.g. after picking Profile) — adjust during render
+  // rather than in an effect, which avoids a cascading re-render
+  if (pathname !== menuPath) {
+    setMenuPath(pathname)
+    setOpen(false)
+  }
 
   // dismiss on outside-click and Escape, only while open
   useEffect(() => {

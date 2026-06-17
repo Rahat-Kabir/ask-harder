@@ -138,9 +138,7 @@ async def list_skills(db: AsyncSession, user: User) -> SkillsOut:
                 updated_at=row.updated_at,
                 # a trend is a difference of 1-5 averages, so it scales by 25
                 # onto the 0-100 scale (the offset cancels in a difference)
-                trend=(
-                    round(25 * trends[row.tag], 1) if row.tag in trends else None
-                ),
+                trend=(round(25 * trends[row.tag], 1) if row.tag in trends else None),
             )
             for row in rows
         ]
