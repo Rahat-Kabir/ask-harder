@@ -501,9 +501,49 @@ class InterviewService:
         if not all_questions_answered(interview, len(questions), current_turns):
             raise InvalidTransition("Not all questions have been answered yet")
 
+        # Judging every answer with the LLM judge takes longer than a single
+        # HTTP request may run under (Heroku cuts requests at 30s), so mark the
+        # interview judging, commit, and judge out-of-band. The client polls the
+        # interview state (and watches the SSE stream) until the report is
+        # ready. Mock judging is instant and deterministic, so it runs inline —
+        # tests and local mock mode see a complete report immediately.
         interview.status = InterviewStatus.judging
-        await db.flush()
+        await db.commit()
 
+        if settings.llm_backend == "mock":
+            await self._judge_interview(db, interview.id)
+            return await self._build_state(db, interview)
+
+        task = asyncio.create_task(self._judge_interview_background(interview.id))
+        _background_tasks.add(task)
+        task.add_done_callback(_background_tasks.discard)
+        return await self._build_state(db, interview)
+
+    async def _judge_interview_background(self, interview_id: uuid.UUID) -> None:
+        try:
+            async with new_session() as db:
+                await self._judge_interview(db, interview_id)
+        except Exception:
+            logger.exception("Background judging failed for %s", interview_id)
+            # leave the recorded answers intact and hand the interview back so
+            # the candidate can retry finishing instead of getting stuck judging
+            async with new_session() as db:
+                interview = await db.get(Interview, interview_id)
+                if (
+                    interview is not None
+                    and interview.status == InterviewStatus.judging
+                ):
+                    interview.status = InterviewStatus.in_progress
+                    await db.commit()
+
+    async def _judge_interview(
+        self, db: AsyncSession, interview_id: uuid.UUID
+    ) -> None:
+        interview = await db.get(Interview, interview_id)
+        if interview is None or interview.status != InterviewStatus.judging:
+            return
+
+        questions = await self._load_questions(db, interview.id)
         for question in questions:
             turns = await self._load_turns_for_question(db, question.id)
             candidate_turns = [t for t in turns if t.role == TurnRole.candidate]
@@ -531,7 +571,7 @@ class InterviewService:
             )
             await record_skill_scores(
                 db,
-                user_id=user.id,
+                user_id=interview.user_id,
                 tags=list(question.tags),
                 scores=evaluation.scores,
             )
@@ -545,7 +585,6 @@ class InterviewService:
             {"interview_id": str(interview.id)},
         )
         self.events.close(interview.id)
-        return await self._build_state(db, interview)
 
     async def get_report(
         self,

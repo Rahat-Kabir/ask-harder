@@ -295,6 +295,18 @@ export function InterviewPage() {
           }
           return
         }
+        if (state.status === 'judging') {
+          // reloaded mid-judging: wait for the server to finish, then report
+          setBusy(true)
+          try {
+            await api.waitUntilJudged(id)
+            navigate(`/interviews/${id}/report`)
+          } catch (err) {
+            setError(err instanceof ApiError ? err.message : 'Judging failed')
+            setBusy(false)
+          }
+          return
+        }
         if (state.status === 'preparing') {
           setError('Interview is still being prepared. Refresh in a moment.')
           return
@@ -414,7 +426,10 @@ export function InterviewPage() {
     setBusy(true)
     setError(null)
     try {
+      // judging runs server-side; the button stays "Judging…" while we poll
       await api.finishInterview(id)
+      await api.waitUntilJudged(id)
+      navigate(`/interviews/${id}/report`)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not finish interview')
       setBusy(false)

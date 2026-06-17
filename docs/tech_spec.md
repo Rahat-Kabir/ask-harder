@@ -188,8 +188,14 @@ What actually exists, updated as it changes.
   409 on wrong status.
 - `POST /api/interviews/{id}/answer` → body `{text}`; stores answer, may
   probe or advance; 409 if not awaiting answer.
-- `POST /api/interviews/{id}/finish` → `in_progress→judging→complete`;
-  409 if not all questions answered.
+- `POST /api/interviews/{id}/finish` → marks `in_progress→judging` and
+  returns immediately; real-backend judging runs out-of-band (one HTTP
+  request can't span all judge calls under Heroku's 30s router timeout),
+  moving `judging→complete`. The client polls interview state (and watches
+  the SSE stream for `interview_complete`) until the report is ready; if
+  background judging fails it reverts `judging→in_progress` so finish can be
+  retried. Mock judges inline and returns `complete` directly. 409 if not all
+  questions answered.
 - `POST /api/interviews/{id}/skip` → records a candidate turn flagged
   `is_skip` ("(skipped)") and advances immediately — no probe. At finish,
   a question whose only candidate turns are skips is judged

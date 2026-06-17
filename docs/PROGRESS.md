@@ -491,6 +491,24 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   Not yet done: local Docker build/run verification, Heroku app config
   (`stack:set container`, config vars, GitHub auto-deploy), Vercel frontend.
 
+- 2026-06-17 - Vercel frontend live + finish made async. Deployed the Vite SPA
+  to Vercel as a single-app project (Root Directory `frontend`) with
+  `frontend/vercel.json` rewriting `/api/*` → the Heroku backend (keeps the
+  session cookie first-party, no CORS). Verified the whole stack end-to-end via
+  Playwright at https://ask-harder.vercel.app — register/login, intake parse,
+  SSE streaming interviewer, and the Sonnet-judged report all work through the
+  proxy. **Bug found + fixed:** `POST /finish` judged every answer synchronously
+  inside one request and tripped Heroku's 30s router timeout (H12 → 503), even
+  though judging completed on the dyno. Reworked `finish()` to mark
+  `judging`, commit, and judge out-of-band (mirrors the intake background-prepare
+  pattern: `asyncio.create_task` + `new_session()`); the client polls interview
+  state (`api.waitUntilJudged`) and also navigates on the existing
+  `interview_complete` SSE event. Background failure reverts `judging→in_progress`
+  so finish is retryable. Mock still judges inline (tests unchanged, 40 pass).
+  Not yet done: redeploy backend (Heroku) + frontend (Vercel) with this fix;
+  X-Forwarded-For handling so the rate limiter sees the real client IP behind
+  the Vercel proxy.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;

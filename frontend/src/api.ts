@@ -261,6 +261,29 @@ export const api = {
     throw new ApiError(504, 'Interview preparation timed out.')
   },
 
+  // judging runs server-side after finish (too slow for one request), so poll
+  // the interview state until the report is ready
+  waitUntilJudged: async (
+    id: string,
+    options?: { intervalMs?: number; timeoutMs?: number },
+  ): Promise<void> => {
+    const intervalMs = options?.intervalMs ?? 1500
+    const timeoutMs = options?.timeoutMs ?? 180_000
+    const deadline = Date.now() + timeoutMs
+
+    while (Date.now() < deadline) {
+      const state = await api.getInterview(id)
+      if (state.status === 'complete') return
+      // background judging failed and handed the interview back
+      if (state.status === 'in_progress') {
+        throw new ApiError(500, 'Judging failed — please finish again.')
+      }
+      await new Promise((resolve) => setTimeout(resolve, intervalMs))
+    }
+
+    throw new ApiError(504, 'Judging timed out.')
+  },
+
   getQuota: () => request<Quota>('/api/quota'),
 
   // fresh interview from a previous one's stored JD/tag, same session type
