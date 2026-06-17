@@ -147,10 +147,13 @@ uv run pytest evals
 ```
 ask-harder/
 ├── docker-compose.yml        # dev database (postgres:17)
+├── heroku.yml                # Heroku container deploy (release runs migrations)
+├── .dockerignore             # build context trim (root = Docker context)
 ├── docs/                     # vision, as-built tech spec, testing, progress log
 ├── frontend/                 # React 19 + TypeScript SPA (Vite, /api proxy)
 │   └── src/                  # pages: auth, JD intake, SSE chat, report
 └── backend/                  # FastAPI app (uv package, src layout)
+    ├── Dockerfile            # backend image (Heroku container stack)
     ├── src/app/
     │   ├── llm/              # the four LLM components + mock backend
     │   ├── auth/             # sessions, argon2, /auth + /me endpoints
@@ -162,6 +165,15 @@ ask-harder/
 ```
 
 Architecture, data model, and API reference: [docs/tech_spec.md](docs/tech_spec.md).
+
+## Deployment
+
+Target stack: **frontend on Vercel**, **backend on Heroku** (container stack,
+built from [`backend/Dockerfile`](backend/Dockerfile) via
+[`heroku.yml`](heroku.yml) — the release phase runs `alembic upgrade head`),
+and **PostgreSQL on Neon**. The backend's `DATABASE_URL` uses the
+`postgresql+asyncpg://…?ssl=require` form (asyncpg, not libpq `sslmode`).
+Secrets live only as platform config vars, never in the repo.
 
 ## License
 

@@ -1,0 +1,12 @@
+# Heroku container deploy. The backend is a subdirectory, so the Dockerfile
+# lives in backend/ but builds with the repo root as its context.
+build:
+  docker:
+    web: backend/Dockerfile
+# run migrations on every deploy, before the new release goes live
+release:
+  image: web
+  command:
+    - alembic upgrade head
+run:
+  web: uvicorn app.main:app --host 0.0.0.0 --port $PORT

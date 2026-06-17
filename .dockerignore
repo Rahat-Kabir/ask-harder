@@ -1,0 +1,16 @@
+# Docker build context is the repo root (see heroku.yml). Keep the image lean
+# and the context small — the backend image needs nothing from the frontend.
+.git
+.github
+frontend/
+docs/
+**/__pycache__/
+**/*.pyc
+**/.venv/
+**/.pytest_cache/
+**/.ruff_cache/
+**/node_modules/
+**/dist/
+.env
+.playwright-mcp/
+*.png
