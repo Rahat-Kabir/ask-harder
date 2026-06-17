@@ -476,18 +476,18 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   "Question 2 of 5 · Technical". Frontend builds clean.
 
 - 2026-06-17 - Deployment prep, phase 1 (Docker for Heroku). Target stack:
-  frontend → Vercel, backend → Heroku (container stack), DB → **Neon** (project
-  `ask-harder`, London `aws-eu-west-2`, Postgres 17 — schema already migrated
-  via `alembic upgrade head` with the `?ssl=require` + direct-host URL; no code
-  change needed). Added `backend/Dockerfile` (python:3.13-slim + uv, two-stage
-  sync for dep-layer caching), root `heroku.yml` (build from `backend/Dockerfile`
-  with repo root as context; `release: alembic upgrade head`; `run: uvicorn`),
-  and root `.dockerignore`. Decisions: (1) **container deploy over buildpack** —
-  handles uv + the `backend/` subdir in one shot and makes local == prod; (2)
-  app will use Neon's **direct (non-pooler) host** at this scale, so no
-  PgBouncer/prepared-statement tuning and no `session.py` change — SSL rides in
-  the `DATABASE_URL` (`?ssl=require`); (3) same-origin via a Vercel `/api`
-  rewrite so the session cookie stays first-party (`SameSite=Lax`, no CORS).
+  frontend → Vercel, backend → Heroku (container stack), DB → managed Postgres
+  17 — schema migrated via `alembic upgrade head` with an SSL `DATABASE_URL`
+  (`?ssl=require`); no code change needed. Added `backend/Dockerfile`
+  (python:3.13-slim + uv, two-stage sync for dep-layer caching), root
+  `heroku.yml` (build from `backend/Dockerfile` with repo root as context;
+  `release: alembic upgrade head`; `run: uvicorn`), and root `.dockerignore`.
+  Decisions: (1) **container deploy over buildpack** — handles uv + the
+  `backend/` subdir in one shot and makes local == prod; (2) at this scale a
+  single direct connection suffices, so no connection-pooler/prepared-statement
+  tuning and no `session.py` change — SSL rides in the `DATABASE_URL`; (3)
+  same-origin via a Vercel `/api` rewrite so the session cookie stays
+  first-party (`SameSite=Lax`, no CORS).
   Not yet done: local Docker build/run verification, Heroku app config
   (`stack:set container`, config vars, GitHub auto-deploy), Vercel frontend.
 

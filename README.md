@@ -142,6 +142,41 @@ uv run pytest evals
 # real judge: $env:EVAL_JUDGE='anthropic'; uv run pytest evals
 ```
 
+## Develop a feature (local → prod)
+
+Local and production are fully isolated: local reads `.env` (local Postgres,
+`LLM_BACKEND=mock`); production reads its `DATABASE_URL` and API keys from
+Heroku config vars. Nothing you run locally touches Neon or live data.
+
+```powershell
+git switch -c feat/my-thing           # main stays always-deployable
+
+# backend (terminal 1, from backend/) + frontend (terminal 2, from frontend/)
+uv run uvicorn app.main:app --reload  # http://127.0.0.1:8000
+npm run dev                           # http://localhost:5173 — proxies /api to the backend
+```
+
+Build against `LLM_BACKEND=mock` (instant, free, deterministic, exercises the
+whole flow); switch to `deepseek` only when the change affects real LLM
+behavior. If the feature changes the schema, generate a migration — it applies
+to prod automatically on the next Heroku release:
+
+```powershell
+uv run alembic revision --autogenerate -m "describe change"   # after editing db/models.py
+uv run alembic upgrade head                                   # apply locally and test
+```
+
+Before shipping, then deploy:
+
+```powershell
+cd backend;  uv run ruff check .;  uv run pytest tests
+cd ../frontend;  npm run build
+
+git push origin feat/my-thing         # open a PR, or merge to main when ready
+# merging to main → Vercel auto-deploys the frontend
+git push heroku main                  # backend; release runs `alembic upgrade head`
+```
+
 ## Repository layout
 
 ```
