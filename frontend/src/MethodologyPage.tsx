@@ -84,7 +84,7 @@ export function MethodologyPage() {
         <p>
           The fixtures, the harness, and these result files are committed to{' '}
           <a
-            href="https://github.com/Rahat-Kabir/ask-harder/tree/master/backend/evals"
+            href="https://github.com/Rahat-Kabir/ask-harder/tree/main/backend/evals"
             target="_blank"
             rel="noreferrer"
           >
