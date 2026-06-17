@@ -148,12 +148,11 @@ uv run pytest evals
 ask-harder/
 ├── docker-compose.yml        # dev database (postgres:17)
 ├── heroku.yml                # Heroku container deploy (release runs migrations)
-├── .dockerignore             # build context trim (root = Docker context)
 ├── docs/                     # vision, as-built tech spec, testing, progress log
 ├── frontend/                 # React 19 + TypeScript SPA (Vite, /api proxy)
 │   └── src/                  # pages: auth, JD intake, SSE chat, report
 └── backend/                  # FastAPI app (uv package, src layout)
-    ├── Dockerfile            # backend image (Heroku container stack)
+    ├── Dockerfile            # backend image + .dockerignore (Heroku; context=backend/)
     ├── src/app/
     │   ├── llm/              # the four LLM components + mock backend
     │   ├── auth/             # sessions, argon2, /auth + /me endpoints

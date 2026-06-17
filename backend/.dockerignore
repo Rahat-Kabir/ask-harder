@@ -1,0 +1,9 @@
+# Build context is backend/ (see Dockerfile / heroku.yml). Keep the image lean.
+# Note: evals/ is kept — /api/methodology serves evals/results/ at runtime.
+.venv/
+**/__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.env
+tests/

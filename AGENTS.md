@@ -59,7 +59,6 @@ ask-harder/
 ├── LICENSE
 ├── docker-compose.yml           # postgres:17 only (dev DB)
 ├── heroku.yml                   # Heroku container deploy (release runs migrations)
-├── .dockerignore                # Docker build-context trim (repo root = context)
 ├── .env.example                 # copy to .env locally (gitignored)
 │
 ├── docs/
@@ -91,7 +90,7 @@ ask-harder/
 │       └── index.css
 │
 └── backend/                     # uv package `ask-harder-backend`
-    ├── Dockerfile               # backend image (Heroku container stack)
+    ├── Dockerfile               # backend image + .dockerignore (context = backend/)
     ├── pyproject.toml
     ├── alembic.ini              # URL lives in env.py, not here
     ├── alembic/                 # migrations (async template)
