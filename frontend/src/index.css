@@ -197,6 +197,222 @@ summary:focus-visible {
   flex-direction: column;
 }
 
+/* ---- landing (logged-out) ---- */
+
+.landing {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr min(380px, 90vw);
+  gap: 3.5rem;
+  align-items: start;
+  width: min(1080px, 92vw);
+  margin: 0 auto;
+  padding: clamp(2.5rem, 6vw, 5rem) 0 4rem;
+}
+
+.landing-pitch {
+  display: flex;
+  flex-direction: column;
+  gap: 2.75rem;
+}
+
+.landing-brand {
+  margin: 0 0 1rem;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.landing-hero h1 {
+  margin: 0;
+  font-size: clamp(2.4rem, 5vw, 3.4rem);
+  line-height: 1.08;
+  max-width: 16ch;
+}
+
+.landing-sub {
+  margin: 1.1rem 0 0;
+  max-width: 46ch;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+/* the proof card — a real, styled report excerpt shown in the hero so a
+   stranger sees the product's verdict instead of just reading the pitch */
+.landing-proof {
+  margin: 2.25rem 0 0;
+  padding: 1.25rem 1.4rem 1.4rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+  max-width: 30rem;
+}
+
+.landing-proof-cap {
+  margin: 0 0 0.9rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+/* the panel already frames the excerpt — drop the verdict's own box, keep its
+   colored left rule as the only accent */
+.landing-proof .verdict {
+  padding: 0 0 0 1rem;
+  border: none;
+  border-left: 3px solid;
+  border-radius: 0;
+  background: none;
+}
+
+.landing-proof .verdict-headline {
+  font-size: 1.15rem;
+}
+
+.landing-proof-quote {
+  margin: 1.1rem 0;
+  padding-left: 0.9rem;
+  border-left: 3px solid var(--border);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.landing-proof-quote span {
+  font-style: normal;
+  color: var(--muted);
+}
+
+.landing-proof .score-bars {
+  margin-bottom: 0;
+}
+
+.landing-eyebrow {
+  margin: 0 0 1rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+.landing-steps ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.landing-steps li {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.landing-step-num {
+  flex-shrink: 0;
+  width: 1.9rem;
+  height: 1.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--accent);
+}
+
+.landing-steps li strong {
+  display: block;
+  font-size: 1.05rem;
+  margin-bottom: 0.2rem;
+}
+
+.landing-steps li p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.landing-trust p,
+.landing-memory p {
+  margin: 0;
+  max-width: 54ch;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.landing-trust .landing-link {
+  display: inline-block;
+  margin-top: 0.9rem;
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.landing-trust .landing-link:hover {
+  text-decoration: underline;
+}
+
+.landing-foot {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding-top: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.landing-foot a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.landing-foot a:hover {
+  color: var(--accent);
+}
+
+.landing-foot-note {
+  color: var(--muted);
+  opacity: 0.7;
+}
+
+.landing-auth {
+  position: sticky;
+  top: 2rem;
+}
+
+.auth-card-kicker {
+  margin: 0 0 1.1rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+@media (max-width: 860px) {
+  .landing {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+    width: min(560px, 92vw);
+  }
+
+  .landing-auth {
+    position: static;
+  }
+
+  .landing-pitch {
+    gap: 2.25rem;
+  }
+}
+
 /* ---- auth card ---- */
 
 .auth-card {
