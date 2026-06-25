@@ -86,6 +86,7 @@ ask-harder/
 │       ├── IntakePage.tsx       # JD paste → create interview
 │       ├── InterviewPage.tsx    # SSE chat + answer/finish
 │       ├── ReportPage.tsx       # scored report + answer keys
+│       ├── EvidenceList.tsx     # +/− polarity evidence list (report + skills)
 │       ├── MethodologyPage.tsx  # public eval results (no auth)
 │       └── index.css
 │

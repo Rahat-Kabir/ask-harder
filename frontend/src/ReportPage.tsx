@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api, ApiError, type Report, type Scores } from './api'
+import { EvidenceList } from './EvidenceList'
 import { formatTag, SESSION_LABELS } from './formatTag'
 import { LoadingState } from './LoadingState'
 import {
@@ -328,15 +329,8 @@ export function ReportPage() {
 
           {question.evaluation.evidence.length > 0 && (
             <details className="report-disclosure">
-              <summary>Evidence</summary>
-              <ul>
-                {question.evaluation.evidence.map((item) => (
-                  <li key={item.claim}>
-                    <strong>{item.claim}</strong>
-                    <blockquote>{item.quote}</blockquote>
-                  </li>
-                ))}
-              </ul>
+              <summary>Evidence — what helped and what hurt</summary>
+              <EvidenceList evidence={question.evaluation.evidence} />
             </details>
           )}
 

@@ -1262,6 +1262,50 @@ blockquote,
   margin-bottom: 1rem;
 }
 
+/* evidence with polarity: each grounded quote is marked credit (+) or gap (−)
+   so the list explains the score instead of reading as undifferentiated praise */
+ul.evidence-list {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+li.evidence-item {
+  display: flex;
+  gap: 0.6rem;
+  align-items: baseline;
+  margin-bottom: 0;
+}
+
+.evidence-mark {
+  flex: none;
+  width: 1.4rem;
+  height: 1.4rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  font-weight: 700;
+  line-height: 1;
+  font-size: 0.95rem;
+}
+
+.evidence-credit .evidence-mark {
+  color: #4ac35c;
+  background: rgba(63, 185, 80, 0.14);
+}
+
+.evidence-gap .evidence-mark {
+  color: #ec6a6a;
+  background: rgba(224, 82, 82, 0.14);
+}
+
+.evidence-body {
+  min-width: 0;
+}
+
 .answer-key {
   margin-top: 1rem;
   color: var(--muted);

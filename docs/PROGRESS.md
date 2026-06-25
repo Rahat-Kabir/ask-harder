@@ -509,6 +509,26 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   X-Forwarded-For handling so the rate limiter sees the real client IP behind
   the Vercel proxy.
 
+- 2026-06-26 - Evidence polarity (report legibility). Problem a user hit: a
+  technically strong answer to a *behavioral* warmup scored low, and the
+  "Evidence" list read as all-positive next to the low number — the evidence
+  explained nothing, so the score felt arbitrary. Root cause: `EvidenceItem`
+  was `{claim, quote}` with no sign, and the judge was never asked to surface
+  weaknesses, only observations. Fix (one slice): added `supports: bool` to
+  `EvidenceItem` (default `True` so pre-existing `evidence_json` loads as
+  credit — no migration, JSONB), prompted the judge to return both crediting
+  and gap-exposing quotes, and rendered +/− via a shared `EvidenceList.tsx`
+  (report + skill detail), summary relabeled "Evidence — what helped and what
+  hurt". Grounding contract unchanged — gap quotes are still verbatim-validated.
+  Verified end-to-end with the real DeepSeek+Sonnet stack via Playwright: a
+  mediocre billing-project answer produced 3 credit + 3 gap items, the gaps
+  ("outcome too vague", "no quantification", "no reflection") mapping straight
+  onto the missing-points list. Legacy report still renders all-credit, no
+  crash. 16 pure tests pass; frontend builds clean. Deliberately left for
+  follow-up slices: rubric checklist tying missing-points to the score, and a
+  per-qtype "what axis this is scored on" label (the warmup-vs-technical
+  mismatch that started this).
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;

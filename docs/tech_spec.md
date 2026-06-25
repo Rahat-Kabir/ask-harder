@@ -59,6 +59,11 @@ What actually exists, updated as it changes.
   verbatim substrings of candidate turns (one retry, then strip invalid quotes);
   `missing_points` filtered to answer-key strings. `judge_model` column stores
   the Anthropic model id (e.g. `claude-sonnet-4-6`).
+- Evidence polarity: each `EvidenceItem` carries `supports` (bool) — true when
+  the grounded quote earns credit toward the key, false when it exposes a gap.
+  The judge is prompted to return both kinds. Defaults `True`, so evidence
+  stored before the field existed loads as credit. Rendered as +/− in the
+  report and skill-detail evidence lists (`frontend/src/EvidenceList.tsx`).
 - Scoring scale: the judge scores each answer 1–5 on four dimensions
   (correctness, depth, structure, communication) — the honest resolution an
   LLM can reproduce, and what storage (`scores_json`, `skill_scores.score_sum`)

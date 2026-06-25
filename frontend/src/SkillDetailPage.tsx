@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api, ApiError, type SkillAnswer, type SkillDetail } from './api'
+import { EvidenceList } from './EvidenceList'
 import { formatTag } from './formatTag'
 import { LoadingState } from './LoadingState'
 import { overallOf, SCORE_MAX } from './scoring'
@@ -116,15 +117,8 @@ function AnswerCard({ answer }: { answer: SkillAnswer }) {
 
       {answer.evidence.length > 0 && (
         <div className="report-block">
-          <h3>Evidence</h3>
-          <ul>
-            {answer.evidence.map((item) => (
-              <li key={item.claim}>
-                <strong>{item.claim}</strong>
-                <blockquote>{item.quote}</blockquote>
-              </li>
-            ))}
-          </ul>
+          <h3>Evidence — what helped and what hurt</h3>
+          <EvidenceList evidence={answer.evidence} />
         </div>
       )}
 

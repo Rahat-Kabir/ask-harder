@@ -50,6 +50,16 @@ def test_validate_evidence_keeps_only_grounded_quotes():
     assert all_grounded is False
 
 
+def test_evidence_supports_defaults_true_for_legacy_rows():
+    # evidence persisted before the polarity field must still load — as credit,
+    # matching how the UI rendered it before the field existed
+    legacy = EvidenceItem(claim="Used Redis", quote="rate limiter with Redis")
+    assert legacy.supports is True
+
+    gap = EvidenceItem(claim="Vague on state", quote="somewhere", supports=False)
+    assert gap.supports is False
+
+
 def test_filter_missing_points_from_answer_key_only():
     answer_key = AnswerKey(
         required_points=["Names an algorithm", "Stores state"],

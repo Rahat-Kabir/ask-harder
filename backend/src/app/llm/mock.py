@@ -176,13 +176,25 @@ class MockBackend:
             (t.content for t in turns if t.role == "candidate"), ""
         )
         quote = first_candidate_turn[:120]
-        evidence = (
-            [EvidenceItem(claim="Opening of the candidate's answer", quote=quote)]
-            if quote
-            else []
-        )
-
         missing = question.answer_key.required_points[level - 1 :]
+        evidence: list[EvidenceItem] = []
+        if quote:
+            evidence.append(
+                EvidenceItem(
+                    claim="Opening of the candidate's answer",
+                    quote=quote,
+                    supports=True,
+                )
+            )
+            # exercise the gap polarity whenever the answer left points unmet
+            if missing and len(first_candidate_turn) > 60:
+                evidence.append(
+                    EvidenceItem(
+                        claim="Trails off without covering the rubric",
+                        quote=first_candidate_turn[-60:],
+                        supports=False,
+                    )
+                )
         return Evaluation(
             scores=Scores(
                 correctness=level,

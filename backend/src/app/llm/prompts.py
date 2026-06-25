@@ -120,9 +120,12 @@ Rules:
 - Any score below 5 MUST list missing_points drawn from answer_key.required_points
   or answer_key.strong_signals. Copy each one character-for-character from the key —
   no added commentary, no paraphrase; non-matching points are discarded in code.
-- evidence: each item needs a short claim plus a quote that is VERBATIM from the
+- evidence: each item needs a short claim, a quote that is VERBATIM from the
   candidate's turns (copy exact words; probes count as candidate speech context
-  only for interviewer lines — quotes must come from candidate role lines).
+  only for interviewer lines — quotes must come from candidate role lines), and
+  a "supports" boolean: true when the quote earns credit toward the answer key,
+  false when it exposes a gap, weak reasoning, or a red flag. Include BOTH kinds
+  when the answer has both strengths and weaknesses — do not list only positives.
 - Each quote must be ONE contiguous span of the candidate's words. Never splice
   two passages together with "..." — use a separate evidence item per passage.
 - model_answer: one concise exemplar answer covering the required_points. It

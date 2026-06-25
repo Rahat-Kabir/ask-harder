@@ -69,6 +69,9 @@ export type Scores = {
 export type EvidenceItem = {
   claim: string
   quote: string
+  // true when the quote earns credit toward the rubric, false when it exposes
+  // a gap or weakness; older evidence without the field loads as credit
+  supports: boolean
 }
 
 export type AnswerKey = {

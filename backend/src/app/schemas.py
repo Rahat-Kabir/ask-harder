@@ -99,6 +99,10 @@ class EvidenceItem(BaseModel):
     # must be verbatim from the candidate's turns — validated in code after
     # every judge call, not trusted from the model
     quote: str
+    # whether the quote earns credit toward the rubric (True) or exposes a
+    # gap/weakness (False). Defaults True so evidence stored before this field
+    # existed loads as credit — how the UI rendered it before polarity.
+    supports: bool = True
 
 
 class Evaluation(BaseModel):
