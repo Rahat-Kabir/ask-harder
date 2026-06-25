@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api, ApiError, type Report, type Scores } from './api'
 import { EvidenceList } from './EvidenceList'
 import { formatTag, SESSION_LABELS } from './formatTag'
+import { QUESTION_TYPE_INTENT } from './qtypeMeta'
 import { LoadingState } from './LoadingState'
 import {
   dimensionAverages,
@@ -37,6 +38,55 @@ function ScoreBar({ label, score }: { label: string; score: number }) {
       <span className={`score-bar-rating band-${band}`}>
         {scoreLabel(score)}
       </span>
+    </div>
+  )
+}
+
+// The frozen required points as a hit/miss checklist, plus any missed strong
+// signals. Makes the score self-justifying: every ✗ is a rubric point you
+// didn't cover, every ✓ one you did — no criteria invented after the fact.
+function RubricChecklist({
+  requiredPoints,
+  strongSignals,
+  missingPoints,
+}: {
+  requiredPoints: string[]
+  strongSignals: string[]
+  missingPoints: string[]
+}) {
+  const missing = new Set(missingPoints)
+  const covered = requiredPoints.filter((point) => !missing.has(point)).length
+  const missedSignals = strongSignals.filter((signal) => missing.has(signal))
+
+  return (
+    <div className="report-block report-rubric">
+      <h3>
+        Required points
+        <span className="rubric-tally">
+          {covered} / {requiredPoints.length} covered
+        </span>
+      </h3>
+      <ul className="rubric-list">
+        {requiredPoints.map((point) => {
+          const hit = !missing.has(point)
+          return (
+            <li
+              key={point}
+              className={`rubric-item ${hit ? 'rubric-hit' : 'rubric-miss'}`}
+            >
+              <span className="rubric-mark" aria-label={hit ? 'Covered' : 'Missed'}>
+                {hit ? '✓' : '✗'}
+              </span>
+              <span>{point}</span>
+            </li>
+          )
+        })}
+      </ul>
+      {missedSignals.length > 0 && (
+        <p className="rubric-signals">
+          Strong signals not hit: {missedSignals.join('; ')}
+        </p>
+      )}
     </div>
   )
 }
@@ -289,6 +339,7 @@ export function ReportPage() {
           </header>
 
           <h2>{question.text}</h2>
+          <p className="qtype-intent">{QUESTION_TYPE_INTENT[question.qtype]}</p>
 
           <div className="score-bars">
             {DIMENSIONS.map((dimension) => (
@@ -300,17 +351,14 @@ export function ReportPage() {
             ))}
           </div>
 
-          {/* the takeaway stays open — the gap is the point of the report */}
-          {question.evaluation.missing_points.length > 0 && (
-            <div className="report-block report-takeaway">
-              <h3>Missing from your answer</h3>
-              <ul>
-                {question.evaluation.missing_points.map((point) => (
-                  <li key={point}>{point}</li>
-                ))}
-              </ul>
-            </div>
-          )}
+          {/* the rubric stays open — the gap against a frozen key is the point
+              of the report. ✓/✗ shows the deduction came from the rubric, not
+              an opinion invented after the fact. */}
+          <RubricChecklist
+            requiredPoints={question.answer_key.required_points}
+            strongSignals={question.answer_key.strong_signals}
+            missingPoints={question.evaluation.missing_points}
+          />
 
           {candidateTurns(question.turns).length > 0 && (
             <details className="report-disclosure">

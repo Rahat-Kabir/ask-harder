@@ -81,6 +81,7 @@ ask-harder/
 │       ├── SkillDetailPage.tsx  # per-tag judged answers (/skills/*)
 │       ├── ProfilePage.tsx      # account stats + delete account (/profile)
 │       ├── formatTag.ts         # tag → display label helper
+│       ├── qtypeMeta.ts         # qtype → scoring-axis intent line (live + report)
 │       ├── useDrill.ts          # start a practice drill on one tag
 │       ├── HistoryPage.tsx      # interview history list (/interviews)
 │       ├── IntakePage.tsx       # JD paste → create interview

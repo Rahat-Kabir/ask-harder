@@ -529,6 +529,22 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   per-qtype "what axis this is scored on" label (the warmup-vs-technical
   mismatch that started this).
 
+- 2026-06-26 - Report legibility, slices 2 + 3 (the two follow-ups above).
+  Both frontend-only, no backend/contract change. (2) Required-points
+  checklist: each report question renders `answer_key.required_points` as ✓
+  covered / ✗ missed (a point is missed iff it's in `evaluation.missing_points`,
+  which is already filtered char-for-char to the key) with an `n/m covered`
+  tally, plus a "strong signals not hit" line — replaces the flat "Missing
+  from your answer" block so the deduction reads as a rubric tally, not an
+  opinion. (3) Per-qtype intent line (`qtypeMeta.ts`, shared): names the axis a
+  question is scored on (story / ownership / correctness / trade-offs), shown
+  live above the answer box and under each report question — category-level, so
+  it never leaks the frozen key (consistent with the earlier progress-chip
+  decision). Verified via Playwright on the real stack: report shows "Required
+  points 3/5 covered" with the two ✗ items matching the − evidence from slice 1,
+  skipped questions show 0/5, and the live warmup shows the story intent above
+  the answer box. Frontend builds clean.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;

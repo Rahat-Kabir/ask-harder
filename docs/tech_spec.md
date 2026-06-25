@@ -64,6 +64,14 @@ What actually exists, updated as it changes.
   The judge is prompted to return both kinds. Defaults `True`, so evidence
   stored before the field existed loads as credit. Rendered as +/− in the
   report and skill-detail evidence lists (`frontend/src/EvidenceList.tsx`).
+- Report legibility (frontend-only, no contract change): each report question
+  shows its `required_points` as a ✓/✗ checklist (covered vs. in
+  `missing_points`) with an `n/m covered` tally, plus any missed strong
+  signals — so a deduction reads as a rubric tally, not the judge's opinion.
+  A per-`qtype` intent line (`frontend/src/qtypeMeta.ts`) names the axis the
+  question is scored on (story / ownership / correctness / trade-offs), shown
+  live above the answer box and on the report. Category-level only — never the
+  frozen key.
 - Scoring scale: the judge scores each answer 1–5 on four dimensions
   (correctness, depth, structure, communication) — the honest resolution an
   LLM can reproduce, and what storage (`scores_json`, `skill_scores.score_sum`)

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { formatTag, SESSION_LABELS } from './formatTag'
 import { LoadingState } from './LoadingState'
+import { QUESTION_TYPE_INTENT } from './qtypeMeta'
 import {
   api,
   ApiError,
@@ -505,6 +506,12 @@ export function InterviewPage() {
       {busy && !awaitingAnswer && !canSubmitFinish && (
         <p className="status-line lede" role="status">
           Interviewer is thinking…
+        </p>
+      )}
+
+      {awaitingAnswer && questionType && (
+        <p className="qtype-intent qtype-intent-live">
+          {QUESTION_TYPE_INTENT[questionType]}
         </p>
       )}
 
