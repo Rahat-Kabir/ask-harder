@@ -6,6 +6,8 @@ AI mock interviewer for developers — paste a job description, take a tailored
 interview, get harsh, evidence-grounded feedback. _"The interviewer that
 actually says no."_
 
+**Try it live: [ask-harder.vercel.app](https://ask-harder.vercel.app)**
+
 ## Why this exists
 
 Most AI interview tools are friendly chatbots: they ask generic questions,
@@ -212,7 +214,8 @@ Architecture, data model, and API reference: [docs/tech_spec.md](docs/tech_spec.
 
 ## Deployment
 
-Target stack: **frontend on Vercel**, **backend on Heroku** (container stack,
+Live at [ask-harder.vercel.app](https://ask-harder.vercel.app): **frontend on
+Vercel**, **backend on Heroku** (container stack,
 built from [`backend/Dockerfile`](backend/Dockerfile) via
 [`heroku.yml`](heroku.yml) — the release phase runs `alembic upgrade head`),
 and **PostgreSQL on Neon**. The backend's `DATABASE_URL` uses the
