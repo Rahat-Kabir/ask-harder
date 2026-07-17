@@ -99,7 +99,6 @@ function SiteFooter() {
         >
           GitHub
         </a>
-        <span className="site-footer-note">Portfolio project · 2026</span>
       </nav>
     </footer>
   )
