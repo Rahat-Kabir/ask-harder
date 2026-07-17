@@ -1,176 +1,214 @@
-# ask-harder — Interview Copilot
+# ask-harder — Agent Instructions
 
-AI mock interviewer for developers. Paste a JD → tailored interview → harsh,
-evidence-grounded scored report. Portfolio project.
+## Overview
 
-The *why* lives in [docs/VISION.md](docs/VISION.md) — read it to understand what the
-product is trying to be. Product detail (stack, data model, API, LLM
-contracts) lives in [docs/tech_spec.md](docs/tech_spec.md). New features are
-decided in discussion with the user, slice by slice — there is no upfront
-spec. This file grows step by step as the product is built — don't pre-write
-rules for things that don't exist yet.
+AI mock interviewer for developers: paste a JD → tailored interview → harsh,
+evidence-grounded scored report. Portfolio project, live at
+https://ask-harder.vercel.app (Vercel frontend + Heroku backend + Neon
+Postgres). Built slice by slice in discussion with the user — there is no
+upfront spec; never pre-write rules or structure for things that don't exist
+yet. `CLAUDE.md` is an `@AGENTS.md` import pointer — edit this file, never
+CLAUDE.md.
 
-## Core Principles
+## Docs
 
-- **Think Before Coding**: State assumptions. If uncertain, ask. Don't guess.
-- **Simplicity First**: No overengineering. No "flexibility" that wasn't asked for.
-- **Surgical Changes**: Only touch what is necessary. Don't reformat adjacent code.
-- **Goal-Driven**: Create verifiable success criteria, then make them pass.
-- **Fail Fast**: Don't swallow exceptions. Prefer a clear failure over silent
-  fallback. Only catch with a specific recovery plan.
-- **Ask Before Picking Tech**: Models, providers, libraries. Always confirm
-  with the user before introducing a new one.
+- `docs/VISION.md` — the why. Every feature must serve it; question anything that doesn't.
+- `docs/PROGRESS.md` — session log. Update after changes; read before claiming what's built or what's next.
+- `docs/tech_spec.md` — as-built spec. Update when architecture, schema, or contracts change.
+- `docs/testing.md` — verification workflow. Update when it changes.
+- `README.md` — update when setup, commands, or user-visible features change.
+- Doc style: clarity first — add words when understanding needs them;
+  otherwise fewest words that carry the meaning.
+
+## Architecture
+
+- Monorepo: `backend/` (FastAPI, uv package, import name `app`) +
+  `frontend/` (Vite + React 19 + TypeScript). All frontend-facing API routes
+  live under `/api` (`/health` stays unprefixed for infrastructure probes);
+  SPA and API share one origin (Vite dev proxy locally, Vercel rewrite in
+  prod) so the session cookie stays first-party — no CORS.
+- Postgres 17 (docker compose in dev, Neon in prod), SQLAlchemy 2.0 async +
+  Alembic migrations. API schemas are separate Pydantic models, never ORM
+  models over the wire.
+- Auth: argon2 hashing, DB-backed sessions (sha256 of the cookie token at
+  rest, never the token), HTTP-only cookies, in-memory rate limiting.
+- LLM pipeline: four components — intake parser, plan generator, interviewer,
+  judge — as Protocols (`app/llm/interfaces.py`) with typed I/O in
+  `app/schemas.py`. Real stack: DeepSeek (intake/plan/interviewer, streaming)
+  + Anthropic Sonnet (judge). `LLM_BACKEND=mock|deepseek` via factory.
+- Interview flow: state machine with probe cap, SSE streaming over an
+  in-process event bus, deterministic verdict computed at report time.
+- Judge quality has its own eval harness (`backend/evals/`, no DB) whose
+  results JSON feeds the public `/methodology` page.
+
+### Key Decisions
+
+- **Context starvation at the type level** — the Interviewer receives
+  `InterviewQuestion` (no answer key); only the Judge sees `PlannedQuestion`
+  (with key). Answer-key leakage is impossible by construction, not by prompt.
+- **MockBackend implements all four LLM protocols deterministically** —
+  tests, CI, and offline dev run with zero API keys and zero paid calls.
+- **Real-backend judging and intake run out-of-band** (`asyncio.create_task` + fresh DB
+  session) — Heroku's router kills requests at 30s (H12), and synchronous
+  judging inside `finish()` tripped it in prod. `finish()` marks `judging`,
+  commits, returns; the client polls state and listens for the SSE complete
+  event. Background failure reverts `judging → in_progress` so finish is
+  retryable. Mock still judges inline, so tests are unchanged.
+- **The verdict is deterministic Python, not an LLM call**
+  (`interviews/verdict.py`) — pass/borderline/no banded by seniority,
+  synthesized from stored per-question scores. Reproducible, free, no
+  stored column.
+- **Scores are judged and stored 1–5; /100 exists only at the output
+  boundary** (`to_hundred`, affine `25×avg−25`) — 1–5 is the resolution an
+  LLM can actually reproduce and what the evals assert on; the affine map
+  means stored averages and trends convert directly, no migration.
+- **Judge output is post-validated** — evidence quotes must appear verbatim
+  in the transcript (retry once, then strip); `missing_points` filtered
+  char-for-char to answer-key strings. Evals assert on the *raw* judge
+  output — asserting on production output would pass by construction.
+- **Interview delete is soft** (`deleted_at`) and still counts toward the
+  daily quota — closes the create→delete→create quota loophole.
+
+## Key Files
+
+| File | ~Lines | Purpose |
+|---|---|---|
+| `backend/src/app/interviews/service.py` | 1000 | Orchestration core: lifecycle, DB, LLM calls, background judging |
+| `backend/src/app/interviews/state_machine.py` | 65 | Flow rules, probe cap (2), transition guards |
+| `backend/src/app/interviews/verdict.py` | 190 | Deterministic pass/borderline/no, seniority-banded |
+| `backend/src/app/schemas.py` | 115 | Typed LLM I/O contracts (Profile, Plan, Evaluation, …) |
+| `backend/src/app/llm/prompts.py` | 135 | All prompts, stable-prefix for caching — ruff E501-exempt |
+| `backend/src/app/llm/mock.py` | 210 | Deterministic mock of all four LLM protocols |
+| `backend/src/app/llm/judge.py` + `judge_common.py` | 100+70 | Sonnet judge + evidence-grounding validation |
+| `backend/src/app/skills/service.py` | 310 | Finish-time skill aggregation, trend, `to_hundred` |
+| `backend/src/app/db/models.py` | 200 | All tables (User, Interview, Question, Turn, …) |
+| `backend/evals/conftest.py` | 210 | Eval harness: fixture loading, judge selection, results writer |
+| `frontend/src/api.ts` | 335 | Typed fetch wrapper for `/api/*` |
+| `frontend/src/InterviewPage.tsx` | 565 | SSE chat, answer/skip/finish, judging poll |
+| `frontend/src/ReportPage.tsx` | 470 | Verdict banner, scorecard, rubric checklist, drill CTA |
+| `frontend/src/scoring.ts` | 60 | 1–5 → /100 mapping, bands, labels — mirrors backend scaling |
+
+## Commands
+
+```bash
+# dev DB (repo root)
+docker compose up -d postgres
+
+# backend (from backend/)
+uv run uvicorn app.main:app --reload    # dev server :8000
+uv run pytest tests                     # needs postgres; runs against askharder_test DB
+uv run ruff check src tests evals       # lint (--fix for autofixes)
+uv run ruff format src tests evals
+uv run alembic upgrade head             # after editing db/models.py: revision --autogenerate first
+
+# evals (from backend/)
+uv run pytest evals                     # mock judge — free, this is what CI runs
+# EVAL_JUDGE=anthropic switches to the real Sonnet judge: ~30 PAID calls,
+# +60 more with the stability suite (deselect: -m "not stability").
+# Never run the real judge without asking.
+
+# frontend (from frontend/)
+npm run dev                             # :5173, proxies /api → :8000
+npm run lint                            # eslint — build does NOT run it
+npm run build                           # type-checked build (CI gate)
+```
 
 ## Conventions
 
-- **Names must carry meaning.** Variables, functions, and fields are named
-  for what they hold or do — no cryptic abbreviations or one-letter names
-  outside trivial loop indices.
-- **Comment the non-obvious, not the obvious.** Where the code can't explain
-  itself — a business rule, an invariant, a deliberate trade-off — add a
-  short comment so the next dev or agent gets it without digging. Never
-  comment what the code already says.
-- Secrets in `.env` (gitignored), documented in `.env.example`.
+- LLM modules are role-named (`intake.py`, `interviewer.py`, `judge.py`);
+  provider-specific logic lives in provider-named classes.
+- Tables and migrations are added with the feature that needs them, never upfront.
+- Secrets live in the root `.env` (gitignored); `.env.example` documents them
+  with placeholders only.
 
-## Global
+## Definition of Done
 
-- `AGENTS.md` is the source of truth. `CLAUDE.md` must stay byte-identical.
-  Any edit to `AGENTS.md` must be mirrored to `CLAUDE.md` in the same change.
-- After adding a new file, tool, or feature, update `README.md` and the
-  Project Structure section in this file to reflect the change.
-- After code changes, update `docs/PROGRESS.md` with what was built and the
-  decisions made in the session. Read it before claiming "what's built" or
-  "what's next."
-- [`docs/tech_spec.md`](docs/tech_spec.md) is the as-built technical spec —
-  update it when architecture, schema, or contracts change.
-- [`docs/testing.md`](docs/testing.md) — update when test workflow or
-  coverage changes.
+A slice is done when the CI gates pass locally — `ruff check` +
+`ruff format --check`, `pytest tests`, `pytest evals` (mock), frontend
+`lint` + `build` — and user-facing changes are verified in a real browser
+(Playwright or manual), not only through tests. Then update docs per the
+Docs section.
 
-## Project Structure
+## Engineering Principles
 
-Only what exists is listed — update as milestones land; never pre-write
-structure that doesn't exist yet.
+- No overengineering, no "flexibility" that wasn't asked for.
+- Readability over simplicity: when the two conflict, the readable version wins.
+- Surgical changes: touch only what's necessary; don't reformat adjacent code.
+- Goal-driven: define verifiable success criteria, then make them pass.
+- Fail fast: don't swallow exceptions; only catch with a specific recovery plan.
+- Clean up orphans: removing code means removing its unused imports, tests,
+  and dependencies too.
 
-```
-ask-harder/
-├── .github/workflows/ci.yml    # CI: ruff + pytest + mock evals + frontend build
-├── AGENTS.md / CLAUDE.md        # this file + byte-identical mirror
-├── README.md
-├── LICENSE
-├── docker-compose.yml           # postgres:17 only (dev DB)
-├── heroku.yml                   # Heroku container deploy (release runs migrations)
-├── .env.example                 # copy to .env locally (gitignored)
-│
-├── docs/
-│   ├── VISION.md                # the why
-│   ├── PROGRESS.md              # milestone status, decisions, next up
-│   ├── tech_spec.md             # as-built technical spec
-│   └── testing.md               # how to run tests
-│
-├── frontend/                    # Vite + React 19 + TypeScript
-│   ├── vite.config.ts           # dev proxy: /api → 127.0.0.1:8000
-│   ├── public/favicon.svg       # serif "a" lettermark (brand colors)
-│   └── src/
-│       ├── main.tsx / App.tsx   # auth + routes + TitleSync (per-route tab title)
-│       ├── api.ts               # typed fetch wrapper for /api/*
-│       ├── AuthPage.tsx         # login / register tabs
-│       ├── Layout.tsx           # header shell (brand, logout)
-│       ├── LoadingState.tsx       # shared spinner + label
-│       ├── Home.tsx             # landing CTA + daily briefing (quota, trend, action)
-│       ├── SkillsPage.tsx       # skill dashboard (/skills)
-│       ├── SkillDetailPage.tsx  # per-tag judged answers (/skills/*)
-│       ├── ProfilePage.tsx      # account stats + delete account (/profile)
-│       ├── formatTag.ts         # tag → display label helper
-│       ├── qtypeMeta.ts         # qtype → scoring-axis intent line (live + report)
-│       ├── useDrill.ts          # start a practice drill on one tag
-│       ├── HistoryPage.tsx      # interview history list (/interviews)
-│       ├── IntakePage.tsx       # JD paste → create interview
-│       ├── InterviewPage.tsx    # SSE chat + answer/finish
-│       ├── ReportPage.tsx       # scored report + answer keys
-│       ├── EvidenceList.tsx     # +/− polarity evidence list (report + skills)
-│       ├── MethodologyPage.tsx  # public eval results (no auth)
-│       └── index.css
-│
-└── backend/                     # uv package `ask-harder-backend`
-    ├── Dockerfile               # backend image + .dockerignore (context = backend/)
-    ├── pyproject.toml
-    ├── alembic.ini              # URL lives in env.py, not here
-    ├── alembic/                 # migrations (async template)
-    │   └── versions/
-    ├── src/app/                 # import name `app`
-    │   ├── main.py              # FastAPI app + /health, routers wired here
-    │   ├── methodology.py       # GET /api/methodology — serves evals/results/
-    │   ├── config.py            # pydantic-settings, reads root .env
-    │   ├── schemas.py           # LLM I/O types (Profile, Plan, Evaluation, ...)
-    │   ├── llm/
-    │   │   ├── interfaces.py    # IntakeParser/PlanGenerator/Interviewer/Judge protocols
-    │   │   ├── mock.py          # MockBackend (all four, deterministic, no API keys)
-    │   │   ├── deepseek_common.py # v4 thinking/reasoning kwargs for DeepSeek calls
-    │   │   ├── intake.py        # intake + plan generation (DeepSeek, JSON mode)
-    │   │   ├── interviewer.py   # streaming interviewer (DeepSeek)
-    │   │   ├── interviewer_common.py    # probe parse, text chunking
-    │   │   ├── judge.py         # structured judge (Anthropic Sonnet)
-    │   │   ├── judge_common.py          # evidence grounding validation
-    │   │   ├── composite.py     # real intake/plan/interviewer/judge
-    │   │   ├── factory.py       # LLM_BACKEND selection
-    │   │   ├── prompts.py       # stable-prefix prompts
-    │   │   └── errors.py        # IntakeParseError, LlmValidationError, ...
-    │   ├── auth/
-    │   │   ├── security.py      # argon2 hashing, session token gen/hash
-    │   │   ├── schemas.py       # RegisterIn / LoginIn / UserOut
-    │   │   ├── deps.py          # get_current_user (cookie → user)
-    │   │   ├── rate_limit.py    # in-memory login/register throttles
-    │   │   └── router.py        # /auth/*, /me endpoints
-    │   ├── interviews/
-    │   │   ├── state_machine.py # flow rules, probe cap, transition guards
-    │   │   ├── schemas.py       # API I/O for interview endpoints
-    │   │   ├── verdict.py       # deterministic pass/borderline/no verdict (seniority-banded)
-    │   │   ├── service.py       # InterviewService (DB + LLM backend via factory)
-    │   │   ├── events.py        # in-process SSE fan-out bus
-    │   │   ├── sse.py           # SSE line formatting
-    │   │   └── router.py        # /interviews/* REST + /stream SSE
-    │   ├── skills/
-    │   │   ├── service.py       # finish-time aggregation, list, per-tag detail
-    │   │   ├── schemas.py       # SkillOut / SkillsOut / SkillDetailOut
-    │   │   └── router.py        # GET /api/skills, /api/skills/{tag}
-    │   └── db/
-    │       ├── base.py          # Base + constraint naming convention
-    │       ├── models.py        # User, UserSession, Interview, Question, ...
-    │       └── session.py       # async engine + get_session dependency
-    ├── evals/                   # judge eval harness, no DB
-    │   ├── conftest.py          # fixture loading, EVAL_JUDGE selection, results writer
-    │   ├── test_judge.py        # 4 suites: ordering, stability, grounding, adherence
-    │   ├── fixtures/            # 10 questions × {key, bad/mediocre/strong answers}
-    │   └── results/             # per-judge metrics JSON (/methodology data source)
-    └── tests/
-        ├── conftest.py          # test DB bootstrap (askharder_test)
-        ├── test_health.py
-        ├── test_db_models.py
-        ├── test_auth.py
-        ├── test_llm_contracts.py
-        ├── test_interviews.py
-        ├── test_interview_stream.py
-        ├── test_interview_sse_format.py
-        ├── test_intake.py
-        ├── test_methodology.py
-        ├── test_skills.py
-        ├── test_rate_limit.py
-        ├── test_interviewer_common.py
-        ├── test_judge_common.py
-        ├── test_deepseek_common.py
-        └── test_judge.py
-```
+## Code Style
 
-## Collaboration
+### Naming
 
-User prefers step-by-step development with discussion at each step. Before
-large feature work:
+IMPORTANT: follow these naming rules strictly. Clarity is the top priority.
 
-- Explain the next small slice.
-- Keep scope narrow.
-- Build it.
-- Verify it runs.
-- Describe what changed and what was intentionally left unbuilt.
+- Be as clear and specific with variable and method names as possible.
+- Optimize for clarity over concision. A developer with zero context on the
+  codebase should immediately understand what a variable or method does just
+  from reading its name.
+- Use longer names when it improves clarity. Do NOT use single-character
+  variable names.
+- Follow the language's casing convention: `snake_case` in Python,
+  `camelCase` in JavaScript/TypeScript.
+- Example: use `original_question_last_answered_date` (Python) or
+  `originalQuestionLastAnsweredDate` (JS/TS) instead of `original_answered`.
+- When passing props or arguments to functions, keep the same names as the
+  original variable. Do not shorten or abbreviate parameter names. If you have
+  `currentCardData`, pass it as `currentCardData`, not `card` or `cardData`.
 
-Response style: short and direct. No filler, no recap-summary at the end of
-responses. State results and decisions; skip the narration.
+### Code Clarity
+
+- Clear is better than clever. Do not write functionality in fewer lines if it
+  makes the code harder to understand.
+- Write more lines of code if additional lines improve readability and
+  comprehension.
+- Make things so clear that someone with zero context would completely
+  understand the variable names, method names, what things do, and why they exist.
+- When a variable or method name alone cannot fully explain something, add a
+  comment explaining what is happening and why — in code you write or change.
+
+## Do NOT
+
+- Do not add features, refactor code, or make "improvements" beyond what was asked.
+- Do not add docstrings, comments, or type annotations to code you did not change.
+- Do not introduce new tech — library, framework, model, or provider —
+  without asking first.
+- Do not rewrap or reformat text in `app/llm/prompts.py` (deliberately
+  E501-exempt) — rewrapping the strings changes the prompts.
+- Do not "fix" the Starlette/httpx deprecation warning in tests — known,
+  revisit when bumping httpx.
+- Do not run paid LLM calls (real-judge evals, live DeepSeek/Anthropic runs)
+  without asking first.
+
+## Git Workflow
+
+- Branch naming: `feature/description` or `fix/description`.
+- The user normally works directly on `main`; use a feature or fix branch only when requested.
+- Commit messages: Conventional Commits (`feat:`, `fix:`, `docs:`, …),
+  imperative mood, concise, explain the "why" not the "what".
+- Do not force-push to main.
+
+## Self-Update
+
+When you make changes to this project that affect the information in this
+file, update this file to reflect those changes. Specifically:
+
+- **New files**: add notable new source files to the Key Files table with
+  their purpose and approximate line count.
+- **Deleted files**: remove entries for files that no longer exist.
+- **Architecture changes**: update the Architecture section if you introduce
+  new patterns, frameworks, or significant structural changes.
+- **Build changes**: update the Commands section if the build process changes.
+- **New conventions**: if the user establishes a new coding convention during
+  a session, add it to the appropriate conventions section.
+- **Line count drift**: if a file's line count changes significantly
+  (>50 lines), update the approximate count in the Key Files table.
+- **Empty slots**: when something a slot describes first comes into existence
+  (a verification workflow, a new `docs/` file), fill that slot and delete its
+  guidance comment.
+
+Do NOT update this file for minor edits, bug fixes, or changes that don't
+affect the documented architecture or conventions.
