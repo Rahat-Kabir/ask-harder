@@ -35,6 +35,13 @@ class AnthropicJudge:
         self._max_tokens = max_tokens
         self.judge_model_name = model
 
+    async def aclose(self) -> None:
+        """Close the underlying HTTP client. Callers that build short-lived
+        judges (the eval harness) must close them on the same event loop —
+        letting GC do it after the loop dies raises teardown errors on
+        Windows."""
+        await self._client.close()
+
     async def evaluate(
         self,
         question: PlannedQuestion,
@@ -91,7 +98,7 @@ class AnthropicJudge:
             system=JUDGE_SYSTEM_PROMPT,
             messages=[{"role": "user", "content": user_prompt}],
             thinking={"type": "adaptive"},
-            output_config={"effort": "high"},
+            output_config={"effort": "medium"},
             output_format=Evaluation,
         )
         if response.parsed_output is None:

@@ -18,6 +18,8 @@ CLAUDE.md.
   short. Read before claiming what's built or what's next.
 - `docs/tech_spec.md` — as-built spec. Update when architecture, schema, or contracts change.
 - `docs/testing.md` — verification workflow. Update when it changes.
+- `docs/eval_results.md` — real-judge eval sessions: results, decisions,
+  caveats. Append a section per paid run.
 - `README.md` — update when setup, commands, or user-visible features change.
 - Doc style: clarity first — add words when understanding needs them;
   otherwise fewest words that carry the meaning.
@@ -70,6 +72,11 @@ CLAUDE.md.
   output — asserting on production output would pass by construction.
 - **Interview delete is soft** (`deleted_at`) and still counts toward the
   daily quota — closes the create→delete→create quota loophole.
+- **The judge runs at `effort: "medium"`, not high** — validated 2026-07-17
+  by the eval harness (ordering 10/10, grounding and adherence 100%,
+  stability within ±0.5); high effort was decorative for this rubric-bound
+  task. Any effort or judge-model change needs a fresh eval run first —
+  see `docs/eval_results.md`.
 
 ## Key Files
 

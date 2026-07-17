@@ -11,7 +11,7 @@ Build status for ask-harder v1.
 | 3 | Intake + plan (real DeepSeek, validated JSON) | **done** | |
 | 4 | Interviewer (streaming, probe logic) | **done** | |
 | 5 | Judge (Sonnet structured output, evidence validation) | **done** | |
-| 6 | Eval harness (fixtures, 4 suites, comparison, /methodology) | **in progress** | Harness + `/methodology` page built; Sonnet re-run and comparison remain |
+| 6 | Eval harness (fixtures, 4 suites, comparison, /methodology) | **in progress** | Sonnet verified at effort medium (2026-07-17, see [eval_results.md](eval_results.md)); only comparison remains |
 | 7 | Skill tracking (aggregates, dashboard, planner reads weak tags) | **done** | Slices 1–3: aggregation, `/skills` UI, planner reads top 3 weak tags |
 | 8 | Polish + ship (deploy, demo video, README) | not started | |
 
@@ -67,7 +67,8 @@ First Sonnet run (43/52, zero fabrication) surfaced two systematic issues:
 adherence at 71% because the model appended commentary to key strings.
 Prompt and validator fixes applied — one contiguous span per quote,
 character-for-character `missing_points`, segment-wise grounding for
-ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
+ellipsis-spliced quotes. Verified 2026-07-17: all suites pass at effort
+medium — see [eval_results.md](eval_results.md).
 - 2026-06-11 — Tooling + cleanup slice: **ruff** (lint `E,F,W,I,UP,B,SIM` +
   format; `prompts.py` exempt from E501 — rewrapping prompt text would
   change the prompts), whole backend reformatted, enums → `StrEnum`,
@@ -555,6 +556,21 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   verdict unit tests, the mock lifecycle API test, frontend lint/build, and a
   local browser flow.
 
+- 2026-07-17 — First full real-judge eval run (M6 verification, ~$2 total):
+  switched the judge to **effort medium** (one line in `judge.py`) and
+  evaluated that config — 92/92 passed: ordering 10/10, grounding 341/341,
+  adherence 196/196, stability within ±0.5. June's prompt/validator fixes
+  confirmed. Harness fix: judges are now closed per call
+  (`AnthropicJudge.aclose`) — unclosed clients were failing innocent tests
+  on Windows. Full analysis and caveats: [eval_results.md](eval_results.md).
+
+- 2026-07-18 — Methodology page upgrade (frontend-only, $0): the stability
+  suite was promised on the page but never reported — now a fourth stat
+  (30/30 within ±0.5); collapsed per-question receipts table (raw 1–5
+  scores, ordering ✓); "What this doesn't prove" section carrying the
+  eval_results.md caveats; gradings count clarified (90 gradings of 30
+  answers). Playwright-verified desktop + 390px, 0 overflow.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;
@@ -570,6 +586,6 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
 
 ## Next up
 
-- `run_comparison.py` (Batches API) and `/methodology` page (renders
-  `evals/results/*.json`).
-- Re-run all eval suites on Sonnet to verify the prompt/validator fixes.
+- `run_comparison.py` — second judge model on the same fixtures (candidates:
+  Haiku 4.5, DeepSeek); results file naming must stop keying by backend
+  first. Last open piece of M6.

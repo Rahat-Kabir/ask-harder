@@ -176,6 +176,21 @@ export type SkillDetail = {
   answers: SkillAnswer[]
 }
 
+// one answer's judged runs — run index ("0", "1", ...) → values; spread is
+// per-dimension max−min, present only when the stability suite ran (≥2 runs)
+export type FixtureAnswerRuns = {
+  overall_by_run: Record<string, number>
+  scores_by_run: Record<string, Record<string, number>>
+  spread?: Record<string, number>
+}
+
+export type FixtureResults = {
+  ordering_ok?: boolean
+  bad?: FixtureAnswerRuns
+  mediocre?: FixtureAnswerRuns
+  strong?: FixtureAnswerRuns
+}
+
 export type JudgeResults = {
   judge_backend: string
   judge_model: string
@@ -183,7 +198,7 @@ export type JudgeResults = {
   evaluations: number
   grounding: { quotes_total: number; quotes_grounded: number; rate: number | null }
   key_adherence: { points_total: number; points_matched: number; rate: number | null }
-  fixtures: Record<string, { ordering_ok?: boolean }>
+  fixtures: Record<string, FixtureResults>
 }
 
 export class ApiError extends Error {

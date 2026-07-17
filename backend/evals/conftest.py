@@ -100,10 +100,17 @@ async def evaluate_fixture(
         # judge clients hold event-loop-bound resources and anyio gives each
         # test a fresh loop, so build the judge per call; only results cache
         judge = make_judge()
-        raw_evaluate = getattr(judge, "evaluate_raw", judge.evaluate)
-        _evaluation_cache[cache_key] = await raw_evaluate(
-            fixture.question, fixture.turns(quality)
-        )
+        try:
+            raw_evaluate = getattr(judge, "evaluate_raw", judge.evaluate)
+            _evaluation_cache[cache_key] = await raw_evaluate(
+                fixture.question, fixture.turns(quality)
+            )
+        finally:
+            # close on this loop, or GC closes it on a dead loop and the
+            # resulting errors fail unrelated tests on Windows
+            judge_aclose = getattr(judge, "aclose", None)
+            if judge_aclose is not None:
+                await judge_aclose()
     return _evaluation_cache[cache_key]
 
 

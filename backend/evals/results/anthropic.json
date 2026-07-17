@@ -1,50 +1,50 @@
 {
-  "judge_backend": "mock",
-  "judge_model": "mock",
-  "generated_at": "2026-07-17T17:37:35.947174+00:00",
+  "judge_backend": "anthropic",
+  "judge_model": "claude-sonnet-4-6",
+  "generated_at": "2026-07-17T17:55:37.624864+00:00",
   "evaluations": 90,
   "grounding": {
-    "quotes_total": 147,
-    "quotes_grounded": 147,
+    "quotes_total": 341,
+    "quotes_grounded": 341,
     "rate": 1.0
   },
   "key_adherence": {
-    "points_total": 84,
-    "points_matched": 84,
+    "points_total": 196,
+    "points_matched": 196,
     "rate": 1.0
   },
   "fixtures": {
     "q01_project_walkthrough": {
       "bad": {
         "overall_by_run": {
-          "0": 2.0,
-          "1": 2.0,
-          "2": 2.0
+          "0": 1.25,
+          "1": 1.5,
+          "2": 1.5
         },
         "scores_by_run": {
           "0": {
-            "correctness": 2,
+            "correctness": 1,
             "depth": 1,
-            "structure": 2,
-            "communication": 3
+            "structure": 1,
+            "communication": 2
           },
           "1": {
-            "correctness": 2,
+            "correctness": 1,
             "depth": 1,
             "structure": 2,
-            "communication": 3
+            "communication": 2
           },
           "2": {
-            "correctness": 2,
+            "correctness": 1,
             "depth": 1,
             "structure": 2,
-            "communication": 3
+            "communication": 2
           }
         },
         "spread": {
           "correctness": 0,
           "depth": 0,
-          "structure": 0,
+          "structure": 1,
           "communication": 0
         }
       },
@@ -56,22 +56,22 @@
         },
         "scores_by_run": {
           "0": {
-            "correctness": 3,
+            "correctness": 4,
             "depth": 2,
             "structure": 3,
-            "communication": 4
+            "communication": 3
           },
           "1": {
-            "correctness": 3,
+            "correctness": 4,
             "depth": 2,
             "structure": 3,
-            "communication": 4
+            "communication": 3
           },
           "2": {
-            "correctness": 3,
+            "correctness": 4,
             "depth": 2,
             "structure": 3,
-            "communication": 4
+            "communication": 3
           }
         },
         "spread": {
@@ -83,27 +83,27 @@
       },
       "strong": {
         "overall_by_run": {
-          "0": 4.0,
-          "1": 4.0,
-          "2": 4.0
+          "0": 5.0,
+          "1": 5.0,
+          "2": 5.0
         },
         "scores_by_run": {
           "0": {
-            "correctness": 4,
-            "depth": 3,
-            "structure": 4,
+            "correctness": 5,
+            "depth": 5,
+            "structure": 5,
             "communication": 5
           },
           "1": {
-            "correctness": 4,
-            "depth": 3,
-            "structure": 4,
+            "correctness": 5,
+            "depth": 5,
+            "structure": 5,
             "communication": 5
           },
           "2": {
-            "correctness": 4,
-            "depth": 3,
-            "structure": 4,
+            "correctness": 5,
+            "depth": 5,
+            "structure": 5,
             "communication": 5
           }
         },
@@ -119,28 +119,28 @@
     "q02_db_indexing": {
       "bad": {
         "overall_by_run": {
-          "0": 2.0,
-          "1": 2.0,
-          "2": 2.0
+          "0": 1.5,
+          "1": 1.5,
+          "2": 1.5
         },
         "scores_by_run": {
           "0": {
-            "correctness": 2,
+            "correctness": 1,
             "depth": 1,
             "structure": 2,
-            "communication": 3
+            "communication": 2
           },
           "1": {
-            "correctness": 2,
+            "correctness": 1,
             "depth": 1,
             "structure": 2,
-            "communication": 3
+            "communication": 2
           },
           "2": {
-            "correctness": 2,
+            "correctness": 1,
             "depth": 1,
             "structure": 2,
-            "communication": 3
+            "communication": 2
           }
         },
         "spread": {
@@ -185,27 +185,27 @@
       },
       "strong": {
         "overall_by_run": {
-          "0": 4.0,
-          "1": 4.0,
-          "2": 4.0
+          "0": 5.0,
+          "1": 5.0,
+          "2": 5.0
         },
         "scores_by_run": {
           "0": {
-            "correctness": 4,
-            "depth": 3,
-            "structure": 4,
+            "correctness": 5,
+            "depth": 5,
+            "structure": 5,
             "communication": 5
           },
           "1": {
-            "correctness": 4,
-            "depth": 3,
-            "structure": 4,
+            "correctness": 5,
+            "depth": 5,
+            "structure": 5,
             "communication": 5
           },
           "2": {
-            "correctness": 4,
-            "depth": 3,
-            "structure": 4,
+            "correctness": 5,
+            "depth": 5,
+            "structure": 5,
             "communication": 5
           }
         },
@@ -221,28 +221,28 @@
     "q03_rate_limiter": {
       "bad": {
         "overall_by_run": {
-          "0": 2.0,
-          "1": 2.0,
-          "2": 2.0
+          "0": 1.25,
+          "1": 1.25,
+          "2": 1.25
         },
         "scores_by_run": {
           "0": {
-            "correctness": 2,
+            "correctness": 1,
             "depth": 1,
-            "structure": 2,
-            "communication": 3
+            "structure": 1,
+            "communication": 2
           },
           "1": {
-            "correctness": 2,
+            "correctness": 1,
             "depth": 1,
-            "structure": 2,
-            "communication": 3
+            "structure": 1,
+            "communication": 2
           },
           "2": {
-            "correctness": 2,
+            "correctness": 1,
             "depth": 1,
-            "structure": 2,
-            "communication": 3
+            "structure": 1,
+            "communication": 2
           }
         },
         "spread": {
@@ -254,26 +254,26 @@
       },
       "mediocre": {
         "overall_by_run": {
-          "0": 3.0,
-          "1": 3.0,
-          "2": 3.0
+          "0": 3.5,
+          "1": 3.5,
+          "2": 3.5
         },
         "scores_by_run": {
           "0": {
-            "correctness": 3,
-            "depth": 2,
+            "correctness": 4,
+            "depth": 3,
             "structure": 3,
             "communication": 4
           },
           "1": {
-            "correctness": 3,
-            "depth": 2,
+            "correctness": 4,
+            "depth": 3,
             "structure": 3,
             "communication": 4
           },
           "2": {
-            "correctness": 3,
-            "depth": 2,
+            "correctness": 4,
+            "depth": 3,
             "structure": 3,
             "communication": 4
           }
@@ -287,27 +287,27 @@
       },
       "strong": {
         "overall_by_run": {
-          "0": 4.0,
-          "1": 4.0,
-          "2": 4.0
+          "0": 5.0,
+          "1": 5.0,
+          "2": 5.0
         },
         "scores_by_run": {
           "0": {
-            "correctness": 4,
-            "depth": 3,
-            "structure": 4,
+            "correctness": 5,
+            "depth": 5,
+            "structure": 5,
             "communication": 5
           },
           "1": {
-            "correctness": 4,
-            "depth": 3,
-            "structure": 4,
+            "correctness": 5,
+            "depth": 5,
+            "structure": 5,
             "communication": 5
           },
           "2": {
-            "correctness": 4,
-            "depth": 3,
-            "structure": 4,
+            "correctness": 5,
+            "depth": 5,
+            "structure": 5,
             "communication": 5
           }
         },
@@ -323,61 +323,61 @@
     "q04_prod_incident": {
       "bad": {
         "overall_by_run": {
-          "0": 2.0,
-          "1": 2.0,
-          "2": 2.0
+          "0": 1.25,
+          "1": 1.25,
+          "2": 1.5
         },
         "scores_by_run": {
           "0": {
-            "correctness": 2,
+            "correctness": 1,
             "depth": 1,
-            "structure": 2,
-            "communication": 3
+            "structure": 1,
+            "communication": 2
           },
           "1": {
-            "correctness": 2,
+            "correctness": 1,
             "depth": 1,
-            "structure": 2,
-            "communication": 3
+            "structure": 1,
+            "communication": 2
           },
           "2": {
-            "correctness": 2,
+            "correctness": 1,
             "depth": 1,
             "structure": 2,
-            "communication": 3
+            "communication": 2
           }
         },
         "spread": {
           "correctness": 0,
           "depth": 0,
-          "structure": 0,
+          "structure": 1,
           "communication": 0
         }
       },
       "mediocre": {
         "overall_by_run": {
-          "0": 3.0,
-          "1": 3.0,
-          "2": 3.0
+          "0": 2.75,
+          "1": 2.75,
+          "2": 2.75
         },
         "scores_by_run": {
           "0": {
             "correctness": 3,
             "depth": 2,
             "structure": 3,
-            "communication": 4
+            "communication": 3
           },
           "1": {
             "correctness": 3,
             "depth": 2,
             "structure": 3,
-            "communication": 4
+            "communication": 3
           },
           "2": {
             "correctness": 3,
             "depth": 2,
             "structure": 3,
-            "communication": 4
+            "communication": 3
           }
         },
         "spread": {
@@ -389,27 +389,27 @@
       },
       "strong": {
         "overall_by_run": {
-          "0": 4.0,
-          "1": 4.0,
-          "2": 4.0
+          "0": 5.0,
+          "1": 5.0,
+          "2": 5.0
         },
         "scores_by_run": {
           "0": {
-            "correctness": 4,
-            "depth": 3,
-            "structure": 4,
+            "correctness": 5,
+            "depth": 5,
+            "structure": 5,
             "communication": 5
           },
           "1": {
-            "correctness": 4,
-            "depth": 3,
-            "structure": 4,
+            "correctness": 5,
+            "depth": 5,
+            "structure": 5,
             "communication": 5
           },
           "2": {
-            "correctness": 4,
-            "depth": 3,
-            "structure": 4,
+            "correctness": 5,
+            "depth": 5,
+            "structure": 5,
             "communication": 5
           }
         },
@@ -425,61 +425,61 @@
     "q05_disagreement": {
       "bad": {
         "overall_by_run": {
-          "0": 2.0,
-          "1": 2.0,
-          "2": 2.0
+          "0": 1.25,
+          "1": 1.25,
+          "2": 1.5
         },
         "scores_by_run": {
           "0": {
-            "correctness": 2,
+            "correctness": 1,
             "depth": 1,
-            "structure": 2,
-            "communication": 3
+            "structure": 1,
+            "communication": 2
           },
           "1": {
-            "correctness": 2,
+            "correctness": 1,
             "depth": 1,
-            "structure": 2,
-            "communication": 3
+            "structure": 1,
+            "communication": 2
           },
           "2": {
-            "correctness": 2,
+            "correctness": 1,
             "depth": 1,
             "structure": 2,
-            "communication": 3
+            "communication": 2
           }
         },
         "spread": {
           "correctness": 0,
           "depth": 0,
-          "structure": 0,
+          "structure": 1,
           "communication": 0
         }
       },
       "mediocre": {
         "overall_by_run": {
-          "0": 3.0,
-          "1": 3.0,
-          "2": 3.0
+          "0": 2.75,
+          "1": 2.75,
+          "2": 2.75
         },
         "scores_by_run": {
           "0": {
             "correctness": 3,
             "depth": 2,
             "structure": 3,
-            "communication": 4
+            "communication": 3
           },
           "1": {
             "correctness": 3,
             "depth": 2,
             "structure": 3,
-            "communication": 4
+            "communication": 3
           },
           "2": {
             "correctness": 3,
             "depth": 2,
             "structure": 3,
-            "communication": 4
+            "communication": 3
           }
         },
         "spread": {
@@ -491,27 +491,27 @@
       },
       "strong": {
         "overall_by_run": {
-          "0": 4.0,
-          "1": 4.0,
-          "2": 4.0
+          "0": 5.0,
+          "1": 5.0,
+          "2": 5.0
         },
         "scores_by_run": {
           "0": {
-            "correctness": 4,
-            "depth": 3,
-            "structure": 4,
+            "correctness": 5,
+            "depth": 5,
+            "structure": 5,
             "communication": 5
           },
           "1": {
-            "correctness": 4,
-            "depth": 3,
-            "structure": 4,
+            "correctness": 5,
+            "depth": 5,
+            "structure": 5,
             "communication": 5
           },
           "2": {
-            "correctness": 4,
-            "depth": 3,
-            "structure": 4,
+            "correctness": 5,
+            "depth": 5,
+            "structure": 5,
             "communication": 5
           }
         },
@@ -527,42 +527,42 @@
     "q06_idempotency": {
       "bad": {
         "overall_by_run": {
-          "0": 2.0,
-          "1": 2.0,
-          "2": 2.0
+          "0": 1.25,
+          "1": 1.5,
+          "2": 1.5
         },
         "scores_by_run": {
           "0": {
-            "correctness": 2,
+            "correctness": 1,
             "depth": 1,
-            "structure": 2,
-            "communication": 3
+            "structure": 1,
+            "communication": 2
           },
           "1": {
-            "correctness": 2,
+            "correctness": 1,
             "depth": 1,
             "structure": 2,
-            "communication": 3
+            "communication": 2
           },
           "2": {
-            "correctness": 2,
+            "correctness": 1,
             "depth": 1,
             "structure": 2,
-            "communication": 3
+            "communication": 2
           }
         },
         "spread": {
           "correctness": 0,
           "depth": 0,
-          "structure": 0,
+          "structure": 1,
           "communication": 0
         }
       },
       "mediocre": {
         "overall_by_run": {
           "0": 3.0,
-          "1": 3.0,
-          "2": 3.0
+          "1": 3.5,
+          "2": 3.25
         },
         "scores_by_run": {
           "0": {
@@ -572,48 +572,48 @@
             "communication": 4
           },
           "1": {
-            "correctness": 3,
+            "correctness": 4,
             "depth": 2,
-            "structure": 3,
+            "structure": 4,
             "communication": 4
           },
           "2": {
-            "correctness": 3,
+            "correctness": 4,
             "depth": 2,
             "structure": 3,
             "communication": 4
           }
         },
         "spread": {
-          "correctness": 0,
+          "correctness": 1,
           "depth": 0,
-          "structure": 0,
+          "structure": 1,
           "communication": 0
         }
       },
       "strong": {
         "overall_by_run": {
-          "0": 4.0,
-          "1": 4.0,
-          "2": 4.0
+          "0": 5.0,
+          "1": 5.0,
+          "2": 5.0
         },
         "scores_by_run": {
           "0": {
-            "correctness": 4,
-            "depth": 3,
-            "structure": 4,
+            "correctness": 5,
+            "depth": 5,
+            "structure": 5,
             "communication": 5
           },
           "1": {
-            "correctness": 4,
-            "depth": 3,
-            "structure": 4,
+            "correctness": 5,
+            "depth": 5,
+            "structure": 5,
             "communication": 5
           },
           "2": {
-            "correctness": 4,
-            "depth": 3,
-            "structure": 4,
+            "correctness": 5,
+            "depth": 5,
+            "structure": 5,
             "communication": 5
           }
         },
@@ -629,28 +629,28 @@
     "q07_transactions": {
       "bad": {
         "overall_by_run": {
-          "0": 2.0,
-          "1": 2.0,
-          "2": 2.0
+          "0": 1.25,
+          "1": 1.25,
+          "2": 1.25
         },
         "scores_by_run": {
           "0": {
-            "correctness": 2,
+            "correctness": 1,
             "depth": 1,
-            "structure": 2,
-            "communication": 3
+            "structure": 1,
+            "communication": 2
           },
           "1": {
-            "correctness": 2,
+            "correctness": 1,
             "depth": 1,
-            "structure": 2,
-            "communication": 3
+            "structure": 1,
+            "communication": 2
           },
           "2": {
-            "correctness": 2,
+            "correctness": 1,
             "depth": 1,
-            "structure": 2,
-            "communication": 3
+            "structure": 1,
+            "communication": 2
           }
         },
         "spread": {
@@ -662,27 +662,27 @@
       },
       "mediocre": {
         "overall_by_run": {
-          "0": 3.0,
-          "1": 3.0,
-          "2": 3.0
+          "0": 3.5,
+          "1": 3.5,
+          "2": 3.5
         },
         "scores_by_run": {
           "0": {
-            "correctness": 3,
+            "correctness": 4,
             "depth": 2,
-            "structure": 3,
+            "structure": 4,
             "communication": 4
           },
           "1": {
-            "correctness": 3,
+            "correctness": 4,
             "depth": 2,
-            "structure": 3,
+            "structure": 4,
             "communication": 4
           },
           "2": {
-            "correctness": 3,
+            "correctness": 4,
             "depth": 2,
-            "structure": 3,
+            "structure": 4,
             "communication": 4
           }
         },
@@ -695,27 +695,27 @@
       },
       "strong": {
         "overall_by_run": {
-          "0": 4.0,
-          "1": 4.0,
-          "2": 4.0
+          "0": 5.0,
+          "1": 5.0,
+          "2": 5.0
         },
         "scores_by_run": {
           "0": {
-            "correctness": 4,
-            "depth": 3,
-            "structure": 4,
+            "correctness": 5,
+            "depth": 5,
+            "structure": 5,
             "communication": 5
           },
           "1": {
-            "correctness": 4,
-            "depth": 3,
-            "structure": 4,
+            "correctness": 5,
+            "depth": 5,
+            "structure": 5,
             "communication": 5
           },
           "2": {
-            "correctness": 4,
-            "depth": 3,
-            "structure": 4,
+            "correctness": 5,
+            "depth": 5,
+            "structure": 5,
             "communication": 5
           }
         },
@@ -731,28 +731,28 @@
     "q08_cache_invalidation": {
       "bad": {
         "overall_by_run": {
-          "0": 2.0,
-          "1": 2.0,
-          "2": 2.0
+          "0": 1.25,
+          "1": 1.25,
+          "2": 1.25
         },
         "scores_by_run": {
           "0": {
-            "correctness": 2,
+            "correctness": 1,
             "depth": 1,
-            "structure": 2,
-            "communication": 3
+            "structure": 1,
+            "communication": 2
           },
           "1": {
-            "correctness": 2,
+            "correctness": 1,
             "depth": 1,
-            "structure": 2,
-            "communication": 3
+            "structure": 1,
+            "communication": 2
           },
           "2": {
-            "correctness": 2,
+            "correctness": 1,
             "depth": 1,
-            "structure": 2,
-            "communication": 3
+            "structure": 1,
+            "communication": 2
           }
         },
         "spread": {
@@ -797,27 +797,27 @@
       },
       "strong": {
         "overall_by_run": {
-          "0": 4.0,
-          "1": 4.0,
-          "2": 4.0
+          "0": 5.0,
+          "1": 5.0,
+          "2": 5.0
         },
         "scores_by_run": {
           "0": {
-            "correctness": 4,
-            "depth": 3,
-            "structure": 4,
+            "correctness": 5,
+            "depth": 5,
+            "structure": 5,
             "communication": 5
           },
           "1": {
-            "correctness": 4,
-            "depth": 3,
-            "structure": 4,
+            "correctness": 5,
+            "depth": 5,
+            "structure": 5,
             "communication": 5
           },
           "2": {
-            "correctness": 4,
-            "depth": 3,
-            "structure": 4,
+            "correctness": 5,
+            "depth": 5,
+            "structure": 5,
             "communication": 5
           }
         },
@@ -833,28 +833,28 @@
     "q09_webhook_delivery": {
       "bad": {
         "overall_by_run": {
-          "0": 2.0,
-          "1": 2.0,
-          "2": 2.0
+          "0": 1.25,
+          "1": 1.25,
+          "2": 1.25
         },
         "scores_by_run": {
           "0": {
-            "correctness": 2,
+            "correctness": 1,
             "depth": 1,
-            "structure": 2,
-            "communication": 3
+            "structure": 1,
+            "communication": 2
           },
           "1": {
-            "correctness": 2,
+            "correctness": 1,
             "depth": 1,
-            "structure": 2,
-            "communication": 3
+            "structure": 1,
+            "communication": 2
           },
           "2": {
-            "correctness": 2,
+            "correctness": 1,
             "depth": 1,
-            "structure": 2,
-            "communication": 3
+            "structure": 1,
+            "communication": 2
           }
         },
         "spread": {
@@ -866,60 +866,60 @@
       },
       "mediocre": {
         "overall_by_run": {
-          "0": 3.0,
-          "1": 3.0,
-          "2": 3.0
+          "0": 2.75,
+          "1": 2.75,
+          "2": 2.5
         },
         "scores_by_run": {
           "0": {
             "correctness": 3,
             "depth": 2,
             "structure": 3,
-            "communication": 4
+            "communication": 3
           },
           "1": {
             "correctness": 3,
             "depth": 2,
             "structure": 3,
-            "communication": 4
+            "communication": 3
           },
           "2": {
             "correctness": 3,
             "depth": 2,
-            "structure": 3,
-            "communication": 4
+            "structure": 2,
+            "communication": 3
           }
         },
         "spread": {
           "correctness": 0,
           "depth": 0,
-          "structure": 0,
+          "structure": 1,
           "communication": 0
         }
       },
       "strong": {
         "overall_by_run": {
-          "0": 4.0,
-          "1": 4.0,
-          "2": 4.0
+          "0": 5.0,
+          "1": 5.0,
+          "2": 5.0
         },
         "scores_by_run": {
           "0": {
-            "correctness": 4,
-            "depth": 3,
-            "structure": 4,
+            "correctness": 5,
+            "depth": 5,
+            "structure": 5,
             "communication": 5
           },
           "1": {
-            "correctness": 4,
-            "depth": 3,
-            "structure": 4,
+            "correctness": 5,
+            "depth": 5,
+            "structure": 5,
             "communication": 5
           },
           "2": {
-            "correctness": 4,
-            "depth": 3,
-            "structure": 4,
+            "correctness": 5,
+            "depth": 5,
+            "structure": 5,
             "communication": 5
           }
         },
@@ -935,28 +935,28 @@
     "q10_pagination": {
       "bad": {
         "overall_by_run": {
-          "0": 2.0,
-          "1": 2.0,
-          "2": 2.0
+          "0": 1.5,
+          "1": 1.5,
+          "2": 1.5
         },
         "scores_by_run": {
           "0": {
-            "correctness": 2,
+            "correctness": 1,
             "depth": 1,
             "structure": 2,
-            "communication": 3
+            "communication": 2
           },
           "1": {
-            "correctness": 2,
+            "correctness": 1,
             "depth": 1,
             "structure": 2,
-            "communication": 3
+            "communication": 2
           },
           "2": {
-            "correctness": 2,
+            "correctness": 1,
             "depth": 1,
             "structure": 2,
-            "communication": 3
+            "communication": 2
           }
         },
         "spread": {
@@ -968,60 +968,60 @@
       },
       "mediocre": {
         "overall_by_run": {
-          "0": 3.0,
-          "1": 3.0,
-          "2": 3.0
+          "0": 3.5,
+          "1": 3.5,
+          "2": 3.75
         },
         "scores_by_run": {
           "0": {
-            "correctness": 3,
-            "depth": 2,
+            "correctness": 4,
+            "depth": 3,
             "structure": 3,
             "communication": 4
           },
           "1": {
-            "correctness": 3,
-            "depth": 2,
+            "correctness": 4,
+            "depth": 3,
             "structure": 3,
             "communication": 4
           },
           "2": {
-            "correctness": 3,
-            "depth": 2,
-            "structure": 3,
+            "correctness": 4,
+            "depth": 3,
+            "structure": 4,
             "communication": 4
           }
         },
         "spread": {
           "correctness": 0,
           "depth": 0,
-          "structure": 0,
+          "structure": 1,
           "communication": 0
         }
       },
       "strong": {
         "overall_by_run": {
-          "0": 4.0,
-          "1": 4.0,
-          "2": 4.0
+          "0": 5.0,
+          "1": 5.0,
+          "2": 5.0
         },
         "scores_by_run": {
           "0": {
-            "correctness": 4,
-            "depth": 3,
-            "structure": 4,
+            "correctness": 5,
+            "depth": 5,
+            "structure": 5,
             "communication": 5
           },
           "1": {
-            "correctness": 4,
-            "depth": 3,
-            "structure": 4,
+            "correctness": 5,
+            "depth": 5,
+            "structure": 5,
             "communication": 5
           },
           "2": {
-            "correctness": 4,
-            "depth": 3,
-            "structure": 4,
+            "correctness": 5,
+            "depth": 5,
+            "structure": 5,
             "communication": 5
           }
         },
