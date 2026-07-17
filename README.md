@@ -8,6 +8,12 @@ actually says no."_
 
 **Try it live: [ask-harder.vercel.app](https://ask-harder.vercel.app)**
 
+<p align="center">
+  <img src="docs/images/report_piece_ss.png" alt="ask-harder report — pass verdict, dimension scorecard, and a graded question with its rubric checklist" width="720">
+</p>
+
+
+
 ## Why this exists
 
 Most AI interview tools are friendly chatbots: they ask generic questions,
@@ -17,6 +23,24 @@ verdict is only useful if you can trust the "no". So every score must point
 at words you actually said, every reported gap must come from a pre-defined
 rubric, and the judging model itself is tested like code, with the test
 results published.
+
+## Enforced in code, not in prompts
+
+The trust claims above are engineering constraints, not prompt hopes:
+
+- **The interviewer can never see answer keys.** Its interface receives a
+  question type that has no key field — leaking a key into an interview
+  prompt is a type error, not a code-review hope.
+- **Judge output is post-validated.** Every evidence quote must be a
+  verbatim substring of the transcript; every missing point must be an
+  actual answer-key string. Anything else is retried, then stripped.
+- **The judge is benchmarked like code.** A fixed eval suite measures
+  ordering, stability, grounding, and key adherence — results published at
+  [/methodology](https://ask-harder.vercel.app/methodology).
+- **The verdict is deterministic.** Pass / borderline / no comes from
+  seniority-banded thresholds in plain Python, not another LLM opinion.
+- **The whole app runs with zero API keys.** A deterministic mock LLM
+  drives every flow end-to-end — it's also what CI runs.
 
 ## How it works
 
@@ -33,6 +57,10 @@ job description ──► profile ──► question plan (hidden answer keys)
                     missing points · model answers
 ```
 
+<p align="center">
+  <img src="docs/images/interview_view_ss.png" alt="ask-harder intake — paste a job description, pick a session size" width="720">
+</p>
+
 1. **Intake** — paste a JD (and optionally a resume); an LLM extracts a
    structured profile: role, seniority, stack, competencies.
 2. **Plan** — questions are generated for that profile (warmup, behavioral,
@@ -48,15 +76,6 @@ job description ──► profile ──► question plan (hidden answer keys)
    dimension) and an **overall out of 100** (the four 1–5 dimensions mapped
    onto 0–100), then per-question scores, evidence quotes, what you failed to
    mention, and a model answer per question. Answer keys are revealed only here.
-
-Two trust guarantees are enforced in code, not in prompts:
-
-- **The interviewer can never see answer keys.** Its interface receives a
-  question type that has no key field — leaking a key into an interview
-  prompt is a type error, not a code-review hope.
-- **Judge output is post-validated.** Every evidence quote must be a
-  verbatim substring of the transcript; every missing point must be an
-  actual answer-key string. Anything else is retried, then stripped.
 
 ## The judge is tested, not trusted
 
@@ -79,13 +98,15 @@ FastAPI · Python 3.13 · PostgreSQL 17 · SQLAlchemy 2 (async) · Alembic ·
 React 19 + TypeScript + Vite · DeepSeek (intake / plan / interviewer) ·
 Claude Sonnet (judge) · pytest
 
-## Run it locally
+## Run it locally — no API keys needed
 
-Requires: Docker, [uv](https://docs.astral.sh/uv/), Node 20+.
+The default `mock` backend is a deterministic fake LLM: intake, interview,
+judging, and the report all work offline and free. Requires Docker,
+[uv](https://docs.astral.sh/uv/), Node 20+.
 
 ```powershell
-# 1. configure env
-copy .env.example .env   # then edit values
+# 1. configure env — defaults work out of the box (mock backend)
+copy .env.example .env
 
 # 2. database
 docker compose up -d postgres
@@ -108,21 +129,11 @@ skill to see every judged answer behind its score — and `/interviews` for
 the history of every interview you've taken. Your email in the header opens
 `/profile`: account stats at a glance and account deletion.
 
-**Explore the database** (interactive `psql` shell; requires Postgres running):
+### Use real models
 
-```powershell
-docker exec -it askharder-postgres-1 psql -U askharder -d askharder
-```
-
-Inside `psql`: `\dt` lists tables, `SELECT COUNT(*) FROM users;` counts
-accounts, `\q` quits.
-
-**LLM modes** (`LLM_BACKEND` in `.env`):
-
-- `mock` (default) — deterministic fake LLM, no API keys, full flow works.
-- `deepseek` — real models; set `DEEPSEEK_API_KEY` and `ANTHROPIC_API_KEY`.
-
-When using `deepseek`, model ids and v4 thinking mode are env-configurable per role:
+Set `LLM_BACKEND=deepseek` in `.env`, plus `DEEPSEEK_API_KEY` and
+`ANTHROPIC_API_KEY`. Model ids and v4 thinking mode are env-configurable
+per role:
 
 | Variable | Purpose |
 |----------|---------|
@@ -135,6 +146,8 @@ When using `deepseek`, model ids and v4 thinking mode are env-configurable per r
 
 See [`.env.example`](.env.example) for defaults and v4 examples.
 
+### Tests and evals
+
 ```powershell
 # tests (from backend/)
 uv run pytest tests
@@ -143,6 +156,19 @@ uv run pytest tests
 uv run pytest evals
 # real judge: $env:EVAL_JUDGE='anthropic'; uv run pytest evals
 ```
+
+How the test DB, fixtures, and eval suites work: [docs/testing.md](docs/testing.md).
+
+### Explore the database
+
+Interactive `psql` shell (requires Postgres running):
+
+```powershell
+docker exec -it askharder-postgres-1 psql -U askharder -d askharder
+```
+
+Inside `psql`: `\dt` lists tables, `SELECT COUNT(*) FROM users;` counts
+accounts, `\q` quits.
 
 ## Develop a feature (local → prod)
 
@@ -195,7 +221,7 @@ git push heroku main                  # backend; release runs `alembic upgrade h
 ask-harder/
 ├── docker-compose.yml        # dev database (postgres:17)
 ├── heroku.yml                # Heroku container deploy (release runs migrations)
-├── docs/                     # vision, as-built tech spec, testing, progress log
+├── docs/                     # as-built tech spec, testing guide, progress log
 ├── frontend/                 # React 19 + TypeScript SPA (Vite, /api proxy)
 │   └── src/                  # pages: auth, JD intake, SSE chat, report
 └── backend/                  # FastAPI app (uv package, src layout)

@@ -13,7 +13,9 @@ CLAUDE.md.
 ## Docs
 
 - `docs/VISION.md` — the why. Every feature must serve it; question anything that doesn't.
-- `docs/PROGRESS.md` — session log. Update after changes; read before claiming what's built or what's next.
+- `docs/PROGRESS.md` — session log. Update after product changes — features,
+  fixes, architecture, decisions; skip meta and docs-only edits. Keep entries
+  short. Read before claiming what's built or what's next.
 - `docs/tech_spec.md` — as-built spec. Update when architecture, schema, or contracts change.
 - `docs/testing.md` — verification workflow. Update when it changes.
 - `README.md` — update when setup, commands, or user-visible features change.
