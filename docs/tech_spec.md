@@ -225,7 +225,11 @@ What actually exists, updated as it changes.
   borderline thresholds rise with seniority (junior 3.0/2.2 → 50/30, senior
   4.0/3.0 → 75/50, staff/principal 4.3/3.3 → 82.5/57.5); drills and unknown
   seniority use the mid bar (3.5/2.6 → 62.5/40). The rationale names the
-  weakest question (by tag) and the weakest scoring dimension.
+  weakest question (by tag) and the weakest scoring dimension. Non-passing
+  reports also include up to two deterministic `practice_priorities`
+  (`tag`, 0–100 `score`, grounded `reason`), ranked by the current interview's
+  per-tag average. Reasons name the weakest dimension and missed rubric-point
+  count. They are derived at read time with no LLM call or stored column.
 - `GET /api/interviews/{id}/stream` → SSE (`text/event-stream`). Events:
   `question`, `token`, `interviewer_done`, `interview_complete`. Probes
   stream one `token` per LLM delta; planned questions chunk text. `InterviewEventBus` (in-process)

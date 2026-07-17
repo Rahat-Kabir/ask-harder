@@ -545,6 +545,16 @@ ellipsis-spliced quotes. Sonnet re-run pending to verify before closing M6.
   skipped questions show 0/5, and the live warmup shows the story intent above
   the answer box. Frontend builds clean.
 
+- 2026-07-17 - Non-passing report recovery plan. `GET /report` now derives up
+  to two weakest distinct skill tags from the current interview, aggregates
+  repeated tags, and explains each choice with its 0–100 average, weakest
+  scoring dimension, and missed required-point count. The report renders these
+  priorities directly under a No/Borderline verdict with focused drill buttons;
+  passing reports keep the existing single weakest-area CTA. Deterministic
+  Python only — no new LLM call, migration, or stored column. Verified with
+  verdict unit tests, the mock lifecycle API test, frontend lint/build, and a
+  local browser flow.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;

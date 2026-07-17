@@ -114,6 +114,11 @@ async def test_full_mock_interview_lifecycle(client):
     assert len(report_body["questions"]) == 3
     assert report_body["questions"][0]["answer_key"]["required_points"]
     assert report_body["questions"][0]["evaluation"]["scores"]["correctness"] >= 1
+    assert len(report_body["practice_priorities"]) == 2
+    assert all(
+        {"tag", "score", "reason"} <= priority.keys()
+        for priority in report_body["practice_priorities"]
+    )
 
     async with new_session() as db:
         evaluation_count = (

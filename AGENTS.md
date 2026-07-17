@@ -77,7 +77,7 @@ CLAUDE.md.
 |---|---|---|
 | `backend/src/app/interviews/service.py` | 1000 | Orchestration core: lifecycle, DB, LLM calls, background judging |
 | `backend/src/app/interviews/state_machine.py` | 65 | Flow rules, probe cap (2), transition guards |
-| `backend/src/app/interviews/verdict.py` | 190 | Deterministic pass/borderline/no, seniority-banded |
+| `backend/src/app/interviews/verdict.py` | 250 | Deterministic verdict and recovery priorities, seniority-banded |
 | `backend/src/app/schemas.py` | 115 | Typed LLM I/O contracts (Profile, Plan, Evaluation, …) |
 | `backend/src/app/llm/prompts.py` | 135 | All prompts, stable-prefix for caching — ruff E501-exempt |
 | `backend/src/app/llm/mock.py` | 210 | Deterministic mock of all four LLM protocols |
@@ -87,7 +87,7 @@ CLAUDE.md.
 | `backend/evals/conftest.py` | 210 | Eval harness: fixture loading, judge selection, results writer |
 | `frontend/src/api.ts` | 335 | Typed fetch wrapper for `/api/*` |
 | `frontend/src/InterviewPage.tsx` | 565 | SSE chat, answer/skip/finish, judging poll |
-| `frontend/src/ReportPage.tsx` | 470 | Verdict banner, scorecard, rubric checklist, drill CTA |
+| `frontend/src/ReportPage.tsx` | 525 | Verdict banner, recovery plan, scorecard, rubric checklist, drill CTA |
 | `frontend/src/scoring.ts` | 60 | 1–5 → /100 mapping, bands, labels — mirrors backend scaling |
 
 ## Commands

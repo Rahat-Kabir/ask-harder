@@ -193,7 +193,15 @@ export function ReportPage() {
   const [error, setError] = useState<string | null>(null)
   const [retaking, setRetaking] = useState(false)
   const [retakeError, setRetakeError] = useState<string | null>(null)
+  const [drillingPriorityTag, setDrillingPriorityTag] = useState<string | null>(
+    null,
+  )
   const { startDrill, drilling, drillError } = useDrill()
+
+  function startPracticeDrill(tag: string) {
+    setDrillingPriorityTag(tag)
+    void startDrill(tag)
+  }
 
   async function retake() {
     setRetaking(true)
@@ -259,6 +267,48 @@ export function ReportPage() {
         <h2 className="verdict-headline">{verdict.headline}</h2>
         <p className="verdict-rationale">{verdict.rationale}</p>
       </section>
+
+      {report.practice_priorities.length > 0 && (
+        <section className="report-question report-cta recovery-plan">
+          <h2>
+            {verdict.decision === 'no'
+              ? 'You are not ready for this role yet.'
+              : 'You are close, but not ready to pass this round consistently.'}
+          </h2>
+          <p>
+            {report.practice_priorities.length === 1
+              ? 'Start with this skill.'
+              : 'Here are the two things to practise first.'}
+          </p>
+          {drillError && <p className="error">{drillError}</p>}
+          <div className="practice-priority-list">
+            {report.practice_priorities.map((priority, index) => (
+              <article key={priority.tag} className="practice-priority">
+                <div className="practice-priority-heading">
+                  <span className="practice-priority-number">
+                    Priority {index + 1}
+                  </span>
+                  <span className="practice-priority-score">
+                    {Math.round(priority.score)} / {SCORE_MAX}
+                  </span>
+                </div>
+                <h3>{formatTag(priority.tag)}</h3>
+                <p>{priority.reason}</p>
+                <button
+                  type="button"
+                  className="primary-button"
+                  onClick={() => startPracticeDrill(priority.tag)}
+                  disabled={drilling}
+                >
+                  {drilling && drillingPriorityTag === priority.tag
+                    ? 'Building your drill…'
+                    : 'Drill this skill'}
+                </button>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
 
       <div className="report-header">
         <h1>Interview report</h1>
@@ -419,7 +469,7 @@ export function ReportPage() {
         </section>
       ))}
 
-      {weakest && (
+      {weakest && report.practice_priorities.length === 0 && (
         <section className="report-question report-cta">
           <h2>What to work on next</h2>
           <p>
@@ -432,10 +482,12 @@ export function ReportPage() {
             <button
               type="button"
               className="primary-button"
-              onClick={() => startDrill(weakest.tag)}
+              onClick={() => startPracticeDrill(weakest.tag)}
               disabled={drilling}
             >
-              {drilling ? 'Building your drill…' : 'Drill it'}
+              {drilling && drillingPriorityTag === weakest.tag
+                ? 'Building your drill…'
+                : 'Drill it'}
             </button>
             <Link to={`/skills/${weakest.tag}`} className="secondary-button">
               See the receipts

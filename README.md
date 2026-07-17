@@ -54,7 +54,7 @@ job description ──► profile ──► question plan (hidden answer keys)
                            against its frozen key
                                       │
                     report: scores · verbatim evidence ·
-                    missing points · model answers
+                 missing points · model answers · practice plan
 ```
 
 <p align="center">
@@ -75,7 +75,9 @@ job description ──► profile ──► question plan (hidden answer keys)
    at its seniority, with a rationale grounded in your weakest answer and
    dimension) and an **overall out of 100** (the four 1–5 dimensions mapped
    onto 0–100), then per-question scores, evidence quotes, what you failed to
-   mention, and a model answer per question. Answer keys are revealed only here.
+   mention, and a model answer per question. A non-passing report also names
+   the two weakest skill areas, explains why each was selected, and links to
+   a focused drill. Answer keys are revealed only here.
 
 ## The judge is tested, not trusted
 

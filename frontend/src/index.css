@@ -1876,6 +1876,57 @@ a.history-link:hover {
   color: var(--muted);
 }
 
+.recovery-plan {
+  align-self: stretch;
+}
+
+.practice-priority-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.practice-priority {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-raised);
+}
+
+.practice-priority-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.4rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.practice-priority-number {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.practice-priority-score {
+  white-space: nowrap;
+}
+
+.practice-priority h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+.practice-priority .primary-button {
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .practice-priority-list {
+    grid-template-columns: 1fr;
+  }
+}
+
 .profile-stats {
   margin-bottom: 0;
 }

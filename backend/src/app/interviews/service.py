@@ -39,7 +39,11 @@ from app.interviews.state_machine import (
     probes_used_on_question,
     question_count,
 )
-from app.interviews.verdict import QuestionResult, build_verdict
+from app.interviews.verdict import (
+    QuestionResult,
+    build_practice_priorities,
+    build_verdict,
+)
 from app.llm.composite import CompositeLlmBackend
 from app.llm.errors import LlmError
 from app.llm.factory import build_llm_backend
@@ -642,18 +646,24 @@ class InterviewService:
                 )
             )
 
+        question_results = [
+            QuestionResult(
+                qtype=str(report_question.qtype),
+                tags=report_question.tags,
+                scores=report_question.evaluation.scores,
+                missing_points=report_question.evaluation.missing_points,
+            )
+            for report_question in report_questions
+        ]
         verdict = build_verdict(
             seniority=profile.seniority if profile is not None else None,
             role=profile.role if profile is not None else None,
             practice_tag=interview.practice_tag,
-            results=[
-                QuestionResult(
-                    qtype=str(rq.qtype),
-                    tags=rq.tags,
-                    scores=rq.evaluation.scores,
-                )
-                for rq in report_questions
-            ],
+            results=question_results,
+        )
+        practice_priorities = build_practice_priorities(
+            decision=verdict.decision,
+            results=question_results,
         )
 
         return ReportOut(
@@ -664,6 +674,7 @@ class InterviewService:
             session_type=interview.session_type,
             finished_at=interview.finished_at,
             verdict=verdict,
+            practice_priorities=practice_priorities,
             questions=report_questions,
         )
 

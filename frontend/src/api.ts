@@ -106,6 +106,12 @@ export type Verdict = {
   overall: number
 }
 
+export type PracticePriority = {
+  tag: string
+  score: number
+  reason: string
+}
+
 export type Report = {
   id: string
   status: 'complete'
@@ -115,6 +121,7 @@ export type Report = {
   session_type: SessionType
   finished_at: string
   verdict: Verdict
+  practice_priorities: PracticePriority[]
   questions: ReportQuestion[]
 }
 

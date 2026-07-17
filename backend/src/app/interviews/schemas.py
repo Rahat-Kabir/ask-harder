@@ -119,6 +119,12 @@ class VerdictOut(BaseModel):
     overall: float
 
 
+class PracticePriorityOut(BaseModel):
+    tag: str
+    score: float = Field(ge=0.0, le=100.0)
+    reason: str
+
+
 class ReportOut(BaseModel):
     id: uuid.UUID
     status: Literal["complete"]
@@ -128,4 +134,5 @@ class ReportOut(BaseModel):
     session_type: SessionType
     finished_at: datetime
     verdict: VerdictOut
+    practice_priorities: list[PracticePriorityOut]
     questions: list[ReportQuestionOut]

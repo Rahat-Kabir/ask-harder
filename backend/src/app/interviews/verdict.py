@@ -3,9 +3,9 @@ a report. Pure function of stored data — no LLM call, no new state — so the
 product's defining moment ("would you pass?") stays deterministic and testable.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
-from app.interviews.schemas import VerdictOut
+from app.interviews.schemas import PracticePriorityOut, VerdictOut
 from app.schemas import Scores
 from app.skills.service import overall_score, to_hundred
 
@@ -36,6 +36,7 @@ class QuestionResult:
     qtype: str
     tags: list[str]
     scores: Scores
+    missing_points: list[str] = field(default_factory=list)
 
 
 def _band_for(seniority: str | None) -> tuple[float, float]:
@@ -62,6 +63,62 @@ def _weakest_dimension(results: list[QuestionResult]) -> str:
         totals["communication"] += result.scores.communication
     weakest = min(totals, key=lambda dim: totals[dim])
     return _DIMENSION_LABELS[weakest]
+
+
+def _average_overall_score(results: list[QuestionResult]) -> float:
+    per_question_scores = [overall_score(result.scores) for result in results]
+    return sum(per_question_scores) / len(per_question_scores)
+
+
+def _practice_priority_reason(
+    results: list[QuestionResult],
+    score: float,
+) -> str:
+    weakest_dimension = _weakest_dimension(results).capitalize()
+    missing_point_count = sum(len(result.missing_points) for result in results)
+    reason = (
+        f"Selected because answers in this area averaged {score:g}/100. "
+        f"{weakest_dimension} was the weakest dimension"
+    )
+    if missing_point_count == 1:
+        return f"{reason}, and 1 required point was missed."
+    if missing_point_count > 1:
+        return f"{reason}, and {missing_point_count} required points were missed."
+    return f"{reason}."
+
+
+def build_practice_priorities(
+    *,
+    decision: str,
+    results: list[QuestionResult],
+    limit: int = 2,
+) -> list[PracticePriorityOut]:
+    """Explain the weakest distinct skill tags after a non-passing interview."""
+    if decision == "pass" or limit <= 0:
+        return []
+
+    results_by_tag: dict[str, list[QuestionResult]] = {}
+    for result in results:
+        distinct_tags = {raw_tag.strip() for raw_tag in result.tags if raw_tag.strip()}
+        for tag in distinct_tags:
+            results_by_tag.setdefault(tag, []).append(result)
+
+    ranked_tags = sorted(
+        results_by_tag.items(),
+        key=lambda item: (_average_overall_score(item[1]), item[0]),
+    )
+
+    priorities: list[PracticePriorityOut] = []
+    for tag, tagged_results in ranked_tags[:limit]:
+        score = to_hundred(_average_overall_score(tagged_results))
+        priorities.append(
+            PracticePriorityOut(
+                tag=tag,
+                score=score,
+                reason=_practice_priority_reason(tagged_results, score),
+            )
+        )
+    return priorities
 
 
 def build_verdict(

@@ -1,16 +1,26 @@
 """Deterministic verdict synthesis — no DB, no LLM."""
 
-from app.interviews.verdict import QuestionResult, build_verdict
+from app.interviews.verdict import (
+    QuestionResult,
+    build_practice_priorities,
+    build_verdict,
+)
 from app.schemas import Scores
 
 
-def _result(score: int, tags: list[str] | None = None, qtype: str = "technical"):
+def _result(
+    score: int,
+    tags: list[str] | None = None,
+    qtype: str = "technical",
+    missing_points: list[str] | None = None,
+):
     return QuestionResult(
         qtype=qtype,
         tags=tags if tags is not None else ["databases/query-optimization"],
         scores=Scores(
             correctness=score, depth=score, structure=score, communication=score
         ),
+        missing_points=missing_points or [],
     )
 
 
@@ -122,3 +132,77 @@ def test_unknown_seniority_falls_back_to_mid_bar():
         results=[_result(4), _result(4), _result(4)],
     )
     assert verdict.bar == 62.5
+
+
+def test_practice_priorities_select_two_weakest_distinct_tags():
+    priorities = build_practice_priorities(
+        decision="no",
+        results=[
+            _result(4, tags=["systems/api-design"]),
+            _result(
+                1,
+                tags=["databases/indexing", "databases/indexing"],
+                missing_points=["index selectivity"],
+            ),
+            _result(2, tags=["security/authentication"]),
+        ],
+    )
+
+    assert [priority.tag for priority in priorities] == [
+        "databases/indexing",
+        "security/authentication",
+    ]
+    assert [priority.score for priority in priorities] == [0.0, 25.0]
+
+
+def test_practice_priority_aggregates_repeated_tag_and_explains_selection():
+    priorities = build_practice_priorities(
+        decision="borderline",
+        limit=1,
+        results=[
+            QuestionResult(
+                qtype="technical",
+                tags=["databases/indexing"],
+                scores=Scores(
+                    correctness=3,
+                    depth=1,
+                    structure=2,
+                    communication=3,
+                ),
+                missing_points=["index selectivity", "query plan"],
+            ),
+            QuestionResult(
+                qtype="system_design",
+                tags=["databases/indexing"],
+                scores=Scores(
+                    correctness=5,
+                    depth=3,
+                    structure=4,
+                    communication=5,
+                ),
+            ),
+        ],
+    )
+
+    assert len(priorities) == 1
+    assert priorities[0].tag == "databases/indexing"
+    assert priorities[0].score == 56.2
+    assert "Depth was the weakest dimension" in priorities[0].reason
+    assert "2 required points were missed" in priorities[0].reason
+
+
+def test_practice_priorities_handle_passes_and_missing_tags():
+    assert (
+        build_practice_priorities(
+            decision="pass",
+            results=[_result(2, tags=["databases/indexing"])],
+        )
+        == []
+    )
+    assert (
+        build_practice_priorities(
+            decision="no",
+            results=[_result(1, tags=[])],
+        )
+        == []
+    )
