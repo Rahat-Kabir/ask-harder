@@ -213,8 +213,9 @@ npm run lint
 npm run build
 
 git push origin feat/my-thing         # open a PR, or merge to main when ready
-# merging to main → Vercel auto-deploys the frontend
-git push heroku main                  # backend; release runs `alembic upgrade head`
+# merging to main auto-deploys both halves: Vercel (frontend) and Heroku
+# (backend; the release phase runs `alembic upgrade head`)
+git push heroku main                  # manual backend deploy — fallback if auto-deploy fails
 ```
 
 ## Repository layout

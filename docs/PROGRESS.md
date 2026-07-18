@@ -13,7 +13,7 @@ Build status for ask-harder v1.
 | 5 | Judge (Sonnet structured output, evidence validation) | **done** | |
 | 6 | Eval harness (fixtures, 4 suites, comparison, /methodology) | **in progress** | Sonnet verified at effort medium (2026-07-17, see [eval_results.md](eval_results.md)); only comparison remains |
 | 7 | Skill tracking (aggregates, dashboard, planner reads weak tags) | **done** | Slices 1–3: aggregation, `/skills` UI, planner reads top 3 weak tags |
-| 8 | Polish + ship (deploy, demo video, README) | not started | |
+| 8 | Polish + ship (deploy, demo video, README) | **in progress** | Deployed (Vercel + Heroku + Neon, auto-deploy from main) and README done; demo video remains |
 
 ## v1 definition
 
