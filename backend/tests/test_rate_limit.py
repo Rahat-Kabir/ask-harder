@@ -1,10 +1,42 @@
+from types import SimpleNamespace
+
 import pytest
 
-from app.auth.rate_limit import RateLimiter
+from app.auth.rate_limit import RateLimiter, client_ip
 
 pytestmark = pytest.mark.anyio
 
 CREDENTIALS = {"email": "ratelimit@example.com", "password": "correct-horse-9"}
+
+
+def fake_request(headers: dict[str, str], peer_host: str | None = "10.0.0.1"):
+    """Minimal object with the two attributes client_ip reads. Keys must be
+    lowercase here — real Starlette headers are case-insensitive, which the
+    endpoint test below covers through the actual ASGI stack."""
+    return SimpleNamespace(
+        headers=headers,
+        client=SimpleNamespace(host=peer_host) if peer_host else None,
+    )
+
+
+def test_client_ip_uses_leftmost_forwarded_entry():
+    request = fake_request({"x-forwarded-for": "203.0.113.7, 76.76.21.9"})
+    assert client_ip(request) == "203.0.113.7"
+
+
+def test_client_ip_trims_whitespace_in_forwarded_entry():
+    request = fake_request({"x-forwarded-for": "  203.0.113.7  ,76.76.21.9"})
+    assert client_ip(request) == "203.0.113.7"
+
+
+def test_client_ip_falls_back_to_peer_without_header():
+    request = fake_request({})
+    assert client_ip(request) == "10.0.0.1"
+
+
+def test_client_ip_falls_back_to_peer_on_empty_header():
+    request = fake_request({"x-forwarded-for": "   "})
+    assert client_ip(request) == "10.0.0.1"
 
 
 class FakeClock:
@@ -104,3 +136,35 @@ async def test_sixth_registration_from_one_ip_is_429(client):
         json={"email": "bulk5@example.com", "password": "delete-me-123"},
     )
     assert blocked.status_code == 429
+
+
+async def test_forwarded_clients_get_independent_registration_buckets(client):
+    # both "clients" share the same socket peer (the test transport), like
+    # production traffic sharing the Heroku router — only the forwarded
+    # header distinguishes them
+    alice = {"X-Forwarded-For": "203.0.113.7, 76.76.21.9"}
+    bob = {"X-Forwarded-For": "198.51.100.4, 76.76.21.9"}
+
+    for index in range(5):
+        response = await client.post(
+            "/api/auth/register",
+            json={"email": f"alice{index}@example.com", "password": "delete-me-123"},
+            headers=alice,
+        )
+        assert response.status_code == 201
+        await client.post("/api/auth/logout")
+
+    blocked = await client.post(
+        "/api/auth/register",
+        json={"email": "alice5@example.com", "password": "delete-me-123"},
+        headers=alice,
+    )
+    assert blocked.status_code == 429
+
+    # a different forwarded client is not punished for alice's bucket
+    allowed = await client.post(
+        "/api/auth/register",
+        json={"email": "bob0@example.com", "password": "delete-me-123"},
+        headers=bob,
+    )
+    assert allowed.status_code == 201

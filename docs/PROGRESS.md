@@ -571,14 +571,23 @@ medium — see [eval_results.md](eval_results.md).
   eval_results.md caveats; gradings count clarified (90 gradings of 30
   answers). Playwright-verified desktop + 390px, 0 overflow.
 
+- 2026-07-18 — X-Forwarded-For fix (pre-wrap hardening): `client_ip()` now
+  reads the leftmost forwarded entry instead of the socket peer, so behind
+  Vercel/Heroku each visitor gets their own rate-limit bucket — previously
+  all traffic shared the proxy's bucket (attacker could lock out everyone;
+  per-IP caps never bit). Direct-to-backend header forgery is an accepted,
+  documented trade-off (per-email limiter and daily quota still hold).
+  5 new tests; 140 pass.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;
   revisit when bumping httpx.
 - Expired session rows are never purged (harmless until scale).
-- Rate-limit counters are in-memory per process — reset on restart, and
-  per-IP keys only see the real client once X-Forwarded-For handling is
-  added at deploy time.
+- Rate-limit counters are in-memory per process — reset on restart. Per-IP
+  keys use the leftmost X-Forwarded-For entry; a client hitting the Heroku
+  backend directly can forge it — accepted trade-off, documented in the
+  `client_ip` docstring.
 - Quota check has a small race: concurrent creates at the boundary can
   exceed the daily limit by one.
 - Skill averages mix mock and real judge scores on the same account until a

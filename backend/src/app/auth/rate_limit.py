@@ -12,8 +12,22 @@ from fastapi import HTTPException, Request, status
 
 
 def client_ip(request: Request) -> str:
-    """Direct peer address. Behind a reverse proxy this must change to
-    read X-Forwarded-For — revisit at deploy time."""
+    """Client identity for rate-limit bucketing.
+
+    Behind the Vercel/Heroku proxies the socket peer is always the router,
+    so every visitor would share one bucket. X-Forwarded-For carries the
+    real client: each proxy appends the address it saw, so the leftmost
+    entry is the origin. Deliberate trade-off: a client that reaches the
+    backend directly can forge that entry — accepted because legitimate
+    traffic arrives via Vercel (which writes the true client IP), the
+    per-email limiter is IP-independent, and the daily interview quota
+    bounds cost per account.
+    """
+    forwarded_chain = request.headers.get("x-forwarded-for")
+    if forwarded_chain:
+        origin = forwarded_chain.split(",")[0].strip()
+        if origin:
+            return origin
     return request.client.host if request.client else "unknown"
 
 
