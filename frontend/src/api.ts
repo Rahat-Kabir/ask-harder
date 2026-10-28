@@ -51,6 +51,13 @@ export type InterviewState = {
   turns: Turn[]
 }
 
+// Text size caps — mirror MAX_*_CHARS in the backend schemas (these inputs
+// go into paid LLM prompts). Textareas use them as maxLength so the UI
+// can't send something the API would reject.
+export const MAX_JD_CHARS = 20_000
+export const MAX_RESUME_CHARS = 20_000
+export const MAX_ANSWER_CHARS = 10_000
+
 // exactly one of jd_text / practice_tag
 export type CreateInterviewInput = {
   jd_text?: string

@@ -13,6 +13,7 @@ from app.auth.rate_limit import (
     REGISTRATIONS_PER_IP,
     client_ip,
     enforce,
+    reject_if_blocked,
 )
 from app.auth.schemas import LoginIn, RegisterIn, ResumeIn, UserOut
 from app.auth.security import (
@@ -77,6 +78,10 @@ async def login(
 ) -> UserOut:
     enforce(LOGIN_ATTEMPTS_PER_IP, client_ip(request))
     email = body.email.strip().lower()
+    # checked BEFORE the password: a locked email rejects even the correct
+    # password. Checking only on failure let a guesser keep going — every
+    # wrong guess got a 429, but the right one still logged in.
+    reject_if_blocked(LOGIN_FAILURES_PER_EMAIL, email)
     result = await db.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()
     # same 401 whether the email or the password was wrong — don't reveal
@@ -84,7 +89,7 @@ async def login(
     if user is None or not verify_password(user.password_hash, body.password):
         # failures only — a human re-typing a remembered password never
         # trips this; a password-guesser always does
-        enforce(LOGIN_FAILURES_PER_EMAIL, email)
+        LOGIN_FAILURES_PER_EMAIL.hit(email)
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid email or password")
     LOGIN_FAILURES_PER_EMAIL.reset(email)
 

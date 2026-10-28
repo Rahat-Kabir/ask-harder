@@ -88,6 +88,41 @@ def test_limiter_reset_clears_one_key():
     assert limiter.hit("k") is None
 
 
+def test_blocked_for_is_read_only_and_blocks_at_limit():
+    clock = FakeClock()
+    limiter = RateLimiter(limit=2, window_seconds=60, now=clock)
+
+    assert limiter.blocked_for("k") is None
+    limiter.hit("k")
+    # checking twice must not use up the remaining attempt
+    assert limiter.blocked_for("k") is None
+    assert limiter.blocked_for("k") is None
+    limiter.hit("k")
+    retry_after = limiter.blocked_for("k")
+    assert retry_after is not None
+    assert 0 < retry_after <= 60
+
+    clock.now += 61
+    assert limiter.blocked_for("k") is None
+
+
+async def test_locked_email_rejects_even_the_correct_password(client):
+    # regression: the lock used to be checked only on failure, so a guesser
+    # got 429s on wrong guesses but the right guess still logged in
+    register = await client.post("/api/auth/register", json=CREDENTIALS)
+    assert register.status_code == 201
+    await client.post("/api/auth/logout")
+
+    bad = {"email": CREDENTIALS["email"], "password": "wrong-password-1"}
+    for _ in range(5):
+        response = await client.post("/api/auth/login", json=bad)
+        assert response.status_code == 401
+
+    correct = await client.post("/api/auth/login", json=CREDENTIALS)
+    assert correct.status_code == 429
+    assert "Retry-After" in correct.headers
+
+
 async def test_sixth_failed_login_is_429_with_retry_after(client):
     register = await client.post("/api/auth/register", json=CREDENTIALS)
     assert register.status_code == 201

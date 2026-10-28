@@ -66,6 +66,16 @@ class RateLimiter:
             return self.window_seconds - (now - start)
         return None
 
+    def blocked_for(self, key: str) -> float | None:
+        """Read-only check: seconds-to-wait if the key has already used its
+        whole window, None if another attempt is allowed. Records nothing."""
+        now = self._now()
+        start, count = self._hits.get(key, (now, 0))
+        window_expired = now - start >= self.window_seconds
+        if window_expired or count < self.limit:
+            return None
+        return self.window_seconds - (now - start)
+
     def reset(self, key: str) -> None:
         self._hits.pop(key, None)
 
@@ -79,14 +89,26 @@ LOGIN_ATTEMPTS_PER_IP = RateLimiter(limit=20, window_seconds=300)
 REGISTRATIONS_PER_IP = RateLimiter(limit=5, window_seconds=3600)
 
 
+def _too_many_attempts(retry_after: float) -> HTTPException:
+    return HTTPException(
+        status.HTTP_429_TOO_MANY_REQUESTS,
+        "Too many attempts — try again later",
+        headers={"Retry-After": str(int(retry_after) + 1)},
+    )
+
+
 def enforce(limiter: RateLimiter, key: str) -> None:
+    """Record one attempt; 429 if it goes over the limit."""
     retry_after = limiter.hit(key)
     if retry_after is not None:
-        raise HTTPException(
-            status.HTTP_429_TOO_MANY_REQUESTS,
-            "Too many attempts — try again later",
-            headers={"Retry-After": str(int(retry_after) + 1)},
-        )
+        raise _too_many_attempts(retry_after)
+
+
+def reject_if_blocked(limiter: RateLimiter, key: str) -> None:
+    """429 if the key is already over its limit, without recording an attempt."""
+    retry_after = limiter.blocked_for(key)
+    if retry_after is not None:
+        raise _too_many_attempts(retry_after)
 
 
 def clear_all() -> None:

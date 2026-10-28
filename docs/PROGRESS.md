@@ -579,6 +579,17 @@ medium — see [eval_results.md](eval_results.md).
   documented trade-off (per-email limiter and daily quota still hold).
   5 new tests; 140 pass.
 
+- 2026-10-28 — Auth hardening (from a full-codebase review): (1) **login
+  lockout bypass fixed** — the per-email lock was only checked on a failed
+  password, so after 5 failures a guesser got 429s on wrong guesses but the
+  right guess still logged in (and, with forgeable X-Forwarded-For on the
+  direct Heroku URL, nothing else bounded guessing). The lock is now
+  checked before the password via the read-only `RateLimiter.blocked_for`.
+  Trade-off: a locked-out real user waits out the 5-min window too.
+  (2) **Input size caps** — JD/resume 20k chars, answer 10k, practice tag
+  100 (422 before any row or quota use); every one feeds a paid LLM prompt.
+  Textareas mirror them as `maxLength`. 5 new tests.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;

@@ -1,6 +1,7 @@
 import pytest
 from sqlalchemy import select
 
+from app.auth.schemas import MAX_RESUME_CHARS
 from app.db.models import User, UserSession
 from app.db.session import new_session
 
@@ -94,6 +95,15 @@ async def test_blank_resume_clears_saved_value(client):
     cleared = await client.put("/api/me/resume", json={"resume_text": "   "})
     assert cleared.status_code == 200
     assert cleared.json()["resume_text"] is None
+
+
+async def test_oversized_resume_is_422(client):
+    await client.post("/api/auth/register", json=CREDENTIALS)
+
+    response = await client.put(
+        "/api/me/resume", json={"resume_text": "x" * (MAX_RESUME_CHARS + 1)}
+    )
+    assert response.status_code == 422
 
 
 async def test_save_resume_requires_auth(client):

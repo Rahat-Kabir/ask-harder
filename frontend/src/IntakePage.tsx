@@ -1,6 +1,13 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { api, ApiError, type Quota, type SessionType } from './api'
+import {
+  api,
+  ApiError,
+  MAX_JD_CHARS,
+  MAX_RESUME_CHARS,
+  type Quota,
+  type SessionType,
+} from './api'
 
 const SESSION_OPTIONS: {
   value: SessionType
@@ -94,6 +101,7 @@ export function IntakePage() {
             value={jdText}
             onChange={(event) => setJdText(event.target.value)}
             rows={10}
+            maxLength={MAX_JD_CHARS}
             placeholder="Backend Engineer — Python, FastAPI, Postgres…"
             required
           />
@@ -105,6 +113,7 @@ export function IntakePage() {
             value={resumeText}
             onChange={(event) => setResumeText(event.target.value)}
             rows={5}
+            maxLength={MAX_RESUME_CHARS}
             placeholder="Paste resume highlights — claims we can probe in the interview."
           />
         </label>

@@ -3,6 +3,7 @@ import { Link, useOutletContext } from 'react-router-dom'
 import {
   api,
   ApiError,
+  MAX_RESUME_CHARS,
   type InterviewSummary,
   type Quota,
   type Skill,
@@ -119,6 +120,7 @@ function ResumeEditor({ initial }: { initial: string }) {
             setSavedAt(null)
           }}
           rows={6}
+          maxLength={MAX_RESUME_CHARS}
           placeholder="Paste resume highlights — claims an interviewer could probe."
         />
       </label>

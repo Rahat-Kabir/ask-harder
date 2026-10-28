@@ -3,8 +3,14 @@ import uuid
 import pytest
 from sqlalchemy import func, select
 
+from app.auth.schemas import MAX_RESUME_CHARS
 from app.db.models import Interview, Question, QuestionEvaluation, User
 from app.db.session import new_session
+from app.interviews.schemas import (
+    MAX_ANSWER_CHARS,
+    MAX_JD_CHARS,
+    MAX_PRACTICE_TAG_CHARS,
+)
 from app.skills.service import to_hundred
 
 pytestmark = pytest.mark.anyio
@@ -177,6 +183,36 @@ async def test_create_requires_exactly_one_of_jd_or_practice_tag(client):
 
     neither = await client.post("/api/interviews", json={})
     assert neither.status_code == 422
+
+
+async def test_oversized_create_inputs_are_422(client):
+    # every free-text input feeds a paid LLM prompt — none may be unbounded
+    await _register(client)
+
+    oversized_bodies = [
+        {"jd_text": "x" * (MAX_JD_CHARS + 1)},
+        {"jd_text": JD, "resume_text": "x" * (MAX_RESUME_CHARS + 1)},
+        {"practice_tag": "x" * (MAX_PRACTICE_TAG_CHARS + 1)},
+    ]
+    for oversized_body in oversized_bodies:
+        response = await client.post("/api/interviews", json=oversized_body)
+        assert response.status_code == 422
+
+    # rejected before any row is written, so no quota slot was used
+    quota = await client.get("/api/quota")
+    assert quota.json()["used_today"] == 0
+
+
+async def test_oversized_answer_is_422(client):
+    await _register(client)
+    interview_id = await _create_interview(client)
+    await client.post(f"/api/interviews/{interview_id}/start")
+
+    response = await client.post(
+        f"/api/interviews/{interview_id}/answer",
+        json={"text": "x" * (MAX_ANSWER_CHARS + 1)},
+    )
+    assert response.status_code == 422
 
 
 async def test_practice_interview_full_lifecycle(client):

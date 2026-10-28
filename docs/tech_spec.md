@@ -151,21 +151,26 @@ What actually exists, updated as it changes.
   5 registrations/hour per IP.
 - `POST /api/auth/login` → 200 UserOut + session cookie; 401 invalid;
   429 (+ `Retry-After`) over 5 *failed* attempts per email per 5 min
-  (reset on success) or 20 attempts per IP per 5 min. Limits live in
+  (reset on success) or 20 attempts per IP per 5 min. The per-email lock
+  is checked *before* the password, so a locked email rejects even the
+  correct password until the window ends. Limits live in
   `app/auth/rate_limit.py` — in-memory fixed windows, per process
-  (single-instance app); IP extraction must read X-Forwarded-For once
-  deployed behind a proxy.
+  (single-instance app); per-IP keys use the leftmost X-Forwarded-For entry.
 - `POST /api/auth/logout` → 204, deletes session row, clears cookie
   (idempotent).
 - `GET /api/me` → 200 UserOut; 401 without valid session.
 - `DELETE /api/me` → 204, deletes user (sessions cascade), clears cookie.
 - `PUT /api/me/resume` → 200 UserOut; saves `users.resume_text` (blank/null
-  clears). UserOut now carries `resume_text`; the intake form prefills an
+  clears); 422 over 20,000 chars. UserOut now carries `resume_text`; the intake form prefills an
   untouched resume field from it.
 - `POST /api/interviews` → 201 `{id, status: "ready"}` (mock) or 202
   `{id, status: "preparing"}` (deepseek, background intake+plan); body
   body has exactly one of `jd_text` / `practice_tag` (422 otherwise), plus
-  `resume_text?`, `session_type?`. A `practice_tag` interview is a skill
+  `resume_text?`, `session_type?`. Size caps (422 over, checked before any
+  row or quota use): `jd_text` / `resume_text` 20,000 chars, `practice_tag`
+  100; the answer `text` on `/answer` is capped at 10,000. Every free-text
+  input feeds a paid LLM prompt, so none is unbounded; frontend textareas
+  mirror the caps as `maxLength`. A `practice_tag` interview is a skill
   drill: intake parsing is skipped (profile stays null), the planner gets
   the tag + the user's current average (`generate_practice` on the
   PlanGenerator protocol), and every generated question carries the drilled

@@ -4,6 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
 
+from app.auth.schemas import MAX_RESUME_CHARS
 from app.db.models import SessionType
 from app.schemas import (
     AnswerKey,
@@ -14,12 +15,21 @@ from app.schemas import (
     Scores,
 )
 
+# Every free-text input below ends up in a paid LLM prompt (DeepSeek for
+# intake/interviewer, Sonnet for the judge), so each one gets a size cap.
+# Generous for real use; frontend textareas mirror these numbers.
+MAX_JD_CHARS = 20_000  # long JDs run ~8k chars
+MAX_ANSWER_CHARS = 10_000  # a 5-minute spoken answer is ~4-5k chars
+MAX_PRACTICE_TAG_CHARS = 100  # tags look like "databases/query-optimization"
+
 
 class CreateInterviewIn(BaseModel):
     # exactly one of jd_text / practice_tag: a JD interview or a skill drill
-    jd_text: str | None = Field(default=None, min_length=1)
-    practice_tag: str | None = Field(default=None, min_length=1)
-    resume_text: str | None = None
+    jd_text: str | None = Field(default=None, min_length=1, max_length=MAX_JD_CHARS)
+    practice_tag: str | None = Field(
+        default=None, min_length=1, max_length=MAX_PRACTICE_TAG_CHARS
+    )
+    resume_text: str | None = Field(default=None, max_length=MAX_RESUME_CHARS)
     session_type: SessionType = SessionType.round
 
     @model_validator(mode="after")
@@ -87,7 +97,7 @@ class InterviewStateOut(BaseModel):
 
 
 class AnswerIn(BaseModel):
-    text: str = Field(min_length=1)
+    text: str = Field(min_length=1, max_length=MAX_ANSWER_CHARS)
 
 
 class EvaluationOut(BaseModel):

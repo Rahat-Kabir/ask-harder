@@ -6,6 +6,7 @@ import { QUESTION_TYPE_INTENT } from './qtypeMeta'
 import {
   api,
   ApiError,
+  MAX_ANSWER_CHARS,
   type InterviewState,
   type QuestionType,
   type Turn,
@@ -523,6 +524,7 @@ export function InterviewPage() {
               value={answerText}
               onChange={(event) => setAnswerText(event.target.value)}
               rows={4}
+              maxLength={MAX_ANSWER_CHARS}
               placeholder="Answer as you'd say it out loud in a real interview — be specific and concrete. Vague answers score low."
               disabled={busy}
               required
