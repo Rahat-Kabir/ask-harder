@@ -347,7 +347,11 @@ class InterviewService:
         interview_id: uuid.UUID,
         user: User,
     ) -> InterviewStateOut:
-        interview = await self._load_owned_interview(db, interview_id, user)
+        # locked: a double start would otherwise present Q1 twice and crash
+        # on the duplicate turn sequence
+        interview = await self._load_owned_interview(
+            db, interview_id, user, lock_for_update=True
+        )
         assert_status(interview, InterviewStatus.ready)
 
         questions = await self._load_questions(db, interview.id)
@@ -543,7 +547,11 @@ class InterviewService:
         interview_id: uuid.UUID,
         user: User,
     ) -> InterviewStateOut:
-        interview = await self._load_owned_interview(db, interview_id, user)
+        # locked: two concurrent finishes would both start judging — paying
+        # the judge twice and counting every skill score twice
+        interview = await self._load_owned_interview(
+            db, interview_id, user, lock_for_update=True
+        )
         assert_status(interview, InterviewStatus.in_progress)
 
         questions = await self._load_questions(db, interview.id)
@@ -797,14 +805,20 @@ class InterviewService:
         db: AsyncSession,
         interview_id: uuid.UUID,
         user: User,
+        *,
+        lock_for_update: bool = False,
     ) -> Interview:
-        result = await db.execute(
-            select(Interview).where(
-                Interview.id == interview_id,
-                Interview.user_id == user.id,
-                Interview.deleted_at.is_(None),
-            )
+        query = select(Interview).where(
+            Interview.id == interview_id,
+            Interview.user_id == user.id,
+            Interview.deleted_at.is_(None),
         )
+        if lock_for_update:
+            # SELECT ... FOR UPDATE: a concurrent request on the same
+            # interview waits here until this transaction commits, then
+            # reads the NEW status and fails its status check cleanly
+            query = query.with_for_update()
+        result = await db.execute(query)
         interview = result.scalar_one_or_none()
         if interview is None:
             raise InterviewNotFound()

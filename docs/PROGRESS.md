@@ -603,6 +603,16 @@ medium — see [eval_results.md](eval_results.md).
   `judging` → reload shows transcript → backend restart logs the sweep,
   quota refunded → Finish → report.
 
+- 2026-10-28 — Concurrency fixes: `start` and `finish` lock the interview
+  row (`FOR UPDATE`), so a concurrent duplicate gets 409 instead of a 500
+  (start) or double judging — judge paid twice, skill scores counted twice
+  (finish). `/answer` and `/skip` left unlocked on purpose (a lock would
+  record a duplicate answer instead of failing cleanly; the real fix is an
+  expected-turn-count check, not built). The SSE endpoint closes its DB
+  session before streaming, so open tabs no longer pin pooled connections.
+  3 new tests, each confirmed failing without the fix; browser-verified
+  start → streamed probe → finish → report.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;

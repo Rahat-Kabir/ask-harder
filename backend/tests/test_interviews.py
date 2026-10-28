@@ -1,3 +1,4 @@
+import asyncio
 import uuid
 
 import httpx
@@ -274,6 +275,48 @@ async def test_background_prepare_failure_abandons_and_refunds_quota(client):
     assert await _interview_status(interview_id) == InterviewStatus.abandoned
     quota = await client.get("/api/quota")
     assert quota.json()["used_today"] == 0
+
+
+async def test_concurrent_start_presents_first_question_once(client):
+    # regression: both requests passed the `ready` check and the second
+    # crashed on the duplicate turn sequence (500)
+    await _register(client)
+    interview_id = await _create_interview(client)
+
+    first, second = await asyncio.gather(
+        client.post(f"/api/interviews/{interview_id}/start"),
+        client.post(f"/api/interviews/{interview_id}/start"),
+    )
+    assert sorted([first.status_code, second.status_code]) == [200, 409]
+
+    state = await client.get(f"/api/interviews/{interview_id}")
+    assert len(state.json()["turns"]) == 1
+
+
+async def test_concurrent_finish_judges_once(client):
+    # regression: both requests started judging — the judge was paid twice
+    # and every evaluation (and skill score) was stored twice
+    await _register(client)
+    interview_id = await _create_interview(client, session_type="screen")
+    await client.post(f"/api/interviews/{interview_id}/start")
+    for _ in range(3):
+        await _answer_through_question(client, interview_id)
+
+    first, second = await asyncio.gather(
+        client.post(f"/api/interviews/{interview_id}/finish"),
+        client.post(f"/api/interviews/{interview_id}/finish"),
+    )
+    assert sorted([first.status_code, second.status_code]) == [200, 409]
+
+    async with new_session() as db:
+        evaluation_count = (
+            await db.execute(
+                select(func.count())
+                .select_from(QuestionEvaluation)
+                .where(QuestionEvaluation.interview_id == uuid.UUID(interview_id))
+            )
+        ).scalar_one()
+    assert evaluation_count == 3
 
 
 async def test_oversized_answer_is_422(client):

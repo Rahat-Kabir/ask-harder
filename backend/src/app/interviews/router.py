@@ -208,6 +208,11 @@ async def stream_interview(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Interview not found") from None
     except InvalidTransition as error:
         raise HTTPException(status.HTTP_409_CONFLICT, error.detail) from error
+    # FastAPI only closes the request's session after the response ends —
+    # for this stream, when the tab closes. The stream never touches the DB,
+    # so hand the connection back to the pool now instead of holding it
+    # idle for the whole interview. `interview` keeps its loaded values.
+    await db.close()
 
     async def event_generator() -> AsyncIterator[str]:
         if interview.status == InterviewStatus.complete:

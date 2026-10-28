@@ -203,7 +203,12 @@ What actually exists, updated as it changes.
   (parsed role/stack or drilled tag) — interviews no longer auto-start on
   page load; the user clicks Start explicitly.
 - `POST /api/interviews/{id}/start` → `ready→in_progress`, presents Q1;
-  409 on wrong status.
+  409 on wrong status. `start` and `finish` load the interview with
+  `SELECT … FOR UPDATE`, so a concurrent duplicate waits, then gets 409
+  instead of presenting Q1 twice or judging twice. `/answer` and `/skip`
+  are deliberately not locked: a lock would turn a concurrent duplicate
+  into a silently recorded second answer (today it fails on the unique
+  turn sequence and the data stays clean).
 - `POST /api/interviews/{id}/answer` → body `{text}`; stores answer, may
   probe or advance; 409 if not awaiting answer.
 - `POST /api/interviews/{id}/finish` → marks `in_progress→judging` and
@@ -250,7 +255,9 @@ What actually exists, updated as it changes.
   bridges REST mutations to open streams; complete interviews replay
   `interview_complete` and close. Streamable statuses: `ready`,
   `in_progress`, `judging` (a page reloaded mid-judging waits here for
-  `interview_complete`), `complete`; 409 otherwise.
+  `interview_complete`), `complete`; 409 otherwise. The endpoint closes its
+  DB session before streaming — FastAPI would otherwise keep it (and a
+  pooled connection) until the tab closes.
 - `GET /api/methodology` → public (no auth): committed judge-eval artifacts
   from `backend/evals/results/*.json`, validated against `JudgeResults`,
   real judges sorted before the mock self-test. Rendered by the
