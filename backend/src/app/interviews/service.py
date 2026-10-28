@@ -3,7 +3,7 @@ import logging
 import uuid
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -107,6 +107,41 @@ async def count_interviews_today(db: AsyncSession, user_id: uuid.UUID) -> int:
     ).scalar_one()
 
 
+async def recover_orphaned_interviews(db: AsyncSession) -> None:
+    """Startup sweep: hand back interviews whose background task died with
+    the previous process.
+
+    Preparation and judging run as asyncio tasks inside this process, so a
+    restart (every deploy, Heroku's daily dyno cycle, a crash) kills them
+    mid-flight and leaves the row stuck forever. The app runs as a single
+    instance, so at startup no live task can own a `preparing` or `judging`
+    row — every one is orphaned:
+    - preparing → abandoned: the user got nothing, and abandoned interviews
+      are excluded from the daily quota, so the slot is refunded
+    - judging → in_progress: the answers are intact; the candidate presses
+      Finish again
+    """
+    abandoned = await db.execute(
+        update(Interview)
+        .where(Interview.status == InterviewStatus.preparing)
+        .values(status=InterviewStatus.abandoned)
+    )
+    reopened = await db.execute(
+        update(Interview)
+        .where(Interview.status == InterviewStatus.judging)
+        .values(status=InterviewStatus.in_progress)
+    )
+    await db.commit()
+    if abandoned.rowcount or reopened.rowcount:
+        logger.warning(
+            # ASCII arrows: a non-UTF-8 console prints "→" as "→"
+            "Recovered orphaned interviews: %d preparing -> abandoned, "
+            "%d judging -> in_progress",
+            abandoned.rowcount,
+            reopened.rowcount,
+        )
+
+
 def _skipped_model_answer(points: list[str]) -> str:
     """Build a readable prose sentence from required_points for a skipped question.
     Avoids the raw '; '.join() that reads like debug output."""
@@ -176,6 +211,19 @@ class InterviewService:
             logger.exception(
                 "Background interview preparation failed for %s", interview_id
             )
+            # _prepare_interview only abandons on LlmError; anything else (a
+            # DeepSeek timeout or outage raises openai.APIError, not LlmError)
+            # would leave the interview `preparing` forever, holding a quota
+            # slot. Abandon it instead: the slot is refunded and the client's
+            # readiness poll stops waiting.
+            async with new_session() as db:
+                interview = await db.get(Interview, interview_id)
+                if (
+                    interview is not None
+                    and interview.status == InterviewStatus.preparing
+                ):
+                    interview.status = InterviewStatus.abandoned
+                    await db.commit()
 
     async def _prepare_interview(
         self, db: AsyncSession, interview_id: uuid.UUID
@@ -981,6 +1029,10 @@ class InterviewService:
         if interview.status not in (
             InterviewStatus.ready,
             InterviewStatus.in_progress,
+            # a page reloaded mid-judging waits on this stream's
+            # interview_complete event — refusing it left the page stuck
+            # on "Lost connection" instead of showing the judging state
+            InterviewStatus.judging,
             InterviewStatus.complete,
         ):
             raise InvalidTransition(

@@ -3,6 +3,8 @@ import uuid
 
 import pytest
 
+from app.db.models import Interview, InterviewStatus
+from app.db.session import new_session
 from app.interviews.events import StreamEventName, interview_events
 
 pytestmark = pytest.mark.anyio
@@ -60,6 +62,20 @@ async def test_stream_404_for_other_user(client):
 
     response = await client.get(f"/api/interviews/{interview_id}/stream")
     assert response.status_code == 404
+
+
+async def test_stream_opens_while_judging(client):
+    # regression: a page reloaded mid-judging got 409 here and showed
+    # "Lost connection" instead of waiting for interview_complete
+    await _register(client)
+    interview_id = await _create_interview(client)
+    async with new_session() as db:
+        interview = await db.get(Interview, uuid.UUID(interview_id))
+        interview.status = InterviewStatus.judging
+        await db.commit()
+
+    response = await client.get(f"/api/interviews/{interview_id}/stream")
+    assert response.status_code == 200
 
 
 async def _collect_until_interviewer_done(queue) -> list:

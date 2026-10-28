@@ -57,7 +57,11 @@ CLAUDE.md.
   judging inside `finish()` tripped it in prod. `finish()` marks `judging`,
   commits, returns; the client polls state and listens for the SSE complete
   event. Background failure reverts `judging → in_progress` so finish is
-  retryable. Mock still judges inline, so tests are unchanged.
+  retryable; failed preparation becomes `abandoned` (quota refunded). Tasks
+  die on every dyno restart, so a `lifespan` startup sweep
+  (`recover_orphaned_interviews`) releases stuck `preparing`/`judging` rows —
+  valid only while the app runs as one instance. Mock still judges inline,
+  so tests are unchanged.
 - **The verdict is deterministic Python, not an LLM call**
   (`interviews/verdict.py`) — pass/borderline/no banded by seniority,
   synthesized from stored per-question scores. Reproducible, free, no

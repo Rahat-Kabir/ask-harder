@@ -214,6 +214,15 @@ What actually exists, updated as it changes.
   background judging fails it reverts `judging→in_progress` so finish can be
   retried. Mock judges inline and returns `complete` directly. 409 if not all
   questions answered.
+- **Orphan recovery.** Background prepare/judge tasks live in the web
+  process, so a restart (every deploy, Heroku's daily cycle, a crash) kills
+  them. A FastAPI `lifespan` startup sweep (`recover_orphaned_interviews`)
+  moves every `preparing` row to `abandoned` (quota refunded) and every
+  `judging` row back to `in_progress` (Finish again) — safe only because the
+  app runs as a single instance. Any exception in background preparation
+  (not just `LlmError`; DeepSeek outages raise `openai.APIError`) also
+  abandons the interview. DeepSeek clients use a 120s httpx timeout — the
+  max silence between bytes, not a total cap.
 - `POST /api/interviews/{id}/skip` → records a candidate turn flagged
   `is_skip` ("(skipped)") and advances immediately — no probe. At finish,
   a question whose only candidate turns are skips is judged
@@ -239,7 +248,9 @@ What actually exists, updated as it changes.
   `question`, `token`, `interviewer_done`, `interview_complete`. Probes
   stream one `token` per LLM delta; planned questions chunk text. `InterviewEventBus` (in-process)
   bridges REST mutations to open streams; complete interviews replay
-  `interview_complete` and close.
+  `interview_complete` and close. Streamable statuses: `ready`,
+  `in_progress`, `judging` (a page reloaded mid-judging waits here for
+  `interview_complete`), `complete`; 409 otherwise.
 - `GET /api/methodology` → public (no auth): committed judge-eval artifacts
   from `backend/evals/results/*.json`, validated against `JudgeResults`,
   real judges sorted before the mock self-test. Rendered by the

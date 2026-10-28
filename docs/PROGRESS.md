@@ -590,6 +590,19 @@ medium — see [eval_results.md](eval_results.md).
   100 (422 before any row or quota use); every one feeds a paid LLM prompt.
   Textareas mirror them as `maxLength`. 5 new tests.
 
+- 2026-10-28 — Stuck-interview recovery. Background prepare/judge tasks
+  died on every dyno restart (each push to main) and on DeepSeek network
+  errors (`openai.APIError` isn't `LlmError`), leaving interviews stuck in
+  `preparing` (holding a quota slot) or `judging` (not re-finishable).
+  Fixes: `lifespan` startup sweep (`preparing→abandoned`,
+  `judging→in_progress`); any background-prepare exception abandons; 120s
+  DeepSeek timeout (SDK default was 600s × 3 attempts); stream allowed while
+  `judging`, and a mid-judging reload restores the transcript with a
+  "Judging…" Finish button that resets for retry (was "Lost connection").
+  3 new tests. Browser-verified the full loop on a mock stack: forced
+  `judging` → reload shows transcript → backend restart logs the sweep,
+  quota refunded → Finish → report.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;

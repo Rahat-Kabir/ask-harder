@@ -5,6 +5,7 @@ from openai import AsyncOpenAI
 from pydantic import BaseModel, Field, ValidationError
 
 from app.llm.deepseek_common import (
+    DEEPSEEK_TIMEOUT_SECONDS,
     DeepSeekReasoningEffort,
     DeepSeekThinking,
     deepseek_completion_kwargs,
@@ -66,7 +67,9 @@ class DeepSeekJsonClient:
         thinking: DeepSeekThinking = "enabled",
         reasoning_effort: DeepSeekReasoningEffort = "high",
     ) -> None:
-        self._client = AsyncOpenAI(api_key=api_key, base_url=base_url)
+        self._client = AsyncOpenAI(
+            api_key=api_key, base_url=base_url, timeout=DEEPSEEK_TIMEOUT_SECONDS
+        )
         self._model = model
         self._max_tokens = max_tokens
         self._thinking_kwargs = deepseek_completion_kwargs(

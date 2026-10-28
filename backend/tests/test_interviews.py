@@ -1,16 +1,26 @@
 import uuid
 
+import httpx
+import openai
 import pytest
 from sqlalchemy import func, select
 
 from app.auth.schemas import MAX_RESUME_CHARS
-from app.db.models import Interview, Question, QuestionEvaluation, User
+from app.db.models import (
+    Interview,
+    InterviewStatus,
+    Question,
+    QuestionEvaluation,
+    User,
+)
 from app.db.session import new_session
 from app.interviews.schemas import (
     MAX_ANSWER_CHARS,
     MAX_JD_CHARS,
     MAX_PRACTICE_TAG_CHARS,
 )
+from app.interviews.service import InterviewService, recover_orphaned_interviews
+from app.llm.mock import MockBackend
 from app.skills.service import to_hundred
 
 pytestmark = pytest.mark.anyio
@@ -199,6 +209,69 @@ async def test_oversized_create_inputs_are_422(client):
         assert response.status_code == 422
 
     # rejected before any row is written, so no quota slot was used
+    quota = await client.get("/api/quota")
+    assert quota.json()["used_today"] == 0
+
+
+async def _set_interview_status(interview_id: str, status: InterviewStatus) -> None:
+    # only the backend sets these statuses — simulate them directly
+    async with new_session() as db:
+        interview = await db.get(Interview, uuid.UUID(interview_id))
+        interview.status = status
+        await db.commit()
+
+
+async def _interview_status(interview_id: str) -> InterviewStatus:
+    async with new_session() as db:
+        interview = await db.get(Interview, uuid.UUID(interview_id))
+        return interview.status
+
+
+async def test_startup_sweep_releases_orphaned_interviews(client):
+    # every deploy restarts the dyno, killing in-flight background tasks
+    await _register(client)
+    expected_status_after_sweep = {
+        InterviewStatus.preparing: InterviewStatus.abandoned,
+        InterviewStatus.judging: InterviewStatus.in_progress,
+        # rows no background task owns are left alone
+        InterviewStatus.in_progress: InterviewStatus.in_progress,
+        InterviewStatus.complete: InterviewStatus.complete,
+    }
+    interview_id_by_starting_status: dict[InterviewStatus, str] = {}
+    for starting_status in expected_status_after_sweep:
+        interview_id = await _create_interview(client)
+        await _set_interview_status(interview_id, starting_status)
+        interview_id_by_starting_status[starting_status] = interview_id
+
+    async with new_session() as db:
+        await recover_orphaned_interviews(db)
+
+    for starting_status, expected_status in expected_status_after_sweep.items():
+        interview_id = interview_id_by_starting_status[starting_status]
+        assert await _interview_status(interview_id) == expected_status
+
+
+class _DeepSeekDownBackend(MockBackend):
+    """Intake fails the way a real DeepSeek outage does: with the OpenAI
+    SDK's own exception, which is not an LlmError."""
+
+    async def parse(self, jd_text: str, resume_text: str | None = None):
+        raise openai.APIConnectionError(
+            request=httpx.Request("POST", "https://api.deepseek.com/chat/completions")
+        )
+
+
+async def test_background_prepare_failure_abandons_and_refunds_quota(client):
+    # regression: a provider error escaped the LlmError handler and left the
+    # interview `preparing` forever, holding a quota slot
+    await _register(client)
+    interview_id = await _create_interview(client)
+    await _set_interview_status(interview_id, InterviewStatus.preparing)
+
+    service = InterviewService(llm=_DeepSeekDownBackend())
+    await service._prepare_interview_background(uuid.UUID(interview_id))
+
+    assert await _interview_status(interview_id) == InterviewStatus.abandoned
     quota = await client.get("/api/quota")
     assert quota.json()["used_today"] == 0
 

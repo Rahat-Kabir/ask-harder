@@ -298,7 +298,15 @@ export function InterviewPage() {
           return
         }
         if (state.status === 'judging') {
-          // reloaded mid-judging: wait for the server to finish, then report
+          // reloaded mid-judging: show the finished transcript with the
+          // Finish button in its "Judging…" state while we wait. If judging
+          // fails (or a server restart hands the interview back), the
+          // button turns back into "Finish interview" so the candidate can
+          // retry instead of facing an empty page.
+          setMessages(turnsToMessages(state.turns))
+          setProgress(progressFromState(state))
+          setQuestionType(state.current_question?.qtype ?? null)
+          setCanSubmitFinish(true)
           setBusy(true)
           try {
             await api.waitUntilJudged(id)
