@@ -18,6 +18,7 @@ CLAUDE.md.
   short. Read before claiming what's built or what's next.
 - `docs/tech_spec.md` — as-built spec. Update when architecture, schema, or contracts change.
 - `docs/testing.md` — verification workflow. Update when it changes.
+- `docs/performance.md` — local report benchmark, comparison rules, and measured history.
 - `docs/eval_results.md` — real-judge eval sessions: results, decisions,
   caveats. Append a section per paid run.
 - `README.md` — update when setup, commands, or user-visible features change.
@@ -93,6 +94,8 @@ CLAUDE.md.
 | `backend/src/app/llm/prompts.py` | 135 | All prompts, stable-prefix for caching — ruff E501-exempt |
 | `backend/src/app/llm/mock.py` | 210 | Deterministic mock of all four LLM protocols |
 | `backend/src/app/llm/judge.py` + `judge_common.py` | 100+70 | Sonnet judge + evidence-grounding validation |
+| `backend/src/app/llm/judge_timing.py` | 40 | Correlated run, question, and provider-attempt timing logs |
+| `backend/scripts/benchmark_report.py` | 265 | Local signed-in report benchmark and before/after comparison |
 | `backend/src/app/skills/service.py` | 310 | Finish-time skill aggregation, trend, `to_hundred` |
 | `backend/src/app/db/models.py` | 200 | All tables (User, Interview, Question, Turn, …) |
 | `backend/evals/conftest.py` | 210 | Eval harness: fixture loading, judge selection, results writer |
@@ -110,6 +113,7 @@ docker compose up -d postgres
 # backend (from backend/)
 uv run uvicorn app.main:app --reload    # dev server :8000
 uv run pytest tests                     # needs postgres; runs against askharder_test DB
+uv run python scripts/benchmark_report.py  # local report benchmark; see docs/performance.md
 uv run ruff check src tests evals       # lint (--fix for autofixes)
 uv run ruff format src tests evals
 uv run alembic upgrade head             # after editing db/models.py: revision --autogenerate first

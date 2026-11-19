@@ -6,6 +6,7 @@ from app.llm.judge_common import (
     filter_missing_points,
     validate_evidence,
 )
+from app.llm.judge_timing import time_judging_stage
 from app.llm.prompts import JUDGE_SYSTEM_PROMPT
 from app.schemas import Evaluation, PlannedQuestion, Turn
 
@@ -55,7 +56,13 @@ class AnthropicJudge:
             if attempt > 0:
                 prompt += _GROUNDING_RETRY_NOTE
 
-            evaluation = await self._call_parse(prompt)
+            with time_judging_stage(
+                "provider_attempt",
+                position=question.position,
+                attempt=attempt + 1,
+                reason="initial" if attempt == 0 else "grounding_retry",
+            ):
+                evaluation = await self._call_parse(prompt)
 
             validated_evidence, all_grounded = validate_evidence(
                 turns, evaluation.evidence

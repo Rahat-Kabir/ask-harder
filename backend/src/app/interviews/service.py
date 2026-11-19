@@ -48,6 +48,7 @@ from app.llm.composite import CompositeLlmBackend
 from app.llm.errors import LlmError
 from app.llm.factory import build_llm_backend
 from app.llm.interviewer_common import iter_text_chunks, parse_interviewer_output
+from app.llm.judge_timing import time_judging_run, time_judging_stage
 from app.llm.mock import MockBackend
 from app.schemas import (
     AnswerKey,
@@ -597,6 +598,12 @@ class InterviewService:
                     await db.commit()
 
     async def _judge_interview(self, db: AsyncSession, interview_id: uuid.UUID) -> None:
+        with time_judging_run(interview_id):
+            await self._evaluate_and_store_interview(db, interview_id)
+
+    async def _evaluate_and_store_interview(
+        self, db: AsyncSession, interview_id: uuid.UUID
+    ) -> None:
         interview = await db.get(Interview, interview_id)
         if interview is None or interview.status != InterviewStatus.judging:
             return
@@ -610,12 +617,20 @@ class InterviewService:
             )
             if fully_skipped:
                 # nothing to judge — floor scores, no LLM call
-                evaluation = self._skipped_evaluation(question)
                 judge_model = "skipped"
+                with time_judging_stage(
+                    "question", position=question.position, model=judge_model
+                ):
+                    evaluation = self._skipped_evaluation(question)
             else:
                 planned = self._to_planned_question(question)
-                evaluation = await self.llm.evaluate(planned, self._to_llm_turns(turns))
                 judge_model = self._judge_model_name()
+                with time_judging_stage(
+                    "question", position=question.position, model=judge_model
+                ):
+                    evaluation = await self.llm.evaluate(
+                        planned, self._to_llm_turns(turns)
+                    )
             db.add(
                 QuestionEvaluation(
                     interview_id=interview.id,

@@ -293,7 +293,7 @@ async def test_concurrent_start_presents_first_question_once(client):
     assert len(state.json()["turns"]) == 1
 
 
-async def test_concurrent_finish_judges_once(client):
+async def test_concurrent_finish_judges_once(client, judging_logs):
     # regression: both requests started judging — the judge was paid twice
     # and every evaluation (and skill score) was stored twice
     await _register(client)
@@ -317,6 +317,18 @@ async def test_concurrent_finish_judges_once(client):
             )
         ).scalar_one()
     assert evaluation_count == 3
+    completed_stages = [
+        message
+        for message in judging_logs.messages
+        if f"interview_id={interview_id}" in message
+        and "event=end outcome=ok" in message
+    ]
+    assert sum("stage=run " in message for message in completed_stages) == 1
+    for position in range(3):
+        assert any(
+            "stage=question " in message and f"position={position} " in message
+            for message in completed_stages
+        )
 
 
 async def test_oversized_answer_is_422(client):

@@ -294,3 +294,11 @@ npm install
 npm run dev                               # http://localhost:5173
 npm run build                             # type-check + production build
 ```
+
+## Judging timing logs
+
+Filter the API server logs by `judging stage=` and `interview_id`. Each stage emits start and end records.
+Run duration includes database work through completion publication. Question duration covers scoring,
+including the deterministic skipped-question path. Each Anthropic SDK call records its question position,
+application attempt number, and reason. Any internal SDK transport retries are included in that call's
+elapsed time. End records carry elapsed milliseconds and an outcome. Only timing and identifiers are logged.

@@ -160,6 +160,8 @@ uv run pytest evals
 ```
 
 How the test DB, fixtures, and eval suites work: [docs/testing.md](docs/testing.md).
+To compare report latency before and after a feature, run the
+[local performance benchmark](docs/performance.md).
 
 ### Explore the database
 

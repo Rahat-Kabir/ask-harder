@@ -107,7 +107,7 @@ async def test_anthropic_judge_returns_grounded_evaluation():
     assert client.messages.last_kwargs["thinking"] == {"type": "adaptive"}
 
 
-async def test_anthropic_judge_retries_on_bad_grounding():
+async def test_anthropic_judge_retries_on_bad_grounding(judging_logs):
     client = _FakeAnthropicClient([BAD_GROUNDING_EVALUATION, FIXED_EVALUATION])
     judge = AnthropicJudge(
         api_key="test-key",
@@ -121,6 +121,18 @@ async def test_anthropic_judge_retries_on_bad_grounding():
     assert client.messages._calls == 2
     assert len(evaluation.evidence) == 1
     assert "token bucket" in evaluation.evidence[0].quote
+    attempt_logs = [
+        message for message in judging_logs.messages if "event=end" in message
+    ]
+    assert len(attempt_logs) == 2
+    assert "attempt=1 reason=initial" in attempt_logs[0]
+    assert "attempt=2 reason=grounding_retry" in attempt_logs[1]
+    for message in attempt_logs:
+        assert f"position={QUESTION.position}" in message
+        assert "elapsed_ms=" in message
+    for message in judging_logs.messages:
+        assert QUESTION.text not in message
+        assert all(turn.content not in message for turn in TURNS)
 
 
 async def test_anthropic_judge_strips_invalid_evidence_after_retry():

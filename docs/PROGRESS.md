@@ -613,6 +613,11 @@ medium — see [eval_results.md](eval_results.md).
   3 new tests, each confirmed failing without the fix; browser-verified
   start → streamed probe → finish → report.
 
+### Judging latency instrumentation
+
+- Judging logs now correlate run, question, and provider-attempt durations by interview ID.
+  Grounding retries have their own attempt number. Timings include failed attempts and omit interview content.
+
 ## Known limitations
 
 - FastAPI TestClient emits a Starlette deprecation warning about `httpx2`;

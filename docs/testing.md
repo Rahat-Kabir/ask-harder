@@ -80,6 +80,10 @@ $env:EVAL_JUDGE='anthropic'; uv run pytest evals   # real Sonnet judge (~30 paid
   the committed artifact the `/methodology` page will render.
 - The model comparison (`run_comparison.py`) is not built yet.
 
+## Performance
+
+For signed-in report latency, follow the [local before/after benchmark](performance.md).
+
 ## IDE setup
 
 If Pyright reports false "import could not be resolved" warnings, set the

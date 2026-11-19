@@ -6,6 +6,7 @@ app.config reads DATABASE_URL at import time, and real env vars beat the
 """
 
 import asyncio
+import logging
 import os
 from pathlib import Path
 
@@ -88,6 +89,15 @@ def reset_rate_limits():
     clear_rate_limits()
     yield
     clear_rate_limits()
+
+
+@pytest.fixture
+def judging_logs(caplog, monkeypatch):
+    # The in-process Alembic upgrade disables existing application loggers.
+    logger = logging.getLogger("uvicorn.error.askharder.judging")
+    monkeypatch.setattr(logger, "disabled", False)
+    caplog.set_level(logging.INFO, logger=logger.name)
+    return caplog
 
 
 @pytest.fixture()
